@@ -12,7 +12,7 @@ end
 
 gem "beaker-hostgenerator", *vanagon_location_for(ENV['BEAKER_HOSTGENERATOR_VERSION'] || "~> 0.7")
 gem "beaker-abs", *vanagon_location_for(ENV['BEAKER_ABS_VERSION'] || "~> 0.1")
-gem 'vanagon', *vanagon_location_for(ENV['VANAGON_LOCATION'] || '~> 0.15')
-gem 'packaging', *vanagon_location_for(ENV['PACKAGING_LOCATION'] || '~> 0.99')
+gem 'vanagon', *vanagon_location_for(ENV['VANAGON_LOCATION'] || '~> 0.13.0')
+gem 'packaging', '0.6.0', :github => 'puppetlabs/packaging', :tag => '0.6.0'
 gem 'json'
 gem 'rake'

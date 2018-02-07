@@ -1,0 +1,16 @@
+{
+  "packaging_type": {
+    "vanagon": "0.13.0"
+  },
+  "version": "0.16.0",
+  "components": {
+    "bolt": {
+      "version": "0.16.0",
+      "ref": "845f89018859a793c4d24a3c4537c7d3da521a59"
+    },
+    "rubygem-addressable": {
+      "version": "2.4.0"
+    }
+  },
+  "build_time": "2018-02-07T10:12:24-08:00"
+}
