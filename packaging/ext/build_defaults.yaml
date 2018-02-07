@@ -1,0 +1,15 @@
+---
+project: 'bolt'
+gpg_name: 'info@puppetlabs.com'
+gpg_key: '7F438280EF8D349F'
+deb_targets: 'trusty-amd64 xenial-amd64 jessie-amd64 wheezy-amd64'
+rpm_targets: 'el-6-x86_64 el-7-x86_64 sles-12-x86_64'
+sign_tar: FALSE
+vanagon_project: TRUE
+apt_repo_name: 'puppet5'
+yum_repo_name: 'puppet5'
+repo_name: 'puppet5'
+nonfinal_repo_name: 'puppet5-nightly'
+repo_link_target: 'puppet'
+nonfinal_repo_link_target: 'puppet-nightly'
+build_tar: FALSE
