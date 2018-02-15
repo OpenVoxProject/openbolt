@@ -1,0 +1,7 @@
+vendor/*
+output/*
+.bundle
+Gemfile.lock
+vanagon_hosts.log
+ext/packaging/*
+ext/build_metadata.json
