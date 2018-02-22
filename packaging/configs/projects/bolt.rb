@@ -10,6 +10,7 @@ project "bolt" do |proj|
   proj.identifier "com.puppetlabs"
 
   proj.setting(:bindir, "/opt/puppetlabs/puppet/bin")
+  proj.setting(:link_bindir, "/opt/puppetlabs/bin")
   proj.setting(:gem_path, "/opt/puppetlabs/puppet/lib/ruby/gems/2.4.0")
   proj.setting(:gem_install, "#{proj.bindir}/gem install --no-rdoc --no-ri --bindir=#{proj.bindir} --local --force ")
   proj.setting(:artifactory_url, "https://artifactory.delivery.puppetlabs.net/artifactory")
@@ -45,5 +46,6 @@ project "bolt" do |proj|
   proj.component 'bolt'
 
   proj.directory proj.bindir
+  proj.directory proj.link_bindir
   proj.directory proj.gem_path
 end
