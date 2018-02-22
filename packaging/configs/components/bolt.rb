@@ -5,10 +5,12 @@ component "bolt" do |pkg, settings, platform|
   pkg.requires "puppet-agent"
 
   pkg.build do
-    ["/opt/puppetlabs/puppet/bin/gem build bolt.gemspec"]
+    ["#{settings[:bindir]}/gem build bolt.gemspec"]
   end
 
   pkg.install do
     ["#{settings[:gem_install]} bolt-*.gem"]
   end
+
+  pkg.link "#{settings[:bindir]}/bolt", "#{settings[:link_bindir]}/bolt"
 end
