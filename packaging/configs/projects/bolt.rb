@@ -2,7 +2,7 @@ project "bolt" do |proj|
   platform = proj.get_platform
 
   proj.description 'Stand alone task runner'
-  proj.version '0.16.0'
+  proj.version '0.17.0'
   proj.license 'PL Commercial'
   proj.vendor "Puppet Labs <info@puppetlabs.com>"
   proj.homepage "https://www.puppetlabs.com"

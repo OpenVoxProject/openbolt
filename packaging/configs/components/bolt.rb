@@ -1,5 +1,5 @@
 component "bolt" do |pkg, settings, platform|
-  pkg.version '0.16.0'
+  pkg.version '0.17.0'
   pkg.load_from_json('configs/components/bolt.json')
 
   # TODO can we set up internal gem mirror and install from there instead, 
