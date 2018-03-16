@@ -1,7 +1,7 @@
-component "rubygem-winrm-fs" do |pkg, settings, platform|
+component "rubygem-public_suffix" do |pkg, settings, platform|
   gemname = pkg.get_name.gsub('rubygem-', '')
-  pkg.version "1.2.0"
-  pkg.md5sum "623202e7df96e1bc13b82c7cda1a42fb"
+  pkg.version "3.0.2"
+  pkg.md5sum "ccf76d402599538452c1166d97f874a6"
   pkg.url "#{settings[:build_source]}/#{gemname}-#{pkg.get_version}.gem"
 
   pkg.build_requires "puppet-agent"
