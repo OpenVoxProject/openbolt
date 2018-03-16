@@ -17,6 +17,7 @@ project "bolt" do |proj|
   proj.setting(:build_source, "#{proj.artifactory_url}/generic/buildsources")
 
   proj.component 'rubygem-addressable'
+  proj.component 'rubygem-public_suffix'
   proj.component 'rubygem-concurrent-ruby'
   proj.component 'rubygem-net-scp'
   proj.component 'rubygem-net-ssh'
