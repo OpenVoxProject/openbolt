@@ -3,8 +3,6 @@ component "bolt" do |pkg, settings, platform|
 
   # We need ruby to install r10k
   pkg.build_requires "ruby"
-  pkg.build_requires "puppet-agent"
-  pkg.requires "puppet-agent"
 
   # We need to run r10k before building the gem, but we don't want to
   # include it in the package, so we install with the system ruby.
@@ -27,7 +25,7 @@ component "bolt" do |pkg, settings, platform|
   end
 
   pkg.build do
-    ["#{settings[:bindir]}/gem build bolt.gemspec"]
+    ["#{settings[:host_gem]} build bolt.gemspec"]
   end
 
   pkg.install do
