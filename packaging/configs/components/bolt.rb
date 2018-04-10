@@ -32,5 +32,8 @@ component "bolt" do |pkg, settings, platform|
     ["#{settings[:gem_install]} bolt-*.gem"]
   end
 
-  pkg.link "#{settings[:bindir]}/bolt", "#{settings[:link_bindir]}/bolt"
+  pkg.add_source("file://resources/files/posix/bolt_env_wrapper", sum: "644f069f275f44af277b20a2d0d279c6")
+  bolt_exe = File.join(settings[:link_bindir], 'bolt')
+  pkg.install_file "../bolt_env_wrapper", bolt_exe, mode: "0755"
+  pkg.link bolt_exe, File.join(settings[:main_bin], 'bolt')
 end

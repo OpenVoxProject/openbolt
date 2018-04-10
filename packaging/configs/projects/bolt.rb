@@ -15,6 +15,7 @@ project "bolt" do |proj|
   proj.version_from_git
 
   proj.setting(:link_bindir, "/opt/puppetlabs/bin")
+  proj.setting(:main_bin, "/usr/local/bin")
 
   proj.component "bolt-runtime"
 
@@ -39,7 +40,6 @@ project "bolt" do |proj|
   proj.component 'rubygem-rubyzip'
   proj.component 'rubygem-CFPropertyList'
   proj.component 'bolt'
-  proj.component 'shellpath'
 
   proj.directory proj.prefix
   proj.directory proj.link_bindir
