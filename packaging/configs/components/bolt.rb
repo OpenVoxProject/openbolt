@@ -5,23 +5,13 @@ component "bolt" do |pkg, settings, platform|
   pkg.build_requires "ruby"
 
   # We need to run r10k before building the gem, but we don't want to
-  # include it in the package, so we install with the system ruby.
-  # Except on EL 6, where the system ruby is too old to install r10k.
-  if (platform.is_el? && platform.os_version == '6') || platform.is_windows?
-    pkg.build do
-      [ "#{settings[:host_gem]} install r10k --no-ri --no-rdoc --no-format-executable",
-        "#{settings[:bindir]}/r10k puppetfile install --verbose" ]
-    end
-  else
-    if platform.is_sles?
-      r10k_bin = '/usr/bin/r10k'
-    else
-      r10k_bin = '/usr/local/bin/r10k'
-    end
-    pkg.build do
-      [ "/usr/bin/gem install r10k --no-ri --no-rdoc --no-format-executable",
-        "#{r10k_bin} puppetfile install --verbose" ]
-    end
+  # include it in the package, so we install to a different gem path.
+  r10k_path = '../local-r10k'
+  gem_source = ENV['GEM_SOURCE'] ? " --source #{ENV['GEM_SOURCE']}" : ''
+  pkg.build do
+    [ "mkdir -p #{r10k_path}",
+      "#{settings[:host_gem]} install r10k --no-ri --no-rdoc --no-format-executable --install-dir #{r10k_path}#{gem_source}",
+      "env GEM_PATH=#{r10k_path} #{r10k_path}/bin/r10k puppetfile install --verbose" ]
   end
 
   pkg.build do
