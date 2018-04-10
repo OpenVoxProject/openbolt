@@ -25,7 +25,7 @@ component 'bolt-runtime' do |pkg, settings, platform|
     # of these directories instead:
     install_command = [
       "tar -xzf #{tarball_name}",
-      "for d in opt var private; do rsync -ka \"$${d}/\" \"/$${d}/\"; done"
+      'rsync -ka opt/ /opt/'
     ]
   else
     install_command = ["gunzip -c #{tarball_name} | #{platform.tar} -k -C / -xf -"]

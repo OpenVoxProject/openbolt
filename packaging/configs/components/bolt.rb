@@ -35,5 +35,11 @@ component "bolt" do |pkg, settings, platform|
   pkg.add_source("file://resources/files/posix/bolt_env_wrapper", sum: "644f069f275f44af277b20a2d0d279c6")
   bolt_exe = File.join(settings[:link_bindir], 'bolt')
   pkg.install_file "../bolt_env_wrapper", bolt_exe, mode: "0755"
-  pkg.link bolt_exe, File.join(settings[:main_bin], 'bolt')
+
+  if platform.is_macos?
+    pkg.add_source 'file://resources/files/paths.d/50-bolt', sum: '4abf75aebbbfbbefc4fe0173c57ed0b2'
+    pkg.install_file('../50-bolt', '/etc/paths.d/50-bolt')
+  else
+    pkg.link bolt_exe, File.join(settings[:main_bin], 'bolt')
+  end
 end
