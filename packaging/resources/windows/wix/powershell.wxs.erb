@@ -1,0 +1,27 @@
+<?xml version='1.0' encoding='windows-1252'?>
+<Wix xmlns='http://schemas.microsoft.com/wix/2006/wi' xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
+  <!-- Puppet Bolt Powershell Module -->
+  <Fragment>
+    <ComponentGroup Id="PowerShellModuleComponentGroup">
+      <Component
+        Id="PuppetBolt.psd1"
+        Directory="PowerShellBoltModuleDir"
+        Guid="AB7C3449-AFE5-4786-B4EC-C4A6C501BE11">
+        <File
+          Id="PuppetBolt.psd1"
+          Source="$(var.AppSourcePath)\share\PowerShell\Modules\PuppetBolt\PuppetBolt.psd1"
+          KeyPath="yes" />
+      </Component>
+
+      <Component
+        Id="PuppetBolt.psm1"
+        Directory="PowerShellBoltModuleDir"
+        Guid="FEEF56D9-A6DD-42F2-B7E7-A6E3A176A37C">
+        <File
+          Id="PuppetBolt.psm1"
+          Source="$(var.AppSourcePath)\share\PowerShell\Modules\PuppetBolt\PuppetBolt.psm1"
+          KeyPath="yes" />
+      </Component>
+    </ComponentGroup>
+  </Fragment>
+</Wix>

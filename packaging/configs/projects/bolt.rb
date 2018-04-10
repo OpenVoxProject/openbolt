@@ -14,6 +14,29 @@ project "bolt" do |proj|
   proj.identifier "com.puppetlabs"
   proj.version_from_git
 
+  if platform.is_windows?
+    # WiX config
+    proj.setting(:company_name, "Puppet, Inc.")
+    proj.setting(:pl_company_name, "Puppet Labs")
+    proj.setting(:company_id, "PuppetLabs")
+    proj.setting(:product_id, "Bolt")
+    proj.setting(:shortcut_name, "Puppet Bolt")
+    proj.setting(:upgrade_code, "5F2FFC54-3620-429C-B90E-D16E0348A1E7")
+
+    proj.setting(:product_name, "Puppet Bolt")
+    proj.setting(:base_dir, "ProgramFiles64Folder")
+
+    proj.setting(:links, {
+      :HelpLink => "http://puppet.com/services/customer-support",
+      :CommunityLink => "https://puppet.com/community",
+      :ForgeLink => "http://forge.puppet.com",
+      :NextStepLink => "https://puppet.com/docs/bolt/",
+      :ManualLink => "https://puppet.com/docs/bolt/",
+    })
+
+    proj.setting(:LicenseRTF, "wix/license/LICENSE.rtf")
+  end
+
   proj.setting(:link_bindir, "/opt/puppetlabs/bin")
   proj.setting(:main_bin, "/usr/local/bin")
 
