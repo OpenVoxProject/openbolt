@@ -1,4 +1,4 @@
-project "bolt" do |proj|
+project "puppet-bolt" do |proj|
   # bolt inherits most build settings from puppetlabs/puppet-runtime:
   # - Modifications to global settings like flags and target directories should be made in puppet-runtime.
   # - Settings included in this file should apply only to local components in this repository.
