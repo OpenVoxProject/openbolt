@@ -1,5 +1,5 @@
 ---
-project: 'bolt'
+project: 'puppet-bolt'
 gpg_name: 'info@puppetlabs.com'
 gpg_key: '7F438280EF8D349F'
 sign_tar: FALSE
