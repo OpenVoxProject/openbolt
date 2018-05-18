@@ -1,5 +1,7 @@
 component 'bolt-runtime' do |pkg, settings, platform|
-  runtime_details = JSON.parse(File.read('configs/components/bolt-runtime.json'))
+  # The JSON name intentionally differs from the component, because automation to update
+  # the puppet-runtime ref relies on the puppet-runtime name.
+  runtime_details = JSON.parse(File.read('configs/components/puppet-runtime.json'))
   runtime_tag = runtime_details['ref'][/refs\/tags\/(.*)/, 1]
   raise "Unable to determine a tag for bolt-runtime (given #{runtime_details['ref']})" unless runtime_tag
   pkg.version runtime_tag
