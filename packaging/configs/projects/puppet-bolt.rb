@@ -5,7 +5,7 @@ project "puppet-bolt" do |proj|
   runtime_details = JSON.parse(File.read(File.join(File.dirname(__FILE__), '..', 'components/puppet-runtime.json')))
   runtime_tag = runtime_details['ref'][/refs\/tags\/(.*)/, 1]
   raise "Unable to determine a tag for bolt-runtime (given #{runtime_details['ref']})" unless runtime_tag
-  proj.inherit_settings 'bolt-runtime', 'git://github.com/puppetlabs/puppet-runtime', runtime_tag
+  proj.inherit_settings 'bolt-runtime', runtime_details['url'], runtime_tag
 
   proj.description 'Stand alone task runner'
   proj.license "See components"
