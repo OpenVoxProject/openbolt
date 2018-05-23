@@ -6,7 +6,7 @@
 
 ```
 bundle install
-bundle exec build bolt el-7-x86_64
+bundle exec build puppet-bolt el-7-x86_64
 ```
 
 If the packaging works, it will place a package in the `output/` folder.
