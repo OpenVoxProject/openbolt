@@ -51,6 +51,7 @@ project "puppet-bolt" do |proj|
   proj.component 'rubygem-unicode-display_width'
   proj.component 'rubygem-winrm'
   proj.component 'rubygem-gssapi'
+  proj.component 'rubygem-net-ssh-krb'
   proj.component 'rubygem-httpclient'
   proj.component 'rubygem-rubyntlm'
   proj.component 'rubygem-logging'
