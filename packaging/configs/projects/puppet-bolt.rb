@@ -8,10 +8,6 @@ project "puppet-bolt" do |proj|
   proj.inherit_settings 'bolt-runtime', runtime_details['url'], runtime_tag
 
   proj.description 'Stand alone task runner'
-  proj.license "See components"
-  proj.vendor "Puppet, Inc.  <info@puppet.com>"
-  proj.homepage "https://www.puppet.com"
-  proj.identifier "com.puppetlabs"
   proj.version_from_git
 
   if platform.is_windows?
@@ -22,10 +18,8 @@ project "puppet-bolt" do |proj|
     proj.setting(:product_id, "Bolt")
     proj.setting(:shortcut_name, "Puppet Bolt")
     proj.setting(:upgrade_code, "5F2FFC54-3620-429C-B90E-D16E0348A1E7")
-
     proj.setting(:product_name, "Puppet Bolt")
     proj.setting(:base_dir, "ProgramFiles64Folder")
-
     proj.setting(:links, {
       :HelpLink => "http://puppet.com/services/customer-support",
       :CommunityLink => "https://puppet.com/community",
@@ -33,7 +27,6 @@ project "puppet-bolt" do |proj|
       :NextStepLink => "https://puppet.com/docs/bolt/",
       :ManualLink => "https://puppet.com/docs/bolt/",
     })
-
     proj.setting(:LicenseRTF, "wix/license/LICENSE.rtf")
   end
 
@@ -41,29 +34,8 @@ project "puppet-bolt" do |proj|
   proj.setting(:main_bin, "/usr/local/bin")
 
   proj.component "bolt-runtime"
-
-  proj.component 'rubygem-addressable'
-  proj.component 'rubygem-public_suffix'
-  proj.component 'rubygem-concurrent-ruby'
-  proj.component 'rubygem-net-scp'
-  proj.component 'rubygem-orchestrator_client'
-  proj.component 'rubygem-terminal-table'
-  proj.component 'rubygem-unicode-display_width'
-  proj.component 'rubygem-winrm'
-  proj.component 'rubygem-gssapi'
-  proj.component 'rubygem-net-ssh-krb'
-  proj.component 'rubygem-httpclient'
-  proj.component 'rubygem-rubyntlm'
-  proj.component 'rubygem-logging'
-  proj.component 'rubygem-little-plugger'
-  proj.component 'rubygem-nori'
-  proj.component 'rubygem-gyoku'
-  proj.component 'rubygem-builder'
-  proj.component 'rubygem-erubis'
-  proj.component 'rubygem-winrm-fs'
-  proj.component 'rubygem-rubyzip'
-  proj.component 'rubygem-CFPropertyList'
-  proj.component 'bolt'
+  proj.instance_eval File.read('configs/projects/bolt-shared.rb')
+  proj.component "bolt"
 
   proj.directory proj.prefix
   proj.directory proj.link_bindir
