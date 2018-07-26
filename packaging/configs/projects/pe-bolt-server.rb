@@ -16,6 +16,7 @@ project "pe-bolt-server" do |proj|
   proj.setting(:artifactory_url, "https://artifactory.delivery.puppetlabs.net/artifactory")
   proj.setting(:buildsources_url, "#{proj.artifactory_url}/generic/buildsources")
 
+  proj.component 'rubygem-gettext-setup'
   proj.instance_eval File.read('configs/projects/bolt-shared.rb')
   proj.component 'pe-bolt-server'
 
