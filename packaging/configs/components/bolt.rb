@@ -1,17 +1,11 @@
 component "bolt" do |pkg, settings, platform|
   pkg.load_from_json('configs/components/bolt.json')
 
-  # We need ruby to install r10k
-  pkg.build_requires "ruby"
+  pkg.build_requires 'rubygem-r10k'
 
-  # We need to run r10k before building the gem, but we don't want to
-  # include it in the package, so we install to a different gem path.
-  r10k_path = '../local-r10k'
-  gem_source = ENV['GEM_SOURCE'] ? " --source #{ENV['GEM_SOURCE']}" : ''
+  # We need to run r10k before building the gem.
   pkg.build do
-    [ "mkdir -p #{r10k_path}",
-      "#{settings[:host_gem]} install r10k --no-ri --no-rdoc --no-format-executable --install-dir #{r10k_path}#{gem_source}",
-      "env GEM_PATH=#{r10k_path} #{r10k_path}/bin/r10k puppetfile install --verbose" ]
+    ["#{settings[:ruby_bindir]}/r10k puppetfile install --verbose" ]
   end
 
   pkg.build do
