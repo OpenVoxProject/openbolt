@@ -1,4 +1,5 @@
 component "pe-bolt-server" do |pkg, settings, platform|
+  pkg.environment "GEM_HOME", settings[:gem_home]
   pkg.load_from_json('configs/components/pe-bolt-server.json')
   pkg.build_requires 'puppet-agent'
 
@@ -9,9 +10,6 @@ component "pe-bolt-server" do |pkg, settings, platform|
   pkg.install do
     ["#{settings[:gem_install]} bolt-*.gem"]
   end
-
-  boltserver_exe = File.join(settings[:link_bindir], 'bolt-server')
-  pkg.link boltserver_exe, File.join(settings[:main_bin], 'bolt-server')
 
   case platform.servicetype
   when "systemd"
