@@ -5,7 +5,7 @@ project "pe-bolt-server" do |proj|
   proj.version_from_git
 
   proj.setting(:prefix, "/opt/puppetlabs/server/apps/bolt-server")
-  proj.setting(:sysconfdir, "/etc/puppetlabs/bolt-server")
+  proj.setting(:sysconfdir, "/etc/puppetlabs/bolt-server/conf.d")
   proj.setting(:logdir, "/var/log/puppetlabs/bolt-server")
   proj.setting(:bindir, "#{proj.prefix}/bin")
   proj.setting(:libdir, "#{proj.prefix}/lib")
