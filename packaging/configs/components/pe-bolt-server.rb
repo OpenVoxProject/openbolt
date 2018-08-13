@@ -18,9 +18,7 @@ component "pe-bolt-server" do |pkg, settings, platform|
   when "systemd"
     pkg.install_service "ext/systemd/pe-bolt-server.service"
   when "sysv"
-    if platform.is_deb?
-      pkg.install_service "ext/debian/pe-bolt-server.init", "ext/debian/pe-bolt-server.default"
-    elsif platform.is_rpm?
+    if platform.is_rpm?
       pkg.install_service "ext/redhat/pe-bolt-server.init", "ext/redhat/pe-bolt-server.sysconfig"
     else
       fail "This OS is not supported. See https://puppet.com/docs/pe/latest/supported_operating_systems.html#puppet-master-platforms for supported platforms"
