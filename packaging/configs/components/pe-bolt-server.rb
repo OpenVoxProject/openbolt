@@ -17,18 +17,18 @@ component "pe-bolt-server" do |pkg, settings, platform|
   case platform.servicetype
   when "systemd"
     pkg.install_service "ext/systemd/pe-bolt-server.service"
-    pkg.add_postinstall_action ["install"], ["systemctl daemon-reload && service pe-bolt-server start"]
   when "sysv"
-    if platform.is_deb?
-      pkg.install_service "ext/debian/pe-bolt-server.init", "ext/debian/pe-bolt-server.default"
-      pkg.add_postinstall_action ["install"], ["systemctl daemon-reload && service pe-bolt-server start"]
-    elsif platform.is_rpm?
+    if platform.is_rpm?
       pkg.install_service "ext/redhat/pe-bolt-server.init", "ext/redhat/pe-bolt-server.sysconfig"
-      pkg.add_postinstall_action ["install"], ["systemctl daemon-reload && service pe-bolt-server start"]
     else
       fail "This OS is not supported. See https://puppet.com/docs/pe/latest/supported_operating_systems.html#puppet-master-platforms for supported platforms"
     end
-    else
-      fail "need to know where to put service files"
-    end
+  else
+    fail "need to know where to put service files"
+  end
+
+  pkg.add_postinstall_action ["install", "upgrade"], [
+    "/bin/chown -R #{settings[:pe_bolt_user]}:#{settings[:pe_bolt_user]} #{settings[:homedir]}"
+  ]
+  pkg.add_postinstall_action ["install"], ["systemctl daemon-reload && service pe-bolt-server start"]
 end

@@ -5,15 +5,23 @@ project "pe-bolt-server" do |proj|
   proj.version_from_git
 
   proj.setting(:prefix, "/opt/puppetlabs/server/apps/bolt-server")
+  proj.setting(:pe_bolt_user, "pe-bolt-server")
   proj.setting(:sysconfdir, "/etc/puppetlabs/bolt-server/conf.d")
   proj.setting(:logdir, "/var/log/puppetlabs/bolt-server")
   proj.setting(:bindir, "#{proj.prefix}/bin")
   proj.setting(:libdir, "#{proj.prefix}/lib")
+  proj.setting(:homedir, "#{proj.prefix}/var/#{proj.pe_bolt_user}")
   proj.setting(:gem_home, File.join(proj.libdir, 'ruby', 'gems', '2.4.0'))
   proj.setting(:gem_install, "/opt/puppetlabs/puppet/bin/gem install --no-rdoc --no-ri --local --bindir=#{proj.bindir}")
   proj.setting(:gem_build, "/opt/puppetlabs/puppet/bin/gem build")
   proj.setting(:artifactory_url, "https://artifactory.delivery.puppetlabs.net/artifactory")
   proj.setting(:buildsources_url, "#{proj.artifactory_url}/generic/buildsources")
+
+  proj.user(proj.pe_bolt_user,
+            group: proj.pe_bolt_user,
+            shell: '/sbin/nologin',
+            homedir: "#{proj.homedir}",
+            is_system: true)
 
   # R10k dependency
   proj.component 'rubygem-gettext-setup'
@@ -33,6 +41,7 @@ project "pe-bolt-server" do |proj|
   proj.component 'pe-bolt-server'
 
   proj.directory proj.prefix
+  proj.directory proj.homedir
   proj.directory proj.sysconfdir
   proj.directory proj.logdir
 end
