@@ -30,5 +30,7 @@ component "pe-bolt-server" do |pkg, settings, platform|
   pkg.add_postinstall_action ["install", "upgrade"], [
     "/bin/chown -R #{settings[:pe_bolt_user]}:#{settings[:pe_bolt_user]} #{settings[:homedir]}"
   ]
-  pkg.add_postinstall_action ["install"], ["systemctl daemon-reload && service pe-bolt-server start"]
+  pkg.add_postinstall_action ["install"], [
+    "systemctl daemon-reload"
+  ]
 end
