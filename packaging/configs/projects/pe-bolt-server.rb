@@ -8,6 +8,7 @@ project "pe-bolt-server" do |proj|
   proj.setting(:pe_bolt_user, "pe-bolt-server")
   proj.setting(:sysconfdir, "/etc/puppetlabs/bolt-server/conf.d")
   proj.setting(:logdir, "/var/log/puppetlabs/bolt-server")
+  proj.setting(:rundir, "/var/run/puppetlabs/bolt-server")
   proj.setting(:bindir, "#{proj.prefix}/bin")
   proj.setting(:libdir, "#{proj.prefix}/lib")
   proj.setting(:homedir, "#{proj.prefix}/var/#{proj.pe_bolt_user}")
@@ -44,4 +45,5 @@ project "pe-bolt-server" do |proj|
   proj.directory proj.homedir
   proj.directory proj.sysconfdir
   proj.directory proj.logdir
+  proj.directory proj.rundir
 end
