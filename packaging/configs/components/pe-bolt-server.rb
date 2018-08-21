@@ -17,6 +17,7 @@ component "pe-bolt-server" do |pkg, settings, platform|
   case platform.servicetype
   when "systemd"
     pkg.install_service "ext/systemd/pe-bolt-server.service"
+    pkg.install_file('ext/tmpfiles/pe-bolt-server.conf', "/usr/lib/tmpfiles.d/pe-bolt-server.conf")
   when "sysv"
     if platform.is_rpm?
       pkg.install_service "ext/redhat/pe-bolt-server.init", "ext/redhat/pe-bolt-server.sysconfig"
