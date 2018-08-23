@@ -12,12 +12,11 @@ component "pe-bolt-server" do |pkg, settings, platform|
     ["#{settings[:gem_install]} bolt-*.gem"]
   end
 
-  pkg.install_file('config.ru', "#{settings[:prefix]}/config.ru")
+  pkg.install_file('puma_config.rb', "#{settings[:prefix]}/puma_config.rb")
 
   case platform.servicetype
   when "systemd"
     pkg.install_service "ext/systemd/pe-bolt-server.service"
-    pkg.install_file('ext/tmpfiles/pe-bolt-server.conf', "/usr/lib/tmpfiles.d/pe-bolt-server.conf")
   when "sysv"
     if platform.is_rpm?
       pkg.install_service "ext/redhat/pe-bolt-server.init", "ext/redhat/pe-bolt-server.sysconfig"
