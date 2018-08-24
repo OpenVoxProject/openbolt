@@ -1,7 +1,7 @@
 component "pe-bolt-server" do |pkg, settings, platform|
   pkg.environment "GEM_HOME", settings[:gem_home]
   pkg.environment "PATH", "#{settings[:bindir]}:$$PATH"
-  pkg.load_from_json('configs/components/pe-bolt-server.json')
+  pkg.load_from_json('configs/components/bolt.json')
   pkg.build_requires 'puppet-agent'
 
   pkg.build do
