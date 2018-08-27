@@ -8,7 +8,7 @@ Group=pe-bolt-server
 EnvironmentFile=-/etc/sysconfig/pe-bolt-server-service
 EnvironmentFile=-/etc/default/pe-bolt-server-service
 Environment=GEM_PATH=/opt/puppetlabs/server/apps/bolt-server/lib/ruby/gems/2.4.0:/opt/puppetlabs/puppet/lib/ruby/gems/2.4.0:/opt/puppetlabs/puppet/lib/ruby/vendor_gems
-ExecStart=/opt/puppetlabs/server/apps/bolt-server/bin/bolt-server -C /opt/puppetlabs/server/apps/bolt-server/puma_config.rb
+ExecStart=/opt/puppetlabs/server/apps/bolt-server/bin/bolt-server -C /opt/puppetlabs/server/apps/bolt-server/puma_config.rb -e production
 Restart=always
 #set default privileges to -rw-r-----
 UMask=027
