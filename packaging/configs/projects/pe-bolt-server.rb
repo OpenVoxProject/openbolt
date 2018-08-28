@@ -39,6 +39,7 @@ project "pe-bolt-server" do |proj|
   proj.component 'rubygem-mustermann'
   proj.component 'rubygem-sinatra'
   proj.component 'rubygem-puma'
+  proj.component 'rubygem-rails-auth'
   proj.component 'pe-bolt-server'
 
   proj.directory proj.prefix
