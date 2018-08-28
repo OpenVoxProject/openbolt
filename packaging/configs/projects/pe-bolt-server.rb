@@ -11,7 +11,7 @@ project "pe-bolt-server" do |proj|
   proj.setting(:rundir, "/var/run/puppetlabs/bolt-server")
   proj.setting(:bindir, "#{proj.prefix}/bin")
   proj.setting(:libdir, "#{proj.prefix}/lib")
-  proj.setting(:homedir, "#{proj.prefix}/var/#{proj.pe_bolt_user}")
+  proj.setting(:homedir, "/opt/puppetlabs/server/data/bolt-server")
   proj.setting(:gem_home, File.join(proj.libdir, 'ruby'))
   proj.setting(:gem_install, "/opt/puppetlabs/puppet/bin/gem install --no-rdoc --no-ri --local --bindir=#{proj.bindir}")
   proj.setting(:gem_build, "/opt/puppetlabs/puppet/bin/gem build")
