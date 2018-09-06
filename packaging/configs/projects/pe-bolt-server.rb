@@ -33,6 +33,7 @@ project "pe-bolt-server" do |proj|
   proj.instance_eval File.read('configs/projects/bolt-shared.rb')
 
   # Webserver dependencies
+  proj.component 'rubygem-json-schema'
   proj.component 'rubygem-rack'
   proj.component 'rubygem-tilt'
   proj.component 'rubygem-rack-protection'
