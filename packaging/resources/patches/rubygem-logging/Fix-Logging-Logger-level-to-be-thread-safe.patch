@@ -1,0 +1,46 @@
+From baecce1b42cf08d7b919c54c938099fd48a4e476 Mon Sep 17 00:00:00 2001
+From: Michael Smith <michael.smith@puppet.com>
+Date: Thu, 30 Aug 2018 14:14:20 -0700
+Subject: [PATCH] Fix Logging::Logger#level= to be thread-safe
+
+Creating a new logger while also updating the level of an existing
+logger can produce
+```
+can't add a new key into hash during iteration
+```
+because both operate on the same hash of loggers but use different
+mutexes. Update them to share the same mutex.
+
+Fixes #200.
+---
+ lib/logging/logger.rb | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/lib/logging/logger.rb b/lib/logging/logger.rb
+index a6a2e85..ef2889c 100644
+--- a/lib/logging/logger.rb
++++ b/lib/logging/logger.rb
+@@ -24,8 +24,6 @@ module Logging
+   #
+   class Logger
+ 
+-    @mutex = Mutex.new  # :nodoc:
+-
+     # Returns the root logger.
+     def self.root
+       ::Logging::Repository.instance[:root]
+@@ -48,7 +46,10 @@ module Logging
+       logger = repo[name]
+       return logger unless logger.nil?
+ 
+-      @mutex.synchronize do
++      # Share the same mutex that's used by 'define_log_methods' because
++      # it iterates over the hash of loggers, and adding a new key to a hash
++      # while iterating over it produces an error.
++      ::Logging::Logger._reentrant_mutex.synchronize do
+         logger = repo[name]
+         return logger unless logger.nil? # thread-safe double checking
+ 
+-- 
+2.19.0
+
