@@ -40,6 +40,7 @@ project "puppet-bolt" do |proj|
 
   proj.component "bolt-runtime"
   proj.instance_eval File.read('configs/projects/bolt-shared.rb')
+  proj.component 'rubygem-net-ssh-krb'
   proj.component "bolt"
 
   proj.directory proj.prefix
