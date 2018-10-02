@@ -15,7 +15,7 @@
             LicenseUri   = 'https://github.com/puppetlabs/bolt/blob/master/LICENSE'
             ProjectUri   = 'https://github.com/puppetlabs/bolt'
             # IconUri = ''
-            ReleaseNotes = 'https://puppet.com/docs/bolt/0.x/bolt_release_notes.html'
+            ReleaseNotes = 'https://puppet.com/docs/bolt/latest/bolt_release_notes.html'
         }
     }
 }
