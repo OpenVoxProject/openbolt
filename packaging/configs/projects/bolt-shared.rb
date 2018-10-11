@@ -3,6 +3,8 @@ proj.vendor "Puppet, Inc.  <info@puppet.com>"
 proj.homepage "https://www.puppet.com"
 proj.identifier "com.puppetlabs"
 
+proj.component 'rubygem-bcrypt_pbkdf'
+proj.component 'rubygem-ed25519'
 proj.component 'rubygem-public_suffix'
 proj.component 'rubygem-addressable'
 proj.component 'rubygem-concurrent-ruby'
