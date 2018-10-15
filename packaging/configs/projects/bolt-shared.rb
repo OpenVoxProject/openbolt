@@ -3,6 +3,13 @@ proj.vendor "Puppet, Inc.  <info@puppet.com>"
 proj.homepage "https://www.puppet.com"
 proj.identifier "com.puppetlabs"
 
+# Building native gems on Windows has some issues right now.
+# Include for non-Windows platforms only.
+unless platform.is_windows?
+  proj.component 'rubygem-bcrypt_pbkdf'
+  proj.component 'rubygem-ed25519'
+end
+
 proj.component 'rubygem-public_suffix'
 proj.component 'rubygem-addressable'
 proj.component 'rubygem-concurrent-ruby'
