@@ -1,5 +1,5 @@
 component "rubygem-winrm" do |pkg, settings, platform|
-  pkg.version "2.2.3"
-  pkg.md5sum "16c7a0b30e9d4410c2730d2f4d8a8d25"
+  pkg.version "2.3.0"
+  pkg.md5sum "884f5a5d2cd8e49e5eca8f79694bcfd3"
   instance_eval File.read('configs/components/_base-rubygem.rb')
 end
