@@ -6,6 +6,6 @@
     notifempty
     sharedscripts
     postrotate
-        systemctl is-active --quiet pe-bolt-server.service && systemctl kill --signal=HUP --kill-who=main pe-bolt-server.service
+        if [ -s /var/run/puppetlabs/bolt-server/bolt-server.pid ]; then kill -HUP `cat /var/run/puppetlabs/bolt-server/bolt-server.pid`; fi
     endscript
 }
