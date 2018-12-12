@@ -1,11 +1,11 @@
 #!/bin/bash
-# PE Bolt Server    Bolt transport API
+# PE Plan Executor      Bolt plan executor API
 #
 # chkconfig: - 98 02
 #
-# description: Service to expose bolt transport API
-# processname: bolt-server
-# config: /etc/sysconfig/pe-bolt-server
+# description: Service to expose bolt plans API
+# processname: plan-executor
+# config: /etc/sysconfig/pe-plan-executor
 
 # Source function library.
 . /etc/rc.d/init.d/functions
@@ -13,13 +13,14 @@
 #set default privileges to -rw-r-----
 umask 027
 
-[ -f /etc/sysconfig/pe-bolt-server ] && . /etc/sysconfig/pe-bolt-server
+[ -f /etc/sysconfig/pe-plan-executor ] && . /etc/sysconfig/pe-plan-executor
 
 prefix='/opt/puppetlabs/server/apps/bolt-server'
 export GEM_PATH="${prefix}/lib/ruby:/opt/puppetlabs/puppet/lib/ruby/gems/2.5.0:/opt/puppetlabs/puppet/lib/ruby/vendor_gems"
 exec="${prefix}/bin/puma"
-prog="bolt-server"
-desc="PE Bolt Server"
+prog="plan-executor"
+desc="PE Plan Executor"
+# We reuse the bolt-server user for this service
 owner="pe-bolt-server"
 
 lockfile=/var/lock/subsys/$prog
@@ -38,9 +39,9 @@ if status | grep -q -- '-p' 2>/dev/null; then
 fi
 
 start() {
-    echo -n $"Starting PE Bolt Server: "
+    echo -n $"Starting PE Plan Executor: "
     mkdir -p $piddir $logdir
-    daemon $daemonopts --user=$owner $exec -C "${prefix}/config/transport_service_config.rb" -e production -d --pidfile $pidfile ${PE_BOLT_SERVER_OPTIONS}
+    daemon $daemonopts --user=$owner $exec -C "${prefix}/config/plan_executor_config.rb" -e production -d --pidfile $pidfile ${PE_BOLT_SERVER_OPTIONS}
     RETVAL=$?
     echo
     [ $RETVAL = 0 ] && touch ${lockfile}
@@ -48,7 +49,7 @@ start() {
 }
 
 stop() {
-    echo -n $"Stopping PE Bolt Server: "
+    echo -n $"Stopping PE Plan Executor: "
     if [ "$USEINITFUNCTIONS" = "true" ]; then
         killproc $pidopts $exec
         RETVAL=$?
@@ -64,7 +65,7 @@ stop() {
 }
 
 reload() {
-    echo -n $"Reloading PE Bolt Server: "
+    echo -n $"Reloading PE Plan Executor: "
     if [ "$USEINITFUNCTIONS" = "true" ]; then
         killproc $pidopts $exec -HUP
         RETVAL=$?
