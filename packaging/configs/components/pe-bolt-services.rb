@@ -26,6 +26,7 @@ component "pe-bolt-services" do |pkg, settings, platform|
     pkg.add_source("file://resources/systemd/pe-plan-executor.logrotate", sum: "32955ab713783650a515ec96ecbab51a")
     pkg.install_service "../pe-plan-executor.service", nil, "pe-plan-executor"
     pkg.install_configfile "../pe-plan-executor.logrotate", "/etc/logrotate.d/pe-plan-executor"
+    pkg.add_postinstall_action ["install"], ["systemctl daemon-reload"]
   when "sysv"
     if platform.is_rpm?
       pkg.add_source("file://resources/redhat/pe-bolt-server.init", sum: "2ad1e120fa79f0d8bef8b3420dcfa229")
