@@ -1,7 +1,7 @@
-platform "osx-10.13-x86_64" do |plat|
+platform "osx-10.14-x86_64" do |plat|
   plat.servicetype 'launchd'
   plat.servicedir '/Library/LaunchDaemons'
-  plat.codename "highsierra"
+  plat.codename "mojave"
 
   plat.provision_with 'export HOMEBREW_NO_EMOJI=true'
   plat.provision_with 'export HOMEBREW_VERBOSE=true'
@@ -19,5 +19,5 @@ platform "osx-10.13-x86_64" do |plat|
   plat.provision_with 'su test -c \'echo | /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"\''
   plat.provision_with 'sudo chown -R test:admin /Users/test/Library/'
   plat.vmpooler_template "osx-1012-x86_64"
-  plat.output_dir File.join("apple", "10.13", "PC1", "x86_64")
+  plat.output_dir File.join("apple", "10.14", "PC1", "x86_64")
 end
