@@ -34,9 +34,6 @@ project "pe-bolt-server" do |proj|
 
   # R10k dependency
   proj.component 'rubygem-gettext-setup'
-  # Bolt dependencies that aren't included in Puppet on our platforms yet
-  proj.component 'rubygem-ffi'
-  proj.component 'rubygem-minitar'
 
   proj.instance_eval File.read('configs/projects/bolt-shared.rb')
 
