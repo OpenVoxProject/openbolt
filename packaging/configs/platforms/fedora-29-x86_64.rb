@@ -9,7 +9,7 @@ platform "fedora-29-x86_64" do |plat|
   packages = %w[
     autoconf automake bzip2-devel gcc gcc-c++
     make cmake pkgconfig readline-devel
-    rpm-libs rpmdevtools rsync swig zlib-devel
+    rpm-libs rpmdevtools rsync swig zlib-devel git
   ]
   plat.provision_with("/usr/bin/dnf install -y --best --allowerasing #{packages.join(' ')}")
 
