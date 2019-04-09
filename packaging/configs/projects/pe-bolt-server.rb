@@ -59,4 +59,10 @@ project "pe-bolt-server" do |proj|
     proj.directory proj.send("#{short}_logdir")
     proj.directory proj.send("#{short}_rundir")
   end
+
+  if platform.name =~ /^el-(8)-.*/
+    # Disable build-id generation since it's currently generating conflicts
+    # with system libgcc and libstdc++
+    proj.package_override("# Disable build-id generation to avoid conflicts\n%global _build_id_links none")
+  end
 end

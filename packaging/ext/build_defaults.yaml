@@ -8,7 +8,7 @@ repo_name: 'puppet5'
 nonfinal_repo_name: 'puppet5-nightly'
 build_tar: FALSE
 deb_targets: 'xenial-amd64 bionic-amd64'
-rpm_targets: 'el-6-x86_64 el-7-x86_64 sles-12-x86_64'
+rpm_targets: 'el-6-x86_64 el-7-x86_64 el-8-x86_64 sles-12-x86_64'
 osx_signing_cert: "Developer ID Installer: PUPPET LABS, INC. (VKGLGN2B6Y)"
 osx_signing_keychain: "/Users/jenkins/Library/Keychains/signing.keychain"
 osx_signing_server: 'osx-signer.delivery.puppetlabs.net'
