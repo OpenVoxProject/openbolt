@@ -1,4 +1,3 @@
-peversion = IO.read('peversion').strip
 platform "ubuntu-14.04-i386" do |plat|
   plat.servicedir "/etc/init.d"
   plat.defaultdir "/etc/default"
