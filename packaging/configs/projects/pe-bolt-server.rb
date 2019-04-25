@@ -1,5 +1,23 @@
 project "pe-bolt-server" do |proj|
+  proj.license "See components"
+  proj.vendor "Puppet, Inc.  <info@puppet.com>"
+  proj.homepage "https://www.puppet.com"
+  proj.identifier "com.puppetlabs"
+
+  # pe-bolt-server inherits most build settings from puppetlabs/puppet-runtime:
+  # - Modifications to global settings like flags and target directories should be made in puppet-runtime.
+  # - Settings included in this file should apply only to local components in this repository.
   proj.description 'Service to expose bolt transports'
+  runtime_details = JSON.parse(File.read('configs/components/puppet-runtime.json'))
+
+  proj.setting(:puppet_runtime_version, runtime_details['version'])
+  proj.setting(:puppet_runtime_location, runtime_details['location'])
+  proj.setting(:puppet_runtime_basename, "pe-bolt-server-runtime-2019.0.x-#{runtime_details['version']}.#{platform.name}")
+
+  settings_uri = File.join(runtime_details['location'], "#{proj.settings[:puppet_runtime_basename]}.settings.yaml")
+  sha1sum_uri = "#{settings_uri}.sha1"
+  proj.inherit_yaml_settings(settings_uri, sha1sum_uri)
+
   proj.requires 'puppet-agent'
   # We can just have the same version as bolt, and use tags for specific packages
   proj.version_from_git
@@ -15,16 +33,9 @@ project "pe-bolt-server" do |proj|
                  "/var/run/puppetlabs/#{service}")
   end
 
-  proj.setting(:prefix, "/opt/puppetlabs/server/apps/bolt-server")
   proj.setting(:pe_bolt_user, "pe-bolt-server")
-  proj.setting(:bindir, "#{proj.prefix}/bin")
-  proj.setting(:libdir, "#{proj.prefix}/lib")
   proj.setting(:homedir, "/opt/puppetlabs/server/data/bolt-server")
-  proj.setting(:gem_home, File.join(proj.libdir, 'ruby'))
-  proj.setting(:gem_install, "/opt/puppetlabs/puppet/bin/gem install --no-rdoc --no-ri --local --bindir=#{proj.bindir}")
   proj.setting(:gem_build, "/opt/puppetlabs/puppet/bin/gem build")
-  proj.setting(:artifactory_url, "https://artifactory.delivery.puppetlabs.net/artifactory")
-  proj.setting(:buildsources_url, "#{proj.artifactory_url}/generic/buildsources")
 
   proj.user(proj.pe_bolt_user,
             group: proj.pe_bolt_user,
@@ -32,13 +43,7 @@ project "pe-bolt-server" do |proj|
             homedir: "#{proj.homedir}",
             is_system: true)
 
-  # R10k dependency
-  proj.component 'rubygem-gettext-setup'
-  # Bolt dependencies that aren't included in Puppet on our platforms yet
-  proj.component 'rubygem-ffi'
-  proj.component 'rubygem-minitar'
-
-  proj.instance_eval File.read('configs/projects/bolt-shared.rb')
+  proj.component 'bolt-runtime'
 
   # Webserver dependencies
   proj.component 'rubygem-json-schema'
