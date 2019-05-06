@@ -1,6 +1,14 @@
 # Bolt Vanagon Project
 
-- Puppet Labs [vanagon](https://github.com/puppetlabs/vanagon)
+This project uses [vanagon](https://github.com/puppetlabs/vanagon) to generate
+installable packages for Puppet [Bolt](https://github.com/puppetlabs/bolt).
+
+Not all Bolt dependencies are configured here:
+
+- Dependencies shared between this and other Puppet vanagon projects are loaded from
+  [puppet-runtime](https://github.com/puppetlabs/puppet-runtime)'s bolt-runtime and pe-bolt-server
+  projects.
+- Dependencies specific to Bolt are configured in this project.
 
 ## Updating rubygem versions
 

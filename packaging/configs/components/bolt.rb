@@ -1,7 +1,8 @@
 component "bolt" do |pkg, settings, platform|
   pkg.load_from_json('configs/components/bolt.json')
 
-  pkg.build_requires 'rubygem-r10k'
+  # Install the bolt runtime for access to rubygem-r10k:
+  pkg.build_requires 'bolt-runtime'
 
   # We need to run r10k before building the gem.
   pkg.build do

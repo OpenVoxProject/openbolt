@@ -1,4 +1,9 @@
 project "puppet-bolt" do |proj|
+  proj.license "See components"
+  proj.vendor "Puppet, Inc.  <info@puppet.com>"
+  proj.homepage "https://www.puppet.com"
+  proj.identifier "com.puppetlabs"
+
   # bolt inherits most build settings from puppetlabs/puppet-runtime:
   # - Modifications to global settings like flags and target directories should be made in puppet-runtime.
   # - Settings included in this file should apply only to local components in this repository.
@@ -39,7 +44,6 @@ project "puppet-bolt" do |proj|
   proj.setting(:main_bin, "/usr/local/bin")
 
   proj.component "bolt-runtime"
-  proj.instance_eval File.read('configs/projects/bolt-shared.rb')
   proj.component "bolt"
 
   proj.directory proj.prefix
