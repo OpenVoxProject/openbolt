@@ -6,17 +6,33 @@ hadolint_available := $(shell hadolint --help > /dev/null 2>&1; echo $$?)
 hadolint_command := hadolint --ignore DL3008 --ignore DL3018 --ignore DL4000 --ignore DL4001
 hadolint_container := hadolint/hadolint:latest
 pwd := $(shell pwd)
-export BUNDLE_PATH = $(pwd)/.bundle/gems
-export BUNDLE_BIN = $(pwd)/.bundle/bin
-export GEMFILE = $(pwd)/Gemfile
 
 # Check if ref is set in environment variable
+# REF is set by the CJC build-and-puahs-bolt-docker-image.sh script and 
+# is expected to be the Git Tag that represents the
+# bolt release version.
 ifeq ("${REF}","")
     version := $(shell echo $(git_describe) | sed 's/-.*//')
 else
     version:= "${REF}"
 endif
-$(info    VERSION is $(version))
+$(info VERSION is $(version))
+# # Alow bundler args to be configured with environment variables
+# # Add defaults based on running from Makefile dir.
+ifeq ("${BUNDLE_PATH}","")
+	export BUNDLE_PATH=$(pwd)/.bundle/gems
+endif
+$(info BUNDLE_PATH is "${BUNDLE_PATH}")
+
+ifeq ("${BUNDLE_BIN}","")
+	export BUNDLE_BIN=$(pwd)/.bundle/bin
+endif
+$(info BUNDLE_BIN is "${BUNDLE_BIN}")
+
+ifeq ("${GEMFILE}","")
+	export GEMFILE=$(pwd)/Gemfile
+endif
+$(info GEMFILE is "${GEMFILE}")
 
 dockerfile := Dockerfile
 
@@ -41,7 +57,7 @@ endif
 test: prep
 	@bundle install --path $$BUNDLE_PATH --gemfile $$GEMFILE
 	@PUPPET_TEST_DOCKER_IMAGE=$(NAMESPACE)/puppet-bolt:$(version) \
-		bundle exec --gemfile $$GEMFILE rspec puppet-bolt/spec
+		bundle exec rspec puppet-bolt/spec
 
 publish: prep
 	@docker push $(NAMESPACE)/puppet-bolt:$(version)
