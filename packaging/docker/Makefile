@@ -10,7 +10,14 @@ export BUNDLE_PATH = $(pwd)/.bundle/gems
 export BUNDLE_BIN = $(pwd)/.bundle/bin
 export GEMFILE = $(pwd)/Gemfile
 
-version = $(shell echo $(git_describe) | sed 's/-.*//')
+# Check if ref is set in environment variable
+ifeq ("${REF}","")
+    version := $(shell echo $(git_describe) | sed 's/-.*//')
+else
+    version:= "${REF}"
+endif
+$(info    VERSION is $(version))
+
 dockerfile := Dockerfile
 
 prep:
