@@ -12,4 +12,9 @@ function bolt {
     &$env:RUBY_DIR\bin\ruby -S -- $env:RUBY_DIR\bin\bolt ($args -replace '"', '"""')
 }
 
+function bolt-inventory-pdb {
+    &$env:RUBY_DIR\bin\ruby -S -- $env:RUBY_DIR\bin\bolt-inventory-pdb ($args -replace '"', '"""')
+}
+
 Export-ModuleMember -Function bolt -Variable *
+Export-ModuleMember -Function bolt-inventory-pdb -Variable *
