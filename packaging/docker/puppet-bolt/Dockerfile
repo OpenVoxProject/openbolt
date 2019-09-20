@@ -1,11 +1,11 @@
-FROM ubuntu:16.04
+FROM ubuntu:18.04
 
 ARG version="1.24.0"
 ARG vcs_ref
 ARG build_date
 
 ENV BOLT_VERSION="$version"
-ENV UBUNTU_CODENAME="xenial"
+ENV UBUNTU_CODENAME="bionic"
 ENV BOLT_DISABLE_ANALYTICS="true"
 
 LABEL org.label-schema.maintainer="Puppet Release Team <release@puppet.com>" \
