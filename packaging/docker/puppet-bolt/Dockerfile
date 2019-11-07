@@ -7,6 +7,7 @@ ARG build_date
 ENV BOLT_VERSION="$version"
 ENV UBUNTU_CODENAME="bionic"
 ENV BOLT_DISABLE_ANALYTICS="true"
+ENV LANG="C.UTF-8"
 
 LABEL org.label-schema.maintainer="Puppet Release Team <release@puppet.com>" \
       org.label-schema.vendor="Puppet" \
