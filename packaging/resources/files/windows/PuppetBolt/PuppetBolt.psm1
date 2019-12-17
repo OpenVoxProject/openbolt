@@ -2,7 +2,7 @@ $fso = New-Object -ComObject Scripting.FileSystemObject
 
 $script:BOLT_BASEDIR = (Get-ItemProperty -Path "HKLM:\Software\Puppet Labs\Bolt").RememberedInstallDir
 # Windows API GetShortPathName requires inline C#, so use COM instead
-$script:BOLT_BASEDIR = $fso.GetFolder($env:BOLT_BASEDIR).ShortPath
+$script:BOLT_BASEDIR = $fso.GetFolder($script:BOLT_BASEDIR).ShortPath
 $script:RUBY_DIR = $script:BOLT_BASEDIR
 
 function bolt {
