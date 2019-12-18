@@ -35,6 +35,6 @@ describe 'puppet-bolt container' do
   it 'should support logging UTF-8 characters' do
     result = run_command("docker run -i #{@image} command run 'echo Hello! 😆' -t localhost --debug 2>&1")
     expect(result[:stdout]).to match(/Hello! 😆/)
-    expect(result[:stdout]).to match(/Successful on 1 node/)
+    expect(result[:stdout]).to match(/Successful on 1 target/)
   end
 end
