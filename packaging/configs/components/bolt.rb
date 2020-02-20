@@ -27,18 +27,14 @@ component "bolt" do |pkg, settings, platform|
     pkg.install_file "../PuppetBolt.psm1", "#{settings[:datadir]}/PowerShell/Modules/PuppetBolt/PuppetBolt.psm1"
   else
     pkg.add_source("file://resources/files/posix/bolt_env_wrapper", sum: "644f069f275f44af277b20a2d0d279c6")
-    pkg.add_source("file://resources/files/posix/bolt_inventory_pdb_wrapper", sum: "5473e5169ed05c8e63ef3e520b3b8c65")
     bolt_exe = File.join(settings[:link_bindir], 'bolt')
-    bolt_inventory_pdb_exe = File.join(settings[:link_bindir], 'bolt-inventory-pdb')
     pkg.install_file "../bolt_env_wrapper", bolt_exe, mode: "0755"
-    pkg.install_file "../bolt_inventory_pdb_wrapper", bolt_inventory_pdb_exe, mode: "0755"
 
     if platform.is_macos?
       pkg.add_source 'file://resources/files/paths.d/50-bolt', sum: '4abf75aebbbfbbefc4fe0173c57ed0b2'
       pkg.install_file('../50-bolt', '/etc/paths.d/50-bolt')
     else
       pkg.link bolt_exe, File.join(settings[:main_bin], 'bolt')
-      pkg.link bolt_inventory_pdb_exe, File.join(settings[:main_bin], 'bolt-inventory-pdb')
     end
   end
 end

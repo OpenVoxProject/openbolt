@@ -5,7 +5,7 @@
     Author            = "Puppet, Inc"
     CompanyName       = "Puppet, Inc"
     Copyright         = '(c) 2017 Puppet, Inc. All rights reserved'
-    FunctionsToExport = @('bolt', 'bolt-inventory-pdb')
+    FunctionsToExport = @('bolt')
     CmdletsToExport   = @()
     VariablesToExport = @()
     AliasesToExport   = @()

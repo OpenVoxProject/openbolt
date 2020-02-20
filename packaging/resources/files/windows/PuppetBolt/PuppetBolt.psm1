@@ -13,13 +13,4 @@ function bolt {
     &$script:RUBY_DIR\bin\ruby -S -- $script:RUBY_DIR\bin\bolt ($args -replace '"', '"""')
 }
 
-function bolt-inventory-pdb {
-    # Set SSL variables to ensure trusted locations are used
-    $env:SSL_CERT_FILE = "$($script:BOLT_BASEDIR)\ssl\cert.pem"
-    $env:SSL_CERT_DIR = "$($script:BOLT_BASEDIR)\ssl\certs"
-
-    &$script:RUBY_DIR\bin\ruby -S -- $script:RUBY_DIR\bin\bolt-inventory-pdb ($args -replace '"', '"""')
-}
-
 Export-ModuleMember -Function bolt -Variable *
-Export-ModuleMember -Function bolt-inventory-pdb -Variable *
