@@ -14,8 +14,9 @@ project "puppet-bolt" do |proj|
   settings[:puppet_runtime_basename] = "bolt-runtime-#{runtime_details['version']}.#{platform.name}"
 
   settings_uri = File.join(runtime_details['location'], "#{proj.settings[:puppet_runtime_basename]}.settings.yaml")
+  metadata_uri = File.join(runtime_details['location'], "#{runtime_details['version']}.build_metadata.bolt-runtime.#{platform.name}.json")
   sha1sum_uri = "#{settings_uri}.sha1"
-  proj.inherit_yaml_settings(settings_uri, sha1sum_uri)
+  proj.inherit_yaml_settings(settings_uri, sha1sum_uri, metadata_uri: metadata_uri)
 
   proj.description 'Stand alone task runner'
   proj.version_from_git
