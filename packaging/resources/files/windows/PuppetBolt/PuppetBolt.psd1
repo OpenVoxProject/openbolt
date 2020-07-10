@@ -12,7 +12,7 @@
     PrivateData       = @{
         PSData = @{
             # Tags = @()
-            LicenseUri   = 'https://github.com/puppetlabs/bolt/blob/master/LICENSE'
+            LicenseUri   = 'https://github.com/puppetlabs/bolt/blob/main/LICENSE'
             ProjectUri   = 'https://github.com/puppetlabs/bolt'
             # IconUri = ''
             ReleaseNotes = 'https://puppet.com/docs/bolt/latest/bolt_release_notes.html'
