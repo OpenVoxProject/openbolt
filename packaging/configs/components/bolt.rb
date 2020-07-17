@@ -18,13 +18,13 @@ component "bolt" do |pkg, settings, platform|
   end
 
   if platform.is_windows?
+    pkg.install { ["#{settings[:ruby_bindir]}/rake.bat -f pwsh_module/Rakefile pwsh:generate_module"] }
     # PowerShell Module
     pkg.add_source("file://resources/files/windows/PuppetBolt/PuppetBolt.psd1", sum: "f21e2bcfcb64da273e561e6066dce949")
-    pkg.add_source("file://resources/files/windows/PuppetBolt/PuppetBolt.psm1", sum: "1ed17a54fd4df1032ea8d96c047ac623")
 
     pkg.directory "#{settings[:datadir]}/PowerShell/Modules/PuppetBolt"
+    pkg.install_file "pwsh_module/pwsh_bolt.psm1", "#{settings[:datadir]}/PowerShell/Modules/PuppetBolt/PuppetBolt.psm1"
     pkg.install_file "../PuppetBolt.psd1", "#{settings[:datadir]}/PowerShell/Modules/PuppetBolt/PuppetBolt.psd1"
-    pkg.install_file "../PuppetBolt.psm1", "#{settings[:datadir]}/PowerShell/Modules/PuppetBolt/PuppetBolt.psm1"
   else
     pkg.add_source("file://resources/files/posix/bolt_env_wrapper", sum: "644f069f275f44af277b20a2d0d279c6")
     bolt_exe = File.join(settings[:link_bindir], 'bolt')
