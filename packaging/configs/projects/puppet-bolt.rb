@@ -42,6 +42,7 @@ project "puppet-bolt" do |proj|
 
     module_directory = File.join(proj.datadir.sub(/^.*:\//, ''), 'PowerShell', 'Modules')
     proj.extra_file_to_sign File.join(module_directory, 'PuppetBolt', 'PuppetBolt.psm1')
+    proj.extra_file_to_sign File.join(module_directory, 'PuppetBolt', 'PuppetBolt.psd1')
     proj.signing_hostname 'windowssigning-aio1-prod.delivery.puppetlabs.net'
     proj.signing_username 'Administrator'
     proj.signing_command 'pwsh.exe -File pwsh7.ps1 -FilePath'
