@@ -22,6 +22,26 @@
           Source="$(var.AppSourcePath)\share\PowerShell\Modules\PuppetBolt\PuppetBolt.psm1"
           KeyPath="yes" />
       </Component>
+
+      <Component
+        Id="about_bolt_inventory.help.txt"
+        Directory="PowerShellBoltModuleHelpDir"
+        Guid="90b31dd1-28ef-4276-b672-8e87d432f70f">
+        <File
+          Id="about_bolt_inventory.help.txt"
+          Source="$(var.AppSourcePath)\share\PowerShell\Modules\PuppetBolt\en-US\about_bolt_inventory.help.txt"
+          KeyPath="yes" />
+      </Component>
+
+      <Component
+        Id="about_bolt_project.help.txt"
+        Directory="PowerShellBoltModuleHelpDir"
+        Guid="11b6aacc-a4de-4cc6-90e1-cc61ebb4696c">
+        <File
+          Id="about_bolt_project.help.txt"
+          Source="$(var.AppSourcePath)\share\PowerShell\Modules\PuppetBolt\en-US\about_bolt_project.help.txt"
+          KeyPath="yes" />
+      </Component>
     </ComponentGroup>
   </Fragment>
 </Wix>
