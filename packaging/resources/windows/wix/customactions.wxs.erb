@@ -20,5 +20,32 @@
       Property="INSTALLDIR"
       Value="[CMDLINE_INSTALLDIR]"
       Execute="firstSequence" />
+
+    <!-- INSTALLDIR is not available for Deferred Custom Actions.  So we need to save it for later user -->
+    <CustomAction
+      Id="SetPropertyForExtractTarballs"
+      Property="ExtractTarballs"
+      Value="[INSTALLDIR]" />
+    <Binary Id='TarballScript' SourceFile='..\tarball.vbs' />
+    <CustomAction
+      Id="ExtractTarballs"
+      BinaryKey="TarballScript"
+      VBScriptCall="ExtractTarballs"
+      Execute="deferred"
+      Return="check"
+      Impersonate="no" />
+
+    <!-- INSTALLDIR is not available for Deferred Custom Actions.  So we need to save it for later user -->
+    <CustomAction
+      Id="SetPropertyForRemoveTarballs"
+      Property="RemoveTarballs"
+      Value="[INSTALLDIR]" />
+    <CustomAction
+      Id="RemoveTarballs"
+      BinaryKey="TarballScript"
+      VBScriptCall="RemoveTarballs"
+      Execute="deferred"
+      Return="check"
+      Impersonate="no" />
   </Fragment>
 </Wix>
