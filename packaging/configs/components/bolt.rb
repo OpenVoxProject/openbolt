@@ -20,6 +20,9 @@ component "bolt" do |pkg, settings, platform|
   if platform.is_windows?
     pkg.install { ["#{settings[:ruby_bindir]}/rake.bat pwsh:generate_module"] }
 
+    pkg.add_source("file://resources/files/windows/bolt.bat", sum: "60ead805dc78855d4a1a13230c141daa")
+    pkg.install_file "../bolt.bat", "#{settings[:link_bindir]}/bolt.bat"
+
     # PowerShell Module
     pkg.directory "#{settings[:datadir]}/PowerShell/Modules/PuppetBolt"
     pkg.install_file "pwsh_module/PuppetBolt.psm1", "#{settings[:datadir]}/PowerShell/Modules/PuppetBolt/PuppetBolt.psm1"
