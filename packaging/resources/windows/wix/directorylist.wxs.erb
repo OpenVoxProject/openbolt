@@ -2,6 +2,15 @@
 <Wix xmlns='http://schemas.microsoft.com/wix/2006/wi' xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
   <Fragment>
     <DirectoryRef Id='TARGETDIR'>
+      <Component Id="BoltPathEnvVarible" Guid="994a482e-2479-4f97-b074-bc630970fc12">
+        <Environment Id="PATH"
+                    Name="PATH"
+                    Value="[INSTALLDIR]bin"
+                    Permanent="no"
+                    Part="last"
+                    Action="set"
+                    System="no" />
+      </Component>
       <Directory Id="<%= settings[:base_dir] %>" >
         <Directory Id="<%= settings[:company_id] %>" Name="<%= settings[:pl_company_name] %>">
           <Directory Id='INSTALLDIR' Name="<%= settings[:product_id] %>">
