@@ -25,12 +25,12 @@ component "bolt" do |pkg, settings, platform|
 
     # PowerShell Module
     pkg.directory "#{settings[:datadir]}/PowerShell/Modules/PuppetBolt"
-    pkg.install_file "pwsh_module/PuppetBolt.psm1", "#{settings[:datadir]}/PowerShell/Modules/PuppetBolt/PuppetBolt.psm1"
-    pkg.install_file "pwsh_module/PuppetBolt.psd1", "#{settings[:datadir]}/PowerShell/Modules/PuppetBolt/PuppetBolt.psd1"
+    pkg.install_file "pwsh_module/PuppetBolt/PuppetBolt.psm1", "#{settings[:datadir]}/PowerShell/Modules/PuppetBolt/PuppetBolt.psm1"
+    pkg.install_file "pwsh_module/PuppetBolt/PuppetBolt.psd1", "#{settings[:datadir]}/PowerShell/Modules/PuppetBolt/PuppetBolt.psd1"
 
     # Add topic guides to the PowerShell Module
     pkg.directory "#{settings[:datadir]}/PowerShell/Modules/PuppetBolt/en-US"
-    pkg.install { ["/usr/bin/cp pwsh_module/en-US/* #{settings[:datadir]}/PowerShell/Modules/PuppetBolt/en-US"] }
+    pkg.install { ["/usr/bin/cp pwsh_module/PuppetBolt/en-US/* #{settings[:datadir]}/PowerShell/Modules/PuppetBolt/en-US"] }
   else
     pkg.add_source("file://resources/files/posix/bolt_env_wrapper", sum: "644f069f275f44af277b20a2d0d279c6")
     bolt_exe = File.join(settings[:link_bindir], 'bolt')
