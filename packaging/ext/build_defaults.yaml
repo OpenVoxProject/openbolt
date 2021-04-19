@@ -3,7 +3,6 @@ project: 'puppet-bolt'
 gem_name: 'bolt'
 build_gem: TRUE
 gpg_name: 'info@puppetlabs.com'
-gpg_key: '7F438280EF8D349F'
 sign_tar: FALSE
 vanagon_project: TRUE
 repo_name: 'puppet-enterprise-tools'

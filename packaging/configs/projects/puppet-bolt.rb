@@ -14,7 +14,7 @@ project "puppet-bolt" do |proj|
   settings[:puppet_runtime_basename] = "bolt-runtime-#{runtime_details['version']}.#{platform.name}"
 
   settings_uri = File.join(runtime_details['location'], "#{proj.settings[:puppet_runtime_basename]}.settings.yaml")
-  metadata_uri = File.join(runtime_details['location'], "#{runtime_details['version']}.build_metadata.bolt-runtime.#{platform.name}.json")
+  metadata_uri = File.join(runtime_details['location'], "#{proj.settings[:puppet_runtime_basename]}.json")
   sha1sum_uri = "#{settings_uri}.sha1"
   proj.inherit_yaml_settings(settings_uri, sha1sum_uri, metadata_uri: metadata_uri)
 
@@ -39,6 +39,8 @@ project "puppet-bolt" do |proj|
       :ManualLink => "https://puppet.com/docs/bolt/",
     })
     proj.setting(:LicenseRTF, "wix/license/LICENSE.rtf")
+    proj.setting(:install_root, File.join("C:", proj.base_dir, proj.company_id, proj.product_id))
+    proj.setting(:link_bindir, File.join(proj.install_root, "bin"))
 
     module_directory = File.join(proj.datadir.sub(/^.*:\//, ''), 'PowerShell', 'Modules')
     proj.extra_file_to_sign File.join(module_directory, 'PuppetBolt', 'PuppetBolt.psm1')
@@ -46,10 +48,10 @@ project "puppet-bolt" do |proj|
     proj.signing_hostname 'windowssigning-aio1-prod.delivery.puppetlabs.net'
     proj.signing_username 'Administrator'
     proj.signing_command 'pwsh.exe -File pwsh7.ps1 -FilePath'
+  else
+    proj.setting(:link_bindir, "/opt/puppetlabs/bin")
+    proj.setting(:main_bin, "/usr/local/bin")
   end
-
-  proj.setting(:link_bindir, "/opt/puppetlabs/bin")
-  proj.setting(:main_bin, "/usr/local/bin")
 
   proj.component "bolt-runtime"
   proj.component "bolt"
