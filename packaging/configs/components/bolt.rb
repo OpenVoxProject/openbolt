@@ -36,6 +36,10 @@ component "bolt" do |pkg, settings, platform|
     bolt_exe = File.join(settings[:link_bindir], 'bolt')
     pkg.install_file "../bolt_env_wrapper", bolt_exe, mode: "0755"
 
+    if File.directory?("/etc/bash_completion.d")
+      pkg.install_file "resources/bolt_bash_completion.sh", "/etc/bash_completion.d/bolt.sh", mode: "0644"
+    end
+
     if platform.is_macos?
       pkg.add_source 'file://resources/files/paths.d/50-bolt', sum: '4abf75aebbbfbbefc4fe0173c57ed0b2'
       pkg.install_file('../50-bolt', '/etc/paths.d/50-bolt')
