@@ -41,6 +41,7 @@ project "puppet-bolt" do |proj|
     proj.setting(:LicenseRTF, "wix/license/LICENSE.rtf")
     proj.setting(:install_root, File.join("C:", proj.base_dir, proj.company_id, proj.product_id))
     proj.setting(:link_bindir, File.join(proj.install_root, "bin"))
+    proj.setting(:bootsnap_datadir, File.join("C:", "CommonAppDataFolder", proj.company_id))
 
     module_directory = File.join(proj.datadir.sub(/^.*:\//, ''), 'PowerShell', 'Modules')
     proj.extra_file_to_sign File.join(module_directory, 'PuppetBolt', 'PuppetBolt.psm1')
@@ -59,6 +60,7 @@ project "puppet-bolt" do |proj|
 
   proj.directory proj.prefix
   proj.directory proj.link_bindir
+  proj.directory proj.bootsnap_datadir if platform.is_windows?
 
   if platform.is_fedora? && platform.os_version.to_i >= 28
     # Disable shebang mangling for certain paths inside Bolt.
