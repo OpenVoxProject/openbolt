@@ -24,6 +24,9 @@
       <!-- Tarball Extractor on install -->
       <Custom Action="SetPropertyForExtractTarballs" Before="InstallInitialize">NOT REMOVE</Custom>
       <Custom Action='ExtractTarballs' After='InstallFiles'>NOT REMOVE</Custom>
+      <!-- Run Bootsnap on install -->
+      <Custom Action="SetPropertyForRunBootsnap" Before="InstallInitialize">NOT REMOVE</Custom>
+      <Custom Action='RunBootsnap' After='InstallFiles'>NOT REMOVE</Custom>
       <!-- Tarball Remover on uninstall -->
       <Custom Action="SetPropertyForRemoveTarballs" Before="InstallInitialize">REMOVE~="ALL" OR MaintenanceMode="Remove"</Custom>
       <Custom Action='RemoveTarballs' Before='RemoveFiles'>REMOVE~="ALL" OR MaintenanceMode="Remove"</Custom>

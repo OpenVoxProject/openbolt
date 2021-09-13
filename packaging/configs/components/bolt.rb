@@ -22,6 +22,8 @@ component "bolt" do |pkg, settings, platform|
 
     pkg.add_source("file://resources/files/windows/bolt.bat", sum: "60ead805dc78855d4a1a13230c141daa")
     pkg.install_file "../bolt.bat", "#{settings[:link_bindir]}/bolt.bat"
+    # Bolt Data folder
+    pkg.directory File.join(settings[:bootsnap_datadir], 'bolt'), mode: '0755'
 
     # PowerShell Module
     pkg.directory "#{settings[:datadir]}/PowerShell/Modules/PuppetBolt"

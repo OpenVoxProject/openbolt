@@ -35,6 +35,19 @@
       Return="check"
       Impersonate="no" />
 
+    <CustomAction
+      Id="SetPropertyForRunBootsnap"
+      Property="RunBootsnap"
+      Value="[INSTALLDIR]" />
+    <Binary Id='BootsnapScript' SourceFile='..\bootsnap.vbs' />
+    <CustomAction
+      Id="RunBootsnap"
+      BinaryKey="BootsnapScript"
+      VBScriptCall="RunBootsnap"
+      Execute="deferred"
+      Return="check"
+      Impersonate="no" />
+
     <!-- INSTALLDIR is not available for Deferred Custom Actions.  So we need to save it for later user -->
     <CustomAction
       Id="SetPropertyForRemoveTarballs"
