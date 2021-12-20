@@ -23,7 +23,7 @@ LABEL org.label-schema.maintainer="Puppet Release Team <release@puppet.com>" \
 
 RUN apt-get update && \
     apt-get install --no-install-recommends -y wget ca-certificates lsb-release && \
-    wget http://apt.puppetlabs.com/puppet-tools-release-"$UBUNTU_CODENAME".deb && \
+    wget -q http://apt.puppetlabs.com/puppet-tools-release-"$UBUNTU_CODENAME".deb && \
     dpkg -i puppet-tools-release-"$UBUNTU_CODENAME".deb && \
     rm puppet-tools-release-"$UBUNTU_CODENAME".deb && \
     apt-get update && \
