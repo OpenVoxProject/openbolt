@@ -1,0 +1,52 @@
+---
+name: snyk vanagon check
+
+on:
+  push:
+    branches: '**'
+  pull_request_target:
+    types: [opened, reopened, edited, synchronize]
+
+jobs:
+ snyk_vanagon:
+   runs-on: ubuntu-latest
+   steps:
+    - name: checkout the current PR
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+        persist-credentials: false
+    - name: Run Vanagon Snyk Scan - push
+      uses: puppetlabs/security-snyk-vanagon-action@v2.2.0
+      if: github.event_name == 'push'
+      with:
+        snykToken: ${{ secrets.SNYK_PE_TOKEN }}
+        snykOrg: 'puppet-bolt'
+        skipProjects: ''
+        skipPlatforms: ''
+        urlsToReplace: 'artifactory.delivery.puppetlabs.net,%s/xart,builds.delivery.puppetlabs.net,%s/xbuild'
+        newHost: 'localhost'
+        rproxyUser: '${{ secrets.SEC_RPROXY_USER }}'
+        rproxyKey: '${{ secrets.SEC_RPROXY_KEY }}'
+        sshKey: '${{ secrets.SECBOT_SSH_KEY }}'
+        sshKeyName: 'id_ed25519'
+        branch : ${{ github.ref_name }}
+    - name: Run Vanagon Snyk Scan - PR
+      uses: puppetlabs/security-snyk-vanagon-action@v2.2.0
+      if: github.event_name != 'push'
+      with:
+        snykToken: ${{ secrets.SNYK_PE_TOKEN }}
+        snykOrg: 'puppet-bolt'
+        skipProjects: ''
+        skipPlatforms: ''
+        urlsToReplace: 'artifactory.delivery.puppetlabs.net,%s/xart,builds.delivery.puppetlabs.net,%s/xbuild'
+        newHost: 'localhost'
+        rproxyUser: '${{ secrets.SEC_RPROXY_USER }}'
+        rproxyKey: '${{ secrets.SEC_RPROXY_KEY }}'
+        sshKey: '${{ secrets.SECBOT_SSH_KEY }}'
+        sshKeyName: 'id_ed25519'
+        branch : ${{ github.ref_name }}
+        noMonitor: 'true'
+    - name: Check output
+      if: steps.scan.outputs.vulns != ''
+      run: echo "Vulnerabilities detected; ${{ steps.scan.outputs.vulns }}" && exit 1
