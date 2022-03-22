@@ -11,7 +11,7 @@ platform "windows-2012r2-x64" do |plat|
   # dir for vsdevcmd.bat we create it for safety
   plat.provision_with "mkdir -p C:/tools"
   # We don't want to install any packages from the chocolatey repo by accident
-  plat.provision_with "C:/ProgramData/chocolatey/bin/choco.exe update -y chocolatey"
+  plat.provision_with "C:/ProgramData/chocolatey/bin/choco.exe upgrade -y chocolatey"
   plat.provision_with "C:/ProgramData/chocolatey/bin/choco.exe sources remove -name chocolatey"
 
   plat.provision_with "C:/ProgramData/chocolatey/bin/choco.exe install -y Wix310 -version 3.10.2 -debug -x86"
