@@ -3,7 +3,6 @@ component "bolt" do |pkg, settings, platform|
 
   # Install the bolt runtime for access to rubygem-r10k:
   pkg.build_requires 'bolt-runtime'
-  pkg.build_requires 'gem-prune'
 
   # We need to run r10k before building the gem.
   pkg.build do
