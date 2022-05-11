@@ -57,6 +57,8 @@ project "puppet-bolt" do |proj|
   proj.component "bolt"
   proj.component "bolt-create-ruby-tarballs"
 
+  proj.component "gem-prune"
+
   proj.directory proj.prefix
   proj.directory proj.link_bindir
 
