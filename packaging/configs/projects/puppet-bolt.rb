@@ -45,9 +45,9 @@ project "puppet-bolt" do |proj|
     module_directory = File.join(proj.datadir.sub(/^.*:\//, ''), 'PowerShell', 'Modules')
     proj.extra_file_to_sign File.join(module_directory, 'PuppetBolt', 'PuppetBolt.psm1')
     proj.extra_file_to_sign File.join(module_directory, 'PuppetBolt', 'PuppetBolt.psd1')
-    proj.signing_hostname 'windowssigning-aio1-prod.delivery.puppetlabs.net'
-    proj.signing_username 'Administrator'
-    proj.signing_command 'pwsh.exe -File pwsh7.ps1 -FilePath'
+    proj.signing_hostname 'mozart.delivery.puppetlabs.net'
+    proj.signing_username 'jenkins'
+    proj.signing_command 'source /usr/local/rvm/scripts/rvm; rvm use 2.7.5; /var/lib/jenkins/bin/extra_file_signer'
   else
     proj.setting(:link_bindir, "/opt/puppetlabs/bin")
     proj.setting(:main_bin, "/usr/local/bin")
