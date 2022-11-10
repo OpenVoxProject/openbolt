@@ -62,19 +62,10 @@ project "puppet-bolt" do |proj|
   proj.directory proj.prefix
   proj.directory proj.link_bindir
 
-  if platform.is_fedora? && platform.os_version.to_i >= 28
-    # Disable shebang mangling for certain paths inside Bolt.
-    # See https://fedoraproject.org/wiki/Packaging:Guidelines#Shebang_lines
-    brp_mangle_shebangs_exclude_from = [
-      ".*/opt/puppetlabs/bolt/private/ruby/.*",
-      ".*/opt/puppetlabs/bolt/share/cache/ruby/.*"
-    ].join('|')
 
-    proj.package_override("# Disable shebang mangling of embedded Ruby stuff\n%global __brp_mangle_shebangs_exclude_from ^(#{brp_mangle_shebangs_exclude_from})$")
-
-    # Disable build-id generation since it's currently generating conflicts
-    # with system libgcc and libstdc++
-    proj.package_override("# Disable build-id generation to avoid conflicts\n%global _build_id_links none")
+  if platform.is_fedora?
+    proj.package_override("# Disable check-rpaths since /opt/* is not a valid path\n%global __brp_check_rpaths \%{nil}")
+    proj.package_override("# Disable the removal of la files, they are still required\n%global __brp_remove_la_files \%{nil}")
   end
 
   if platform.name =~ /^el-(8)-.*/
