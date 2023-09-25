@@ -44,8 +44,8 @@ Function ExecuteCommand(Command)
   Dim output: output = ""
   Log "Executing Command : " & Command, False
 
-  Dim tempFilePath : tempFilePath = wshShell.ExpandEnvironmentStrings("%TEMP%\" + fso.GetTempName())
-  Dim tempBatFile : tempBatFile = wshShell.ExpandEnvironmentStrings("%TEMP%\" + fso.GetTempName() + ".bat")
+  Dim tempFilePath : tempFilePath = fso.GetTempName()
+  Dim tempBatFile : tempBatFile = fso.GetTempName() + ".bat"
   ' Open the temp .bat file for writing
   ' Unfortunately due to the strange double quoting behaviour in wshShell.Run we create a temporary
   ' Batch file with the command we want, and then call the batch file.  Note that we explicitly call
