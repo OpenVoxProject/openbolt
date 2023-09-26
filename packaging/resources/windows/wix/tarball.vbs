@@ -17,7 +17,9 @@ Const IDABORT = 3
 
 Dim wshShell : Set wshShell = CreateObject("WScript.Shell")
 Dim fso : Set fso = CreateObject("Scripting.FileSystemObject")
-Dim comspec : comspec = wshShell.ExpandEnvironmentStrings("%comspec%")
+' https://learn.microsoft.com/en-us/office/vba/language/reference/user-interface-help/getspecialfolder-method
+Dim systemPath : systemPath = fso.getSpecialFolder(1)
+Dim comspec : comspec = systemPath & "\cmd.exe"
 
 Sub Log (Message, IsError)
   ' Logs through cscript
