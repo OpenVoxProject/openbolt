@@ -1,11 +1,11 @@
-FROM ubuntu:18.04
+FROM ubuntu:22.04
 
-ARG version="1.24.0"
+ARG version="3.0.0"
 ARG vcs_ref
 ARG build_date
 
 ENV BOLT_VERSION="$version"
-ENV UBUNTU_CODENAME="bionic"
+ENV UBUNTU_CODENAME="jammy"
 ENV BOLT_DISABLE_ANALYTICS="true"
 ENV LANG="C.UTF-8"
 
