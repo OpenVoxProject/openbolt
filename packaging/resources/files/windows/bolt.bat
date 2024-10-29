@@ -17,5 +17,8 @@ REM Set SSL variables to ensure trusted locations are used
 SET SSL_CERT_FILE=%BOLT_BASEDIR%\ssl\cert.pem
 SET SSL_CERT_DIR=%BOLT_BASEDIR%\ssl\certs
 SET OPENSSL_CONF=%BOLT_BASEDIR%\ssl\openssl.cnf
+SET OPENSSL_CONF_INCLUDE=%BOLT_BASEDIR%\ssl
+SET OPENSSL_MODULES=%BOLT_BASEDIR%\lib\ossl-modules
+SET OPENSSL_ENGINES=%BOLT_BASEDIR%\lib\engines-3
 
 ruby -S -- bolt %*
