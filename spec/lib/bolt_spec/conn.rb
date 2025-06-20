@@ -92,7 +92,7 @@ module BoltSpec
                 'name' => 'nix_agents',
                 'targets' => [
                   {
-                    'name' => 'puppet_6_node',
+                    'name' => 'puppet_8_node',
                     'config' => { 'ssh' => { 'port' => 20024 } }
                   },
                   {
