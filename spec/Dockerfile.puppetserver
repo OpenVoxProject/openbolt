@@ -1,4 +1,4 @@
-FROM puppet/puppetserver:edge
+FROM ghcr.io/openvoxproject/openvoxserver:latest
 
 ARG hostname="boltserver"
 ENV PUPPETSERVER_HOSTNAME "$hostname"
