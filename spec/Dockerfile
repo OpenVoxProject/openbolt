@@ -3,18 +3,19 @@ FROM ubuntu:24.04
 ARG PUPPET_COLLECTION
 
 # Install required packages
-RUN apt update && \
-    apt install -y --no-install-recommends \
+RUN apt update \
+    && apt install -y --no-install-recommends \
         adduser \
+        ca-certificates \
         openssh-server \
         libssl-dev \
         sudo \
         locales \
         wget \
         apt-transport-https \
-        tree && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+        tree \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 # Set the locale
 RUN locale-gen en_US.UTF-8
