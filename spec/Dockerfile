@@ -7,7 +7,7 @@ RUN apt update && \
     apt install -y --no-install-recommends \
         openssh-server \
         libssl-dev \
-        sudo && \
+        sudo \
         locales \
         wget \
         apt-transport-https \
