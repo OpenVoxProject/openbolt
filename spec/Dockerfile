@@ -24,7 +24,7 @@ ENV LANGUAGE=en_US.UTF-8
 # Install the puppet-agent package
 # sudo is important here so puppet is added to the path
 RUN if [ -n "$PUPPET_COLLECTION" ]; then \
-    && wget -q https://apt.voxpupuli.org/${PUPPET_COLLECTION}-release-ubuntu24.04.deb \
+    wget -q https://apt.voxpupuli.org/${PUPPET_COLLECTION}-release-ubuntu24.04.deb \
     && sudo dpkg -i ${PUPPET_COLLECTION}-release-bionic.deb \
     && sudo apt-get update \
     && sudo apt-get -y install openvox-agent ; \
