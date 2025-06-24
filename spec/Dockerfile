@@ -5,6 +5,7 @@ ARG PUPPET_COLLECTION
 # Install required packages
 RUN apt update && \
     apt install -y --no-install-recommends \
+        adduser \
         openssh-server \
         libssl-dev \
         sudo \
