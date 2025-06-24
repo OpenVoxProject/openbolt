@@ -25,9 +25,9 @@ ENV LANGUAGE=en_US.UTF-8
 # sudo is important here so puppet is added to the path
 RUN if [ -n "$PUPPET_COLLECTION" ]; then \
     wget -q https://apt.voxpupuli.org/${PUPPET_COLLECTION}-release-ubuntu24.04.deb \
-    && sudo dpkg -i ${PUPPET_COLLECTION}-release-bionic.deb \
-    && sudo apt-get update \
-    && sudo apt-get -y install puppet-agent \
+    && sudo apt install -y /${PUPPET_COLLECTION}-release-ubuntu24.04.deb \
+    && sudo apt update \
+    && sudo apt install -y openvox-agent ; \
     fi
 
 # Add 'bolt' user
