@@ -246,7 +246,7 @@ Undef:}
                           { "action" => "run_task",
                             "object" => "error::fail",
                             "result_set" =>
-                          [{ "target" => 'puppet_6_node',
+                          [{ "target" => 'puppet_8_node',
                              "action" => "task",
                              "object" => "error::fail",
                              "status" => "failure",

@@ -1,58 +1,73 @@
-version: "3"
 services:
   ubuntu_node:
     build: .
     container_name: ubuntu_node
     ports:
       - "20022:22"
+    depends_on:
+      openvoxserver:
+        condition: service_healthy
 
-  puppet_6_node:
+  puppet_8_node:
     build:
       context: .
       args:
-        PUPPET_COLLECTION: puppet6
-    container_name: puppet_6_node
+        PUPPET_COLLECTION: openvox8
+    container_name: puppet_8_node
     ports:
       - "20024:22"
+    depends_on:
+      openvoxserver:
+        condition: service_healthy
 
   puppet_7_node:
     build:
       context: .
       args:
-        PUPPET_COLLECTION: puppet7
+        PUPPET_COLLECTION: openvox7
     container_name: puppet_7_node
     ports:
       - "20025:22"
+    depends_on:
+      openvoxserver:
+        condition: service_healthy
 
   postgres:
-    image: postgres:11.11
+    image: docker.io/postgres:17-alpine
+    hostname: postgres
     environment:
-      POSTGRES_PASSWORD: puppetdb
-      POSTGRES_USER: puppetdb
-      POSTGRES_DB: puppetdb
+      POSTGRES_DB: openvoxdb
+      POSTGRES_USER: openvoxdb
+      POSTGRES_PASSWORD: openvoxdb
     volumes:
       - ./fixtures/puppetdb/custom_source:/docker-entrypoint-initdb.d
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "sh -c 'pg_isready -U openvoxdb -d openvoxdb'"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
 
-  puppetdb:
-    build:
-      context: .
-      dockerfile: Dockerfile.puppetdb
-    depends_on:
-      - postgres
-      - puppetserver
+  openvoxdb:
+    image: ghcr.io/openvoxproject/openvoxdb:latest
+    hostname: pdb
     environment:
-      USE_PUPPETSERVER: 'false'
       CERTNAME: pdb
+    restart: always
+    depends_on:
+      openvoxserver:
+        condition: service_healthy
     ports:
       - "18081:8081"
 
-  puppetserver:
-    build:
-      context: .
-      dockerfile: Dockerfile.puppetserver
-    image: puppet-server
-    ports:
-      - "8140:8140"
+  openvoxserver:
+    image: ghcr.io/openvoxproject/openvoxserver:latest
+    hostname: puppet
+    environment:
+      OPENVOXSERVER_HOSTNAME: puppet
+    restart: always
     volumes:
       - ./fixtures/modules:/etc/puppetlabs/code/modules
       - ./fixtures/bolt_server/projects:/etc/puppetlabs/code/projects
+    ports:
+      - 8140:8140

@@ -1,10 +1,21 @@
-FROM rastasheep/ubuntu-sshd:18.04
+FROM ubuntu:24.04
 
 ARG PUPPET_COLLECTION
 
 # Install required packages
-RUN apt-get update
-RUN apt-get -y install apt-transport-https locales sudo tree wget
+RUN apt update \
+    && apt install -y --no-install-recommends \
+        adduser \
+        ca-certificates \
+        openssh-server \
+        libssl-dev \
+        sudo \
+        locales \
+        wget \
+        apt-transport-https \
+        tree \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 # Set the locale
 RUN locale-gen en_US.UTF-8
@@ -15,10 +26,10 @@ ENV LANGUAGE=en_US.UTF-8
 # Install the puppet-agent package
 # sudo is important here so puppet is added to the path
 RUN if [ -n "$PUPPET_COLLECTION" ]; then \
-    wget -q https://apt.puppetlabs.com/${PUPPET_COLLECTION}-release-bionic.deb \
-    && sudo dpkg -i ${PUPPET_COLLECTION}-release-bionic.deb \
-    && sudo apt-get update \
-    && sudo apt-get -y install puppet-agent ; \
+    wget -q https://apt.voxpupuli.org/${PUPPET_COLLECTION}-release-ubuntu24.04.deb \
+    && sudo apt install -y /${PUPPET_COLLECTION}-release-ubuntu24.04.deb \
+    && sudo apt update \
+    && sudo apt install -y openvox-agent ; \
     fi
 
 # Add 'bolt' user
@@ -47,4 +58,9 @@ RUN chmod 600 /home/test/.ssh/authorized_keys
 RUN chown -R test:sudo /home/test
 
 # Run the sshd service in the background
-CMD [ "/usr/sbin/sshd", "-D" ]
+RUN echo "PubkeyAuthentication yes" >> /etc/ssh/sshd_config.d/pubkey_auth.conf && \
+    echo "LogLevel VERBOSE" >> /etc/ssh/sshd_config.d/log_level.conf
+
+EXPOSE 22
+
+CMD ["/usr/sbin/sshd", "-D", "-e"]

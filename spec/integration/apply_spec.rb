@@ -214,13 +214,13 @@ describe 'apply', apply: true do
           results.each do |result|
             expect(result['status']).to eq('success')
             report = result['value']['report']
-            expect(report['resource_statuses']).to include(/Notify\[Hello puppet_[5-7]_node\]/)
+            expect(report['resource_statuses']).to include(/Notify\[Hello puppet_[7-8]_node\]/)
           end
         end
 
-        # Run on puppet_6_node and puppet_7_node only, as deferred requires >= 6.
+        # Run on puppet_8_node and puppet_7_node only, as deferred requires >= 6.
         it 'applies the deferred type' do
-          result = run_cli_json(%w[plan run basic::defer -t puppet_6_node,puppet_7_node], project: project)
+          result = run_cli_json(%w[plan run basic::defer -t puppet_8_node,puppet_7_node], project: project)
           expect(result).not_to include('kind')
           expect(result[0]['status']).to eq('success')
           resources = result[0]['value']['report']['resource_statuses']

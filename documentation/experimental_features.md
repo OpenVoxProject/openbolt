@@ -224,13 +224,13 @@ specify the option on the command line as `--stream`. Bolt streams results back 
 they are received, with the target's safe name (the URI without the password included) and the
 stream (either 'out' or 'err') appended to the message, like so:
 ```
-Started on docker://puppet_6_node...
+Started on docker://puppet_8_node...
 Started on docker://puppet_7_node...
 [docker://puppet_7_node] out: Hello!
-[docker://puppet_6_node] out: Hello!
+[docker://puppet_8_node] out: Hello!
 Finished on docker://puppet_7_node:
   Hello!
-Finished on docker://puppet_6_node:
+Finished on docker://puppet_8_node:
   Hello!
 ```
 
