@@ -56,10 +56,10 @@ Gem::Specification.new do |spec|
   spec.add_dependency "net-ssh", ">= 4.0", "< 8.0"
   spec.add_dependency "net-ssh-krb", "~> 0.5"
   spec.add_dependency "orchestrator_client", "~> 0.7"
-  spec.add_dependency "puppet", ">= 6.18.0"
+  spec.add_dependency "openvox", "~> 8.0"
   spec.add_dependency "puppetfile-resolver", ">= 0.6.2", "< 1.0"
   spec.add_dependency "puppet-resource_api", ">= 1.8.1"
-  spec.add_dependency "puppet-strings", ">= 2.3.0", "< 5.0"
+  spec.add_dependency "openvox-strings", '~> 5.0'
   spec.add_dependency "r10k", ">= 3.10", "< 5"
   spec.add_dependency "ruby_smb", "~> 1.0"
   spec.add_dependency "terminal-table", "~> 3.0"
@@ -68,7 +68,6 @@ Gem::Specification.new do |spec|
 
   spec.add_development_dependency "bundler", ">= 1.14"
   spec.add_development_dependency "octokit", ">= 4.0", "< 9"
-  spec.add_development_dependency "puppetlabs_spec_helper", ">= 5.0", "< 8"
   spec.add_development_dependency "rake", ">= 12.0", "< 14"
   spec.add_development_dependency "rspec", ">= 3.0", "< 4"
   spec.add_development_dependency 'voxpupuli-rubocop', '~> 4.1.0'
