@@ -1,18 +1,10 @@
 name: Local Transport
 
 on:
-  pull_request:
-    types: [opened, reopened, edited, synchronize]
-    paths:
-      - .github/workflows/local_transport.yaml
-      - bolt.gemspec
-      - Gemfile
-      - Puppetfile
-      - bolt-modules/**
-      - lib/bolt/**
-      - libexec/**
-      - rakelib/tests.rake
-      - spec/**
+  pull_request: {}
+  push:
+    branches:
+      - main
 
 env:
   BOLT_WINRM_USER: roddypiper
