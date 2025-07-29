@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## [5.0.0-rc2](https://github.com/openvoxproject/openbolt/tree/5.0.0-rc2) (2025-07-29)
+
+[Full Changelog](https://github.com/openvoxproject/openbolt/compare/5.0.0.rc1...5.0.0-rc2)
+
+**Breaking changes:**
+
+- Remove Bolt Server [\#24](https://github.com/OpenVoxProject/openbolt/pull/24) ([jessereynolds](https://github.com/jessereynolds))
+- Switch from puppet to openvox [\#14](https://github.com/OpenVoxProject/openbolt/pull/14) ([bastelfreak](https://github.com/bastelfreak))
+
+**Implemented enhancements:**
+
+- Allow json 2.x [\#41](https://github.com/OpenVoxProject/openbolt/pull/41) ([smortex](https://github.com/smortex))
+- Allow ruby\_smb 2.x and 3.x [\#40](https://github.com/OpenVoxProject/openbolt/pull/40) ([smortex](https://github.com/smortex))
+- Allow minitar 1.x [\#39](https://github.com/OpenVoxProject/openbolt/pull/39) ([smortex](https://github.com/smortex))
+- Allow hiera-eyaml 4.x [\#38](https://github.com/OpenVoxProject/openbolt/pull/38) ([smortex](https://github.com/smortex))
+
+**Closed issues:**
+
+- Remove bolt-server feature [\#9](https://github.com/OpenVoxProject/openbolt/issues/9)
+
 ## [5.0.0.rc1](https://github.com/openvoxproject/openbolt/tree/5.0.0.rc1) (2025-07-11)
 
 [Full Changelog](https://github.com/openvoxproject/openbolt/compare/4.0.0...5.0.0.rc1)
