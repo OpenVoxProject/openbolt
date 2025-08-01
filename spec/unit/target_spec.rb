@@ -157,22 +157,6 @@ describe Bolt::Target do
       end
     end
 
-    describe "with pcp" do
-      it "accepts 'pcp://pluto:666'" do
-        target = inventory.get_target('pcp://pluto:666')
-        expect(target.transport).to eq('pcp')
-        expect(target.host).to eq('pluto')
-        expect(target.port).to eq(666)
-      end
-
-      it "accepts 'pcp://pluto' without a port" do
-        target = inventory.get_target('pcp://pluto')
-        expect(target.transport).to eq('pcp')
-        expect(target.host).to eq('pluto')
-        expect(target.port).to be_nil
-      end
-    end
-
     it "strips brackets from ipv6 addresses in a uri" do
       target = inventory.get_target('ssh://[::1]:22')
       expect(target.host).to eq('::1')

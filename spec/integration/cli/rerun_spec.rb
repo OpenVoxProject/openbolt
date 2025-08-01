@@ -125,8 +125,6 @@ describe 'rerun' do
     before(:each) do
       write_rerun(['original result'])
 
-      allow(executor).to receive(:start_plan)
-      allow(executor).to receive(:finish_plan)
       allow(pal).to receive(:parse_params)
       allow(pal).to receive(:parse_manifest)
     end

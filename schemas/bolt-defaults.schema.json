@@ -110,9 +110,6 @@
         "lxd": {
           "$ref": "#/definitions/lxd"
         },
-        "pcp": {
-          "$ref": "#/definitions/pcp"
-        },
         "podman": {
           "$ref": "#/definitions/podman"
         },
@@ -478,7 +475,6 @@
             "jail",
             "local",
             "lxd",
-            "pcp",
             "podman",
             "remote",
             "ssh",
@@ -929,99 +925,6 @@
               "oneOf": [
                 {
                   "$ref": "#/transport_definitions/tty"
-                },
-                {
-                  "$ref": "#/definitions/_plugin"
-                }
-              ]
-            }
-          }
-        },
-        {
-          "$ref": "#/definitions/_plugin"
-        }
-      ]
-    },
-    "pcp": {
-      "description": "A map of configuration options for the pcp transport.",
-      "oneOf": [
-        {
-          "type": "object",
-          "properties": {
-            "cacert": {
-              "oneOf": [
-                {
-                  "$ref": "#/transport_definitions/cacert"
-                },
-                {
-                  "$ref": "#/definitions/_plugin"
-                }
-              ]
-            },
-            "host": {
-              "oneOf": [
-                {
-                  "$ref": "#/transport_definitions/host"
-                },
-                {
-                  "$ref": "#/definitions/_plugin"
-                }
-              ]
-            },
-            "job-poll-interval": {
-              "oneOf": [
-                {
-                  "$ref": "#/transport_definitions/job-poll-interval"
-                },
-                {
-                  "$ref": "#/definitions/_plugin"
-                }
-              ]
-            },
-            "job-poll-timeout": {
-              "oneOf": [
-                {
-                  "$ref": "#/transport_definitions/job-poll-timeout"
-                },
-                {
-                  "$ref": "#/definitions/_plugin"
-                }
-              ]
-            },
-            "read-timeout": {
-              "oneOf": [
-                {
-                  "$ref": "#/transport_definitions/read-timeout"
-                },
-                {
-                  "$ref": "#/definitions/_plugin"
-                }
-              ]
-            },
-            "service-url": {
-              "oneOf": [
-                {
-                  "$ref": "#/transport_definitions/service-url"
-                },
-                {
-                  "$ref": "#/definitions/_plugin"
-                }
-              ]
-            },
-            "task-environment": {
-              "oneOf": [
-                {
-                  "$ref": "#/transport_definitions/task-environment"
-                },
-                {
-                  "$ref": "#/definitions/_plugin"
-                }
-              ]
-            },
-            "token-file": {
-              "oneOf": [
-                {
-                  "$ref": "#/transport_definitions/token-file"
                 },
                 {
                   "$ref": "#/definitions/_plugin"

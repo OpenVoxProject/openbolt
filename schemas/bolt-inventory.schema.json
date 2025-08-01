@@ -45,7 +45,6 @@
                     "jail",
                     "local",
                     "lxd",
-                    "pcp",
                     "podman",
                     "remote",
                     "ssh",
@@ -610,111 +609,6 @@
                       "oneOf": [
                         {
                           "type": "boolean"
-                        },
-                        {
-                          "$ref": "#/definitions/_plugin"
-                        }
-                      ]
-                    }
-                  }
-                },
-                {
-                  "$ref": "#/definitions/_plugin"
-                }
-              ]
-            },
-            "pcp": {
-              "description": "A map of configuration options for the pcp transport.",
-              "oneOf": [
-                {
-                  "type": "object",
-                  "properties": {
-                    "cacert": {
-                      "description": "The path to the CA certificate.",
-                      "oneOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "$ref": "#/definitions/_plugin"
-                        }
-                      ]
-                    },
-                    "host": {
-                      "description": "The target's hostname.",
-                      "oneOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "$ref": "#/definitions/_plugin"
-                        }
-                      ]
-                    },
-                    "job-poll-interval": {
-                      "description": "The interval, in seconds, to poll orchestrator for job status.",
-                      "oneOf": [
-                        {
-                          "type": "integer",
-                          "minimum": 1
-                        },
-                        {
-                          "$ref": "#/definitions/_plugin"
-                        }
-                      ]
-                    },
-                    "job-poll-timeout": {
-                      "description": "The time, in seconds, to wait for orchestrator job status.",
-                      "oneOf": [
-                        {
-                          "type": "integer",
-                          "minimum": 1
-                        },
-                        {
-                          "$ref": "#/definitions/_plugin"
-                        }
-                      ]
-                    },
-                    "read-timeout": {
-                      "description": "How long to wait in seconds when making requests to the Orchestrator.",
-                      "oneOf": [
-                        {
-                          "type": "integer",
-                          "minimum": 1
-                        },
-                        {
-                          "$ref": "#/definitions/_plugin"
-                        }
-                      ]
-                    },
-                    "service-url": {
-                      "description": "The URL of the host used for API requests.",
-                      "oneOf": [
-                        {
-                          "type": "string",
-                          "format": "uri"
-                        },
-                        {
-                          "$ref": "#/definitions/_plugin"
-                        }
-                      ]
-                    },
-                    "task-environment": {
-                      "description": "The environment the orchestrator loads task code from.",
-                      "oneOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "$ref": "#/definitions/_plugin"
-                        }
-                      ]
-                    },
-                    "token-file": {
-                      "description": "The path to the token file.",
-                      "oneOf": [
-                        {
-                          "type": "string"
                         },
                         {
                           "$ref": "#/definitions/_plugin"

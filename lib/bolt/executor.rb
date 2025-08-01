@@ -17,7 +17,6 @@ require_relative '../bolt/transport/docker'
 require_relative '../bolt/transport/jail'
 require_relative '../bolt/transport/local'
 require_relative '../bolt/transport/lxd'
-require_relative '../bolt/transport/orch'
 require_relative '../bolt/transport/podman'
 require_relative '../bolt/transport/remote'
 require_relative '../bolt/transport/ssh'
@@ -29,7 +28,6 @@ module Bolt
     jail: Bolt::Transport::Jail,
     local: Bolt::Transport::Local,
     lxd: Bolt::Transport::LXD,
-    pcp: Bolt::Transport::Orch,
     podman: Bolt::Transport::Podman,
     remote: Bolt::Transport::Remote,
     ssh: Bolt::Transport::SSH,
@@ -509,24 +507,6 @@ module Bolt
 
       value = options[:default] if value.empty?
       value
-    end
-
-    # Plan context doesn't make sense for most transports but it is tightly
-    # coupled with the orchestrator transport since the transport behaves
-    # differently when a plan is running. In order to limit how much this
-    # pollutes the transport API we only handle the orchestrator transport here.
-    # Since we call this function without resolving targets this will result
-    # in the orchestrator transport always being initialized during plan runs.
-    # For now that's ok.
-    #
-    # In the future if other transports need this or if we want a plan stack
-    # we'll need to refactor.
-    def start_plan(plan_context)
-      transport('pcp').plan_context = plan_context
-    end
-
-    def finish_plan(plan_result)
-      transport('pcp').finish_plan(plan_result)
     end
 
     def without_default_logging

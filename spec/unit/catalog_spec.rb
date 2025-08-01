@@ -65,9 +65,6 @@ describe Bolt::Catalog do
         'transports' => {
           'ssh' => { 'connect-timeout' => 10, tty: false, "host-key-check" => true },
           'winrm' => { 'connect-timeout' => 10, tty: false, ssl: true, "ssl-verify" => true },
-          'pcp' => { 'connect-timeout' => 10,
-                     'tty' => false,
-                     'task-environment' => 'production' },
           'local' => { 'connect-timeout' => 10, tty: false }
         }
       } }

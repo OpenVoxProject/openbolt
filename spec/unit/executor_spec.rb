@@ -474,23 +474,6 @@ describe "Bolt::Executor" do
         expect(result.error_hash['kind']).to eq('puppetlabs.tasks/exception-error')
       end
     end
-
-    context 'with batched execution with more than one target' do
-      let(:pcp) { executor.transport('pcp') }
-      let(:target1) { inventory.get_target('pcp://node1') }
-      let(:target2) { inventory.get_target('pcp://node2') }
-      let(:targets) { [target1, target2] }
-
-      it 'partitions failures and successes by batch' do
-        allow(pcp).to receive(:batch_connected?).with(targets).and_return(false)
-        allow(pcp).to receive(:batch_connected?).with([target1]).and_return(false)
-        allow(pcp).to receive(:batch_connected?).with([target2]).and_return(true)
-
-        results = executor.wait_until_available(targets, wait_time: 1, retry_interval: 1)
-        expect(results.error_set.targets).to include(target1)
-        expect(results.ok_set.targets).to include(target2)
-      end
-    end
   end
 
   context 'prompting' do
@@ -612,7 +595,7 @@ describe "Bolt::Executor" do
 
   context "targets with different protocols" do
     let(:targets) {
-      inventory.get_targets(['ssh://node1', 'winrm://node2', 'pcp://node3'])
+      inventory.get_targets(['ssh://node1', 'winrm://node2', 'jail://node3'])
     }
 
     it "returns ensures that every target has a result, no matter what" do
@@ -735,13 +718,13 @@ describe "Bolt::Executor" do
 
   context 'reporting analytics data' do
     let(:targets) {
-      inventory.get_targets(['ssh://node1', 'ssh://node2', 'winrm://node3', 'pcp://node4'])
+      inventory.get_targets(['ssh://node1', 'ssh://node2', 'winrm://node3', 'jail://node4'])
     }
 
     it 'reports one event for each transport used' do
       expect(analytics).to receive(:event).with('Transport', 'initialize', label: 'ssh', value: 2).once
       expect(analytics).to receive(:event).with('Transport', 'initialize', label: 'winrm', value: 1).once
-      expect(analytics).to receive(:event).with('Transport', 'initialize', label: 'orch', value: 1).once
+      expect(analytics).to receive(:event).with('Transport', 'initialize', label: 'jail', value: 1).once
 
       executor.batch_execute(targets) {}
       executor.batch_execute(targets) {}
@@ -788,119 +771,6 @@ describe "Bolt::Executor" do
         expect(analytics).to receive(:event).with('Plan', 'run_script', label: 'module')
 
         executor.report_file_source('run_script', 'my_module/my_file')
-      end
-    end
-  end
-
-  context "When running a plan" do
-    let(:nodes_string) { results.map(&:first).map(&:uri) }
-    let(:plan_context) { { name: 'foo' } }
-
-    before :all do
-      @log_output.level = :info
-    end
-    after :all do
-      @log_output.level = :all
-    end
-
-    it "sends event for commands" do
-      node_results.each do |target, result|
-        expect(ssh)
-          .to receive(:run_command)
-          .with(target, command, {}, [])
-          .and_return(result)
-      end
-
-      executor.start_plan(plan_context)
-      executor.run_command(targets, command)
-      executor.shutdown
-
-      expect(collector.events).to include(include(type: :step_start, description: match(/command/)))
-      expect(collector.events).to include(include(type: :step_finish, description: match(/command/)))
-    end
-
-    it "sends event for scripts" do
-      node_results.each do |target, result|
-        expect(ssh)
-          .to receive(:run_script)
-          .with(target, script, [], anything, [])
-          .and_return(result)
-      end
-
-      executor.start_plan(plan_context)
-      executor.run_script(targets, script, [])
-      executor.shutdown
-
-      expect(collector.events).to include(include(type: :step_start, description: match(/script/)))
-      expect(collector.events).to include(include(type: :step_finish, description: match(/script/)))
-    end
-
-    it "sends event for tasks" do
-      node_results.each do |target, result|
-        expect(ssh)
-          .to receive(:run_task)
-          .with(target, task_type(task), task_arguments, task_options, [])
-          .and_return(result)
-      end
-
-      executor.start_plan(plan_context)
-      executor.run_task(targets, mock_task(task), task_arguments, task_options)
-      executor.shutdown
-
-      expect(collector.events).to include(include(type: :step_start, description: match(/task service::restart/)))
-      expect(collector.events).to include(include(type: :step_finish, description: match(/task service::restart/)))
-    end
-
-    it "sends event for tasks with per-target params" do
-      node_results.each do |target, result|
-        expect(ssh)
-          .to receive(:run_task)
-          .with(target, task_type(task), task_arguments, task_options, [])
-          .and_return(result)
-      end
-
-      target_mapping = targets.each_with_object({}) { |target, map| map[target] = task_arguments }
-
-      executor.start_plan(plan_context)
-      executor.run_task_with(target_mapping, mock_task(task), task_options)
-      executor.shutdown
-
-      expect(collector.events).to include(include(type: :step_start, description: match(/task service::restart/)))
-      expect(collector.events).to include(include(type: :step_finish, description: match(/task service::restart/)))
-    end
-
-    it "logs uploads" do
-      node_results.each do |target, result|
-        expect(ssh)
-          .to receive(:upload)
-          .with(target, script, dest, {})
-          .and_return(result)
-      end
-
-      executor.start_plan(plan_context)
-      executor.upload_file(targets, script, dest)
-      executor.shutdown
-
-      expect(collector.events).to include(include(type: :step_start, description: match(/file upload/)))
-      expect(collector.events).to include(include(type: :step_finish, description: match(/file upload/)))
-    end
-
-    it "logs downloads" do
-      Dir.mktmpdir(nil, Dir.pwd) do |destination|
-        node_results.each do |target, result|
-          target_destination = File.expand_path(target.safe_name, destination)
-          expect(ssh)
-            .to receive(:download)
-            .with(target, script, target_destination, {})
-            .and_return(result)
-        end
-
-        executor.start_plan(plan_context)
-        executor.download_file(targets, script, destination)
-        executor.shutdown
-
-        expect(collector.events).to include(include(type: :step_start, description: match(/file download/)))
-        expect(collector.events).to include(include(type: :step_finish, description: match(/file download/)))
       end
     end
   end

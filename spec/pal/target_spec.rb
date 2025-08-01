@@ -14,8 +14,8 @@ describe 'Target DataType' do
 
   let(:pal)             { make_pal }
   let(:inventory)       { make_inventory }
-  let(:default_config)  { make_config.transports['pcp'].to_h }
-  let(:target_code)     { "$target = Target('pcp://user1:pass1@example.com:33')\n" }
+  let(:default_config)  { make_config.transports['ssh'].to_h }
+  let(:target_code)     { "$target = Target('ssh://user1:pass1@example.com:33')\n" }
 
   def target(attr)
     code = target_code + attr
@@ -23,11 +23,11 @@ describe 'Target DataType' do
   end
 
   it 'should expose uri' do
-    expect(target('$target.uri')).to eq('pcp://user1:pass1@example.com:33')
+    expect(target('$target.uri')).to eq('ssh://user1:pass1@example.com:33')
   end
 
   it 'should expose name' do
-    expect(target('$target.name')).to eq('pcp://user1:pass1@example.com:33')
+    expect(target('$target.name')).to eq('ssh://user1:pass1@example.com:33')
   end
 
   it 'should expose host' do
@@ -35,7 +35,7 @@ describe 'Target DataType' do
   end
 
   it 'should expose protocol' do
-    expect(target('$target.protocol')).to eq('pcp')
+    expect(target('$target.protocol')).to eq('ssh')
   end
 
   it 'should expose port' do
@@ -51,7 +51,7 @@ describe 'Target DataType' do
   end
 
   it 'should expose transport' do
-    expect(target('$target.transport')).to eq('pcp')
+    expect(target('$target.transport')).to eq('ssh')
   end
 
   it 'should expose transport_config' do

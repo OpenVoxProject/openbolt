@@ -238,7 +238,7 @@ describe Bolt::Inventory::Inventory do
         end
 
         it 'should parse an array of target URIs' do
-          names = ['pcp://a', 'winrm://b', 'c']
+          names = ['ssh://a', 'winrm://b', 'c']
           targets = inventory.get_targets(names).map(&:uri)
           expect(targets).to eq(names)
         end
@@ -610,13 +610,13 @@ describe Bolt::Inventory::Inventory do
 
         let(:data) {
           {
-            'targets' => ['ssh://target', 'winrm://target', 'pcp://target', 'target'],
+            'targets' => ['ssh://target', 'winrm://target', 'jail://target', 'target'],
             'config' => {
               'transport' => 'winrm',
               'modulepath' => 'nonsense',
               'ssh' => common_data('ssh'),
               'winrm' => common_data('winrm'),
-              'pcp' => common_data('pcp')
+              'jail' => common_data('jail')
             }
           }
         }
@@ -684,17 +684,18 @@ describe Bolt::Inventory::Inventory do
           )
         end
 
-        it 'only uses configured options for pcp' do
-          target = get_target(inventory, 'pcp://target')
-          expect(target.transport).to eq('pcp')
-          expect(target.user).to be nil
+        it 'only uses configured options for jail' do
+          target = get_target(inventory, 'jail://target')
+          expect(target.transport).to eq('jail')
+          expect(target.user).to eq('mejail')
           expect(target.password).to be nil
           expect(target.port).to be nil
           expect(target.options.to_h).to include(
-            'task-environment' => "prod",
-            'service-url' => "https://master",
-            'cacert' => /pcp.pem\z/,
-            'token-file' => /token\z/
+            'cleanup' => true,
+            'run-as' => 'root',
+            'sudo-password' => 'nothing',
+            'tmpdir' => '/jail',
+            'user' => 'mejail',
           )
         end
       end
@@ -711,7 +712,7 @@ describe Bolt::Inventory::Inventory do
         end
 
         it 'should error when an array of targets is requested' do
-          names = ['pcp://a', 'winrm://b', 'c']
+          names = ['ssh://a', 'winrm://b', 'c']
           expect {
             inventory.get_target(names)
           }.to raise_error(Bolt::Inventory::ValidationError, "'#{names}' refers to 3 targets")
@@ -933,13 +934,13 @@ describe Bolt::Inventory::Inventory do
 
         let(:data) {
           {
-            'targets' => ['ssh://target', 'winrm://target', 'pcp://target', 'target'],
+            'targets' => ['ssh://target', 'winrm://target', 'jail://target', 'target'],
             'config' => {
               'transport' => 'winrm',
               'modulepath' => 'nonsense',
               'ssh' => common_data('ssh'),
               'winrm' => common_data('winrm'),
-              'pcp' => common_data('pcp')
+              'jail' => common_data('jail')
             }
           }
         }
@@ -1006,17 +1007,18 @@ describe Bolt::Inventory::Inventory do
           )
         end
 
-        it 'only uses configured options for pcp' do
-          target = inventory.get_target('pcp://target')
-          expect(target.transport).to eq('pcp')
-          expect(target.user).to be nil
+        it 'only uses configured options for jail' do
+          target = inventory.get_target('jail://target')
+          expect(target.transport).to eq('jail')
+          expect(target.user).to eq('mejail')
           expect(target.password).to be nil
           expect(target.port).to be nil
           expect(target.options.to_h).to include(
-            'task-environment' => "prod",
-            'service-url' => "https://master",
-            'cacert' => /pcp.pem\z/,
-            'token-file' => /token\z/
+            'cleanup' => true,
+            'run-as' => 'root',
+            'sudo-password' => 'nothing',
+            'tmpdir' => '/jail',
+            'user' => 'mejail',
           )
         end
       end
