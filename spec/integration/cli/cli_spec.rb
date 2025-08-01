@@ -429,7 +429,7 @@ describe 'commands' do
           ['sample::params', 'Task with parameters']
         )
 
-        expect(@log_output.readlines).to include(/unexpected token/)
+        expect(@log_output.readlines).to include(/WARN  Puppet : expected object key, got: '}' at line 24 column 3/)
       end
     end
   end
