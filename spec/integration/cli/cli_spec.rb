@@ -454,8 +454,6 @@ describe "when loading bolt for CLI invocation" do
       'windows_error',
       # FFI + dependencies
       'ffi',
-      # orchestrator client + dependencies
-      'orchestrator_client',
       'faraday',
       # httpclient + dependencies
       'httpclient',

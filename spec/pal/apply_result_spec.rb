@@ -15,7 +15,7 @@ describe 'ApplyResult DataType' do
 
   let(:result_code) do
     <<~PUPPET
-      $result = results::make_apply_result('pcp://example.com', {'report' => {}})
+      $result = results::make_apply_result('ssh://example.com', {'report' => {}})
     PUPPET
   end
 
@@ -25,7 +25,7 @@ describe 'ApplyResult DataType' do
   end
 
   it 'should expose target' do
-    expect(result_attr('$result.target.uri')).to eq('pcp://example.com')
+    expect(result_attr('$result.target.uri')).to eq('ssh://example.com')
   end
 
   it 'should expose the report' do
@@ -39,7 +39,7 @@ describe 'ApplyResult DataType' do
   context 'with an error result' do
     let(:result_code) do
       <<~PUPPET
-        $result = results::make_result('pcp://example.com',
+        $result = results::make_result('ssh://example.com',
                     { '_error' => {
                         'msg' => 'oops',
                         'kind' => 'bolt/oops',
