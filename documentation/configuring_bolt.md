@@ -281,7 +281,5 @@ disable-warnings:
 - [bolt-project.yaml options](bolt_project_reference.md)
 - [inventory.yaml fields](bolt_inventory_reference.md)
 - [Transport configuration options](bolt_transports_reference.md)
-- For information on configuring Bolt for Puppet Enterprise, see [Using
-  Bolt with Puppet Enterprise](bolt_configure_orchestrator.md)
 - For information on connecting Bolt to PuppetDB, see [Connecting Bolt to
   PuppetDB](bolt_connect_puppetdb.md)

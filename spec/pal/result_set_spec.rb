@@ -16,7 +16,7 @@ describe 'ResultSet DataType' do
   let(:result_code) do
     <<~PUPPET
       $result_set = results::make_result_set( {
-        'pcp://example1.com' => {'key' => 'value' },
+        'ssh://example1.com' => {'key' => 'value' },
         'example2.com' => { 'key' => 'value' } } )
     PUPPET
   end
@@ -39,7 +39,7 @@ describe 'ResultSet DataType' do
   end
 
   it 'should return first' do
-    expect(result_set('$result_set.first.target.uri')).to eq('pcp://example1.com')
+    expect(result_set('$result_set.first.target.uri')).to eq('ssh://example1.com')
   end
 
   it 'should have an empty error_set' do
@@ -47,11 +47,11 @@ describe 'ResultSet DataType' do
   end
 
   it 'should expose targets' do
-    expect(result_set('$result_set.targets.map |$t| {$t.uri}')).to eq(['pcp://example1.com', 'example2.com'])
+    expect(result_set('$result_set.targets.map |$t| {$t.uri}')).to eq(['ssh://example1.com', 'example2.com'])
   end
 
   it 'should expose names' do
-    expect(result_set('$result_set.names')).to eq(['pcp://example1.com', 'example2.com'])
+    expect(result_set('$result_set.names')).to eq(['ssh://example1.com', 'example2.com'])
   end
 
   it 'should find results by target name' do
@@ -59,14 +59,14 @@ describe 'ResultSet DataType' do
   end
 
   it 'should be iterable' do
-    expect(result_set('$result_set.map |$r| {$r.target.uri}')).to eq(['pcp://example1.com', 'example2.com'])
+    expect(result_set('$result_set.map |$r| {$r.target.uri}')).to eq(['ssh://example1.com', 'example2.com'])
   end
 
   context 'when there are errors' do
     let(:result_code) do
       <<-PUPPET
 $result_set = results::make_result_set( {
-  'pcp://example1.com' => {'key' => 'value'},
+  'ssh://example1.com' => {'key' => 'value'},
   'ssh://example2.com' => {'_error' => {
                                'kind' => 'bolt/oops',
                                'msg' => 'oops' } },

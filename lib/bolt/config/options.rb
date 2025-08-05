@@ -4,7 +4,6 @@ require_relative '../../bolt/config/transport/docker'
 require_relative '../../bolt/config/transport/jail'
 require_relative '../../bolt/config/transport/local'
 require_relative '../../bolt/config/transport/lxd'
-require_relative '../../bolt/config/transport/orch'
 require_relative '../../bolt/config/transport/podman'
 require_relative '../../bolt/config/transport/remote'
 require_relative '../../bolt/config/transport/ssh'
@@ -20,7 +19,6 @@ module Bolt
         'jail'   => Bolt::Config::Transport::Jail,
         'local'  => Bolt::Config::Transport::Local,
         'lxd'    => Bolt::Config::Transport::LXD,
-        'pcp'    => Bolt::Config::Transport::Orch,
         'podman' => Bolt::Config::Transport::Podman,
         'remote' => Bolt::Config::Transport::Remote,
         'ssh'    => Bolt::Config::Transport::SSH,
@@ -571,12 +569,6 @@ module Bolt
           type: Hash,
           _plugin: true,
           _example: { cleanup: false }
-        },
-        "pcp" => {
-          description: "A map of configuration options for the pcp transport.",
-          type: Hash,
-          _plugin: true,
-          _example: { "job-poll-interval" => 15, "job-poll-timeout" => 30 }
         },
         "podman" => {
           description: "A map of configuration options for the podman transport.",

@@ -329,8 +329,6 @@ module BoltSpec
 
       def batch_execute(_targets); end
 
-      def finish_plan(_plan_result); end
-
       def handle_event(_event); end
 
       def prompt(_prompt, _options); end
@@ -348,8 +346,6 @@ module BoltSpec
       def report_noop_mode(_mode); end
 
       def shutdown; end
-
-      def start_plan(_plan_context); end
 
       def subscribe(_subscriber, _types = nil); end
 
