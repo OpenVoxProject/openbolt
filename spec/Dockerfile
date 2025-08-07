@@ -59,7 +59,8 @@ RUN chown -R test:sudo /home/test
 
 # Run the sshd service in the background
 RUN echo "PubkeyAuthentication yes" >> /etc/ssh/sshd_config.d/pubkey_auth.conf && \
-    echo "LogLevel VERBOSE" >> /etc/ssh/sshd_config.d/log_level.conf
+    echo "LogLevel VERBOSE" >> /etc/ssh/sshd_config.d/log_level.conf && \
+    mkdir /run/sshd
 
 EXPOSE 22
 
