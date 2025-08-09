@@ -55,7 +55,7 @@ level apply to all groups and targets in the inventory file.
 - **Type:** Array
 
 > 🔩 **Tip:** You can set the `puppet-agent` feature to indicate that Bolt
-> should skip installing the Puppet agent on all targets when using
+> should skip installing the OpenVox agent on all targets when using
 > `bolt apply` or the `apply_prep` plan function.
 
 ```yaml
@@ -155,7 +155,7 @@ all groups and targets under the group.
 - **Type:** Array
 
 > 🔩 **Tip:** You can set the `puppet-agent` feature on the group to indicate
-> that Bolt should skip installing the Puppet agent on all targets under the
+> that Bolt should skip installing the OpenVox agent on all targets under the
 > group when using `bolt apply` or the `apply_prep` plan function.
 
 ```yaml
@@ -316,7 +316,7 @@ A list of available features for the target.
 - **Type:** Array
 
 > 🔩 **Tip:** You can set the `puppet-agent` feature on the target to indicate
-> that Bolt should skip installing the Puppet agent on the target when using
+> that Bolt should skip installing the OpenVox agent on the target when using
 > `bolt apply` or the `apply_prep` plan function.
 
 ```yaml
