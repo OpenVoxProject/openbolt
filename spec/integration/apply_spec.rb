@@ -396,7 +396,7 @@ describe 'apply', apply: true do
                     'plugin' => 'task',
                     'task' => 'openvox_bootstrap::install',
                     'parameters' => {
-                      'version' => '7.0.0'
+                      'version' => '8.19.1'
                     }
                   }
                 }
@@ -420,7 +420,7 @@ describe 'apply', apply: true do
           result = results['items']
           expect(result.count).to eq(1)
           expect(result[0]).to include('status' => 'success')
-          expect(result[0]['value']['version']).to match(/^7\.0/)
+          expect(result[0]['value']['version']).to match(/^8\.19/)
         end
       end
     end
