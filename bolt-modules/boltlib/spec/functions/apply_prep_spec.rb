@@ -68,7 +68,7 @@ describe 'apply_prep' do
 
       plugins.expects(:get_hook)
              .twice
-             .with("puppet_agent", :puppet_library)
+             .with("openvox_bootstrap", :puppet_library)
              .returns(task_hook)
 
       is_expected.to run.with_params(hostnames.join(','))
@@ -86,7 +86,7 @@ describe 'apply_prep' do
 
       plugins.expects(:get_hook)
              .twice
-             .with("puppet_agent", :puppet_library)
+             .with("openvox_bootstrap", :puppet_library)
              .returns(task_hook)
 
       is_expected.to run.with_params(hostnames, '_run_as' => 'root')
@@ -104,7 +104,7 @@ describe 'apply_prep' do
 
       plugins.expects(:get_hook)
              .twice
-             .with("puppet_agent", :puppet_library)
+             .with("openvox_bootstrap", :puppet_library)
              .returns(task_hook)
 
       is_expected.to run.with_params(hostnames, '_noop' => true)
@@ -124,7 +124,7 @@ describe 'apply_prep' do
 
       plugins.expects(:get_hook)
              .twice
-             .with("puppet_agent", :puppet_library)
+             .with("openvox_bootstrap", :puppet_library)
              .returns(task_hook)
 
       is_expected.to run.with_params(hostnames).and_raise_error(
@@ -188,7 +188,7 @@ describe 'apply_prep' do
                 .returns(facts)
 
         plugins.expects(:get_hook)
-               .with('puppet_agent', :puppet_library)
+               .with('openvox_bootstrap', :puppet_library)
                .returns(task_hook)
 
         is_expected.to run.with_params(hostname)
@@ -286,7 +286,7 @@ describe 'apply_prep' do
       applicator.stubs(:custom_facts_task).returns(custom_facts_task)
 
       plugins.expects(:get_hook)
-             .with("puppet_agent", :puppet_library)
+             .with("openvox_bootstrap", :puppet_library)
              .returns(task_hook)
     end
 

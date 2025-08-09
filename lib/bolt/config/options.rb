@@ -430,7 +430,8 @@ module Bolt
         "plugin-hooks" => {
           description: "A map of [plugin hooks](writing_plugins.md#hooks) and which plugins a hook should use. "\
                        "The only configurable plugin hook is `puppet_library`, which can use two possible plugins: "\
-                       "[`puppet_agent`](https://github.com/puppetlabs/puppetlabs-puppet_agent#puppet_agentinstall) "\
+                       "[`openvox_bootstrap`]" \
+                       "(https://github.com/voxpupuli/puppet-openvox_bootstrap#openvox_boostrapinstall) "\
                        "and [`task`](using_plugins.md#task).",
           type: Hash,
           _plugin: true,
