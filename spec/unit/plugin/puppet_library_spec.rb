@@ -31,10 +31,10 @@ describe Bolt::Plugin::Module do
     install_options = nil
     allow(executor).to receive(:run_task) do |targets, task, _arguments, options|
       val = case task.name
-            when "puppet_agent::install"
+            when "openvox_bootstrap::install"
               install_options = options
               {}
-            when "puppet_agent::version"
+            when "openvox_bootstrap::check"
               { "version" => nil }
             else
               {}
@@ -71,7 +71,7 @@ describe Bolt::Plugin::Module do
   context 'without _run_as in the task plugin' do
     let(:library_hook) {
       { 'plugin' => 'task',
-        'task' => 'puppet_agent::install',
+        'task' => 'openvox_bootstrap::install',
         '_run_as' => 'me' }
     }
 
@@ -84,7 +84,7 @@ describe Bolt::Plugin::Module do
   context 'without _run_as in the task plugin' do
     let(:library_hook) {
       { 'plugin' => 'task',
-        'task' => 'puppet_agent::install' }
+        'task' => 'openvox_bootstrap::install' }
     }
 
     it 'runs the correct command' do
