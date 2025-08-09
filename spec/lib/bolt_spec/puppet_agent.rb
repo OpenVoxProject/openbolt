@@ -22,7 +22,7 @@ module BoltSpec
       params = { 'name' => 'puppet', 'action' => 'stop' }
       run_task('service', target, params, config: config, inventory: inventory)
 
-      uninstall = '/opt/puppetlabs/bin/puppet resource package puppet-agent ensure=absent'
+      uninstall = '/opt/puppetlabs/bin/puppet resource package openvox-agent ensure=absent'
       run_command(uninstall, target, config: config, inventory: inventory)
     end
 
@@ -41,7 +41,7 @@ module BoltSpec
       # Task will get latest collection without collection specified
       task_params = collection ? { 'collection' => collection } : {}
 
-      result = run_task('puppet_agent::install', target, task_params, config: config, inventory: inventory)
+      result = run_task('openvox_bootstrap::install', target, task_params, config: config, inventory: inventory)
 
       expect(result.count).to eq(1)
       expect(result[0]).to include('status' => 'success')
