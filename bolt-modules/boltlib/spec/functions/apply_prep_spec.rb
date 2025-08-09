@@ -37,8 +37,8 @@ describe 'apply_prep' do
     let(:unknown_targets)   { targets.reject { |target| target.protocol == 'pcp' } }
     let(:fact)              { { 'osfamily' => 'none' } }
     let(:custom_facts_task) { Bolt::Task.new('custom_facts_task') }
-    let(:version_task)      { Bolt::Task.new('puppet_agent::version') }
-    let(:install_task)      { Bolt::Task.new('puppet_agent::install') }
+    let(:version_task)      { Bolt::Task.new('openvox_bootstrap::check') }
+    let(:install_task)      { Bolt::Task.new('openvox_bootstrap::install') }
     let(:service_task)      { Bolt::Task.new('service') }
 
     before(:each) do
@@ -48,13 +48,13 @@ describe 'apply_prep' do
       targets.each { |t| inventory.set_feature(t, 'puppet-agent', false) }
 
       task1 = mock('version_task')
-      task1.stubs(:task_hash).returns('name' => 'puppet_agent::version')
+      task1.stubs(:task_hash).returns('name' => 'openvox_bootstrap::check')
       task1.stubs(:runnable_with?).returns(true)
-      Puppet::Pal::ScriptCompiler.any_instance.stubs(:task_signature).with('puppet_agent::version').returns(task1)
+      Puppet::Pal::ScriptCompiler.any_instance.stubs(:task_signature).with('openvox_bootstrap::check').returns(task1)
       task2 = mock('install_task')
-      task2.stubs(:task_hash).returns('name' => 'puppet_agent::install')
+      task2.stubs(:task_hash).returns('name' => 'openvox_bootstrap::install')
       task2.stubs(:runnable_with?).returns(true)
-      Puppet::Pal::ScriptCompiler.any_instance.stubs(:task_signature).with('puppet_agent::install').returns(task2)
+      Puppet::Pal::ScriptCompiler.any_instance.stubs(:task_signature).with('openvox_bootstrap::install').returns(task2)
       task3 = mock('service_task')
       task3.stubs(:task_hash).returns('name' => 'service')
       task3.stubs(:runnable_with?).returns(true)
@@ -142,7 +142,7 @@ describe 'apply_prep' do
             'plugin_hooks' => {
               'puppet_library' => {
                 'plugin' => 'task',
-                'task' => 'puppet_agent::install'
+                'task' => 'openvox_bootstrap::install'
               }
             }
           }]

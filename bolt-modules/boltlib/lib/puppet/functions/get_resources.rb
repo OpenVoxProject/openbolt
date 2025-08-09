@@ -6,7 +6,7 @@ require 'bolt/task'
 # The results are returned as a list of hashes representing each resource.
 #
 # Requires the Puppet Agent be installed on the target, which can be accomplished with apply_prep
-# or by directly running the `puppet_agent::install` task. In order to be able to reference types without
+# or by directly running the `openvox_bootstrap::install` task. In order to be able to reference types without
 # string quoting (for example `get_resources($target, Package)` instead of `get_resources($target, 'Package')`),
 # run the command `bolt puppetfile generate-types` to generate type references in `$Boldir/.resource_types`.
 #

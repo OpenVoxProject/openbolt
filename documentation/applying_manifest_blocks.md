@@ -33,10 +33,10 @@ Manifest blocks require facts to compile. When Bolt applies Puppet manifests, it
 automatically installs the packages necessary to run the apply command and
 gathers facts using [facter](https://puppet.com/docs/facter/latest/), making the
 facts available to the manifest block. Bolt also identifies targets that do not
-have Puppet agents and runs the [`puppet_agent::install`
-task](https://forge.puppet.com/puppetlabs/puppet_agent) to install the agent.
+have Puppet agents and runs the [`openvox_bootstrap::install`
+task](https://forge.puppet.com/puppet/openvox_bootstrap) to install the agent.
 
-> **Note:** Bolt installs the Puppet agent package to enable the use of Puppet
+> **Note:** Bolt installs the OpenVox agent package to enable the use of Puppet
   code. It does not require setting up a server-agent architecture between the
   remote systems and the local system running Bolt.
 
@@ -240,7 +240,7 @@ access the `logs` key in the report hash:
 plan example (
   TargetSpec $targets
 ) {
-  # Install the puppet-agent package and gather facts
+  # Install the openvox-agent package and gather facts
   $targets.apply_prep
 
   # Apply Puppet code
@@ -400,7 +400,7 @@ Create a manifest that sets up a web server with nginx, and run it as a plan.
          String $site_content = 'hello!',
        ) {
 
-         # Install the puppet-agent package if Puppet is not detected.
+         # Install the openvox-agent package if Puppet is not detected.
          # Copy over custom facts from the Bolt modulepath.
          # Run the `facter` command line tool to gather target information.
          $targets.apply_prep
@@ -479,7 +479,7 @@ Create a manifest that sets up a web server with IIS and run it as a plan.
         String $site_content = 'hello!',
    ) {
 
-     # Install the puppet-agent package if Puppet is not detected. 
+     # Install the openvox-agent package if Puppet is not detected. 
      # Copy over custom facts from the Bolt modulepath.
      # Run the `facter` command line tool to gather target information.
      $targets.apply_prep
