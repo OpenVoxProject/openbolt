@@ -15,7 +15,7 @@ describe Bolt::Plugin::Module do
   let(:config_data) { { 'modulepath' => modulepath } }
 
   let(:library_hook) {
-    { 'plugin' => 'puppet_agent',
+    { 'plugin' => 'openvox_bootstrap',
       '_run_as' => 'me' }
   }
 
@@ -59,7 +59,7 @@ describe Bolt::Plugin::Module do
 
   context 'without _run_as in the module plugin' do
     let(:library_hook) {
-      { 'plugin' => 'puppet_agent' }
+      { 'plugin' => 'openvox_bootstrap' }
     }
 
     it 'runs the correct command' do

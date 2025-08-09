@@ -1274,7 +1274,7 @@ describe Bolt::Inventory::Inventory do
         'features' => [],
         'groups' => %w[group1 group2 all],
         'plugin_hooks' => {
-          'puppet_library' => { 'plugin' => 'puppet_agent', 'stop_service' => true }
+          'puppet_library' => { 'plugin' => 'openvox_bootstrap', 'stop_service' => true }
         } }
     }
 
