@@ -115,7 +115,7 @@ describe Bolt::Plugin do
           'param' => 'foobar'
         },
         'puppet_library' => {
-          'plugin' => 'puppet_agent',
+          'plugin' => 'openvox_bootstrap',
           'stop_service' => true
         }
       )
