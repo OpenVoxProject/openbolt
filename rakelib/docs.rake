@@ -122,13 +122,22 @@ begin
       end
 
       @local_modules = parser.local_modules.sort.map do |mod|
-        readme = make_request("https://raw.githubusercontent.com/puppetlabs/bolt/main/modules/#{mod.first}/README.md")
-        match  = readme.match(/## Description(?<desc>.*)## Req/m)
+        # r10k puts git hosted modules under @local_modules,
+        # handle the ones with local: true as truely local
+        if mod[1][:local]
+          readme = make_request("https://raw.githubusercontent.com/puppetlabs/bolt/main/modules/#{mod.first}/README.md")
+          match  = readme.match(/## Description(?<desc>.*)## Req/m)
+          description = match[:desc].strip
+          url = "https://github.com/puppetlabs/bolt/tree/main/modules/#{mod.first}"
+        else
+          description = 'See git repo for details'
+          url         = mod[1][:git] || ''
+        end
 
         {
           name:        mod.first,
-          description: match[:desc].strip,
-          url:         "https://github.com/puppetlabs/bolt/tree/main/modules/#{mod.first}"
+          description: description,
+          url:         url
         }
       end
 
