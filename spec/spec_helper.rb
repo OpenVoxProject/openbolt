@@ -93,4 +93,11 @@ RSpec.configure do |config|
   # in a group (or even an individual test) by specifying
   # `:reset_puppet_settings' metadata on the group/test
   config.include_context 'reset puppet settings', :reset_puppet_settings
+
+  # Use the GitHub Annotations formatter for CI
+  if ENV['GITHUB_ACTIONS'] == 'true'
+    require 'rspec/github'
+    config.add_formatter 'progress'
+    config.add_formatter RSpec::Github::Formatter
+  end
 end
