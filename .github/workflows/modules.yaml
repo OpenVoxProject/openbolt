@@ -26,7 +26,7 @@ jobs:
         ruby: [3.2]
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
         with:
@@ -45,7 +45,7 @@ jobs:
       BOLT_WINDOWS: true
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
         with:
