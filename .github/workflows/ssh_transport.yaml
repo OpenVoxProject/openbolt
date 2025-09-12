@@ -1,18 +1,11 @@
+---
 name: SSH Transport
 
 on:
-  pull_request:
-    types: [opened, reopened, edited, synchronize]
-    paths:
-      - .github/workflows/ssh_transport.yaml
-      - bolt.gemspec
-      - Gemfile
-      - Puppetfile
-      - bolt-modules/**
-      - lib/bolt/**
-      - libexec/**
-      - rakelib/tests.rake
-      - spec/**
+  pull_request: {}
+  push:
+    branches:
+      - main
 
 permissions:
   contents: read

@@ -1,19 +1,12 @@
+---
+
 name: BoltSpec
 
 on:
-  pull_request:
-    types: [opened, reopened, edited, synchronize]
-    paths:
-      - .github/workflows/bolt_spec.yaml
-      - bolt.gemspec
-      - Gemfile
-      - Puppetfile
-      - bolt-modules/**
-      - lib/bolt/**
-      - lib/bolt_spec/**
-      - libexec/**
-      - rakelib/tests.rake
-      - spec/**
+  pull_request: {}
+  push:
+    branches:
+      - main
 
 permissions:
   contents: read

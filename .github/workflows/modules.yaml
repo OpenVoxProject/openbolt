@@ -1,18 +1,11 @@
+---
 name: Modules
 
 on:
-  pull_request:
-    types: [opened, reopened, edited, synchronize]
-    paths:
-      - .github/workflows/modules.yaml
-      - bolt.gemspec
-      - Gemfile
-      - Puppetfile
-      - bolt-modules/**
-      - bolt_spec_spec/**
-      - lib/bolt/**
-      - modules/**
-      - rakelib/tests.rake
+  pull_request: {}
+  push:
+    branches:
+      - main
 
 permissions:
   contents: read
