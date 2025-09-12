@@ -71,14 +71,9 @@ Describe "test bolt command syntax" {
     }
 
     It "has correct number of parameters" {
-      $customParams = $command.Parameters.Values | Where-Object {
-        $_.Name -notin $common
-      }
-
-      Write-Host "Custom parameters:"
-      $customParams | ForEach-Object { Write-Host " - $($_.Name)" }
-
-      ($customParams | Measure-Object).Count | Should -Be 35
+      ($command.Parameters.Values | Where-Object {
+        $_.name -notin $common
+      } | measure-object).Count | Should -Be 35
     }
   }
 
