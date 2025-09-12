@@ -14,7 +14,7 @@ BeforeAll {
   $common = @(
     'Version', 'Debug', 'ErrorAction', 'ErrorVariable', 'InformationAction',
     'InformationVariable', 'OutBuffer',  'OutVariable', 'PipelineVariable',
-    'Verbose', 'WarningAction', 'WarningVariable', 'Confirm', 'Whatif'
+    'Verbose', 'WarningAction', 'WarningVariable', 'Confirm', 'Whatif', 'ProgressAction'
   )
 }
 
