@@ -38,7 +38,7 @@ describe 'plans', bash: true do
       users = result.map do |hash|
         hash.dig('value', 'report', 'resource_statuses').keys
       end.flatten
-      expect(users).to eq(["Notify[root\n]", "Notify[root\n]"])
+      expect(users).to eq(["Notify[root\n]"])
     end
   end
 end
