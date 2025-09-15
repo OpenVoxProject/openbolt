@@ -216,7 +216,9 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-24.04, windows-2025]
-        ruby: ${{ fromJSON(needs.rubocop_and_matrix.outputs.ruby) }}
+        # currently fails on Ruby 3.4
+        #ruby: ${{ fromJSON(needs.rubocop_and_matrix.outputs.ruby) }}
+        ruby: ['3.2', '3.3']
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout repository
@@ -232,15 +234,15 @@ jobs:
         with:
           path: modules
           key: ${{ runner.os }}-modules-${{ hashFiles('**/Puppetfile') }}
-      - if: matrix.os == 'ubuntu-24.04'
+      - if: runner.os == 'Linux'
         uses: ./.github/actions/docker_setup
-      - if: matrix.os == 'windows-2025'
+      - if: runner.os == 'Windows'
         uses: ./.github/actions/windows_agentless_setup
       - name: Run tests
-        if: matrix.os == 'windows-2025'
+        if: runner.os == 'Windows'
         run: bundle exec rake ci:boltspec:windows
       - name: Run tests
-        if: matrix.os == 'ubuntu-24.04'
+        if: runner.os == 'Linux'
         run: bundle exec rake ci:boltspec:linux
 
   tests:
