@@ -173,6 +173,43 @@ jobs:
           Set-ActiveRubyFromPuppet
       - name: WinRM transport tests
         run: bundle exec rake ci:winrm_transport
+
+  apply:
+    name: bolt apply
+    needs:
+      - rubocop_and_matrix
+      - cache_modules
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-2025]
+        ruby: ${{ fromJSON(needs.rubocop_and_matrix.outputs.ruby) }}
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby }}
+          bundler-cache: true
+      - name: Cache modules
+        id: modules
+        uses: actions/cache@v4
+        with:
+          path: modules
+          key: ${{ runner.os }}-modules-${{ hashFiles('**/Puppetfile') }}
+      - if: matrix.os == 'ubuntu-22.04'
+        uses: ./.github/actions/sudo_setup
+      - if: matrix.os == 'windows-latest'
+        uses: ./.github/actions/windows_agent_setup
+      - if: matrix.os == 'ubuntu-22.04'
+        name: Run tests
+        run: bundle exec rake ci:apply:linux
+      - if: matrix.os == 'windows-latest'
+        name: Run tests
+        run: bundle exec rake ci:apply:windows
+
   tests:
     needs:
       - rubocop_and_matrix
@@ -180,7 +217,8 @@ jobs:
       - unit
       - run-dita
       - local_transports
-      - winrm_transport
+      - winrm_transporti
+      - apply
     runs-on: ubuntu-24.04
     name: Test suite
     steps:
