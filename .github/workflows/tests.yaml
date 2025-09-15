@@ -27,8 +27,30 @@ jobs:
       - id: ruby
         uses: voxpupuli/ruby-version@v1
 
+  cache_modules:
+    runs-on: ubuntu-24.04
+    name: 'Run r10k and update module cache'
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install Ruby ${{ matrix.ruby }}
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.4"
+          bundler-cache: true
+      - name: Cache modules
+        id: modules
+        uses: actions/cache@v4
+        with:
+          path: modules
+          key: ${{ runner.os }}-modules-${{ hashFiles('**/Puppetfile') }}
+      - name: Install modules
+        if: steps.modules.outputs.cache-hit != 'true'
+        run: bundle exec r10k puppetfile install
+
   unit:
-    needs: rubocop_and_matrix
+    needs:
+      - rubocop_and_matrix
+      - cache_modules
     name: "Unit tests ${{ matrix.ruby }} ${{ matrix.os }}"
     strategy:
       fail-fast: false
@@ -52,9 +74,6 @@ jobs:
         with:
           path: modules
           key: ${{ runner.os }}-modules-${{ hashFiles('**/Puppetfile') }}
-      - name: Install modules
-        if: steps.modules.outputs.cache-hit != 'true'
-        run: bundle exec r10k puppetfile install
       - name: Unit tests
         run: bundle exec rake tests:unit
 
@@ -78,7 +97,9 @@ jobs:
 
   local_transports:
     name: "local transport ${{ matrix.ruby }} ${{ matrix.os }}"
-    needs: rubocop_and_matrix
+    needs:
+    - rubocop_and_matrix
+    - cache_modules
     env:
       BOLT_WINRM_USER: roddypiper
       BOLT_WINRM_HOST: localhost
@@ -105,9 +126,6 @@ jobs:
         with:
           path: modules
           key: ${{ runner.os }}-modules-${{ hashFiles('**/Puppetfile') }}
-      - name: Install modules
-        if: steps.modules.outputs.cache-hit != 'true'
-        run: bundle exec r10k puppetfile install
       - if: matrix.os == 'ubuntu-24.04'
         uses: ./.github/actions/sudo_setup
       - if: matrix.os == 'windows-2025'
@@ -120,7 +138,9 @@ jobs:
         run: bundle exec rake ci:local_transport:windows
 
   winrm_transport:
-    needs: rubocop_and_matrix
+    needs:
+      - rubocop_and_matrix
+      - cache_modules
     env:
       BOLT_WINRM_USER: roddypiper
       BOLT_WINRM_HOST: localhost
@@ -146,9 +166,6 @@ jobs:
         with:
           path: modules
           key: ${{ runner.os }}-modules-${{ hashFiles('**/Puppetfile') }}
-      - name: Install modules
-        if: steps.modules.outputs.cache-hit != 'true'
-        run: bundle exec r10k puppetfile install
       - name: Configure WinRM and use Puppet's Ruby
         shell: powershell
         run: |
@@ -159,6 +176,7 @@ jobs:
   tests:
     needs:
       - rubocop_and_matrix
+      - cache_modules
       - unit
       - run-dita
       - local_transports
