@@ -1,14 +1,11 @@
+---
 name: Schemas
 
 on:
-  pull_request:
-    types: [opened, reopened, edited, synchronize]
-    paths:
-      - lib/bolt/config/options.rb
-      - lib/bolt/config/transport/**
-      - lib/bolt/inventory/options.rb
-      - rakelib/schemas.rake
-      - schemas/*.json
+  pull_request: {}
+  push:
+    branches:
+      - main
 
 permissions:
   contents: read

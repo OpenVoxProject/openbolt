@@ -1,13 +1,11 @@
+---
 name: pwsh
 
 on:
-  pull_request:
-    types: [opened, reopened, edited, synchronize]
-    paths:
-      - .github/workflows/pwsh.yaml
-      - pwsh_module/*
-      - lib/bolt/bolt_option_parser.rb
-      - rakelib/pwsh.rake
+  pull_request: {}
+  push:
+    branches:
+      - main
 
 permissions:
   contents: read
