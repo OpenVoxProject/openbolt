@@ -35,43 +35,12 @@ Layout/HashAlignment:
 Layout/HeredocIndentation:
   Enabled: false
 
-# Offense count: 4
-# This cop supports safe autocorrection (--autocorrect).
-# Configuration parameters: EnforcedStyle.
-# SupportedStyles: leading, trailing
-Layout/LineContinuationLeadingSpace:
-  Exclude:
-    - 'lib/bolt/config/transport/options.rb'
-    - 'lib/bolt/pal/yaml_plan/parameter.rb'
-    - 'rakelib/docs.rake'
-    - 'spec/unit/pal/yaml_plan/step_spec.rb'
-
-# Offense count: 252
-# This cop supports safe autocorrection (--autocorrect).
-# Configuration parameters: EnforcedStyle.
-# SupportedStyles: space, no_space
-Layout/LineContinuationSpacing:
-  Enabled: false
-
 # Offense count: 24
 # This cop supports safe autocorrection (--autocorrect).
 # Configuration parameters: EnforcedStyle, IndentationWidth.
 # SupportedStyles: aligned, indented
 Layout/LineEndStringConcatenationIndentation:
   Enabled: false
-
-# Offense count: 14
-# This cop supports safe autocorrection (--autocorrect).
-# Configuration parameters: AllowInHeredoc.
-Layout/TrailingWhitespace:
-  Exclude:
-    - 'lib/bolt/bolt_option_parser.rb'
-    - 'lib/bolt/module_installer/puppetfile.rb'
-    - 'lib/bolt/outputter/human.rb'
-    - 'lib/bolt/pal/yaml_plan/step/resources.rb'
-    - 'lib/bolt/plan_creator.rb'
-    - 'spec/integration/transport/winrm_spec.rb'
-    - 'spec/unit/outputter/human_spec.rb'
 
 # Offense count: 11
 # This cop supports safe autocorrection (--autocorrect).
@@ -389,7 +358,7 @@ RSpec/ClassCheck:
 RSpec/ContextMethod:
   Enabled: false
 
-# Offense count: 333
+# Offense count: 331
 # Configuration parameters: Prefixes, AllowedPatterns.
 # Prefixes: when, with, without
 RSpec/ContextWording:
@@ -430,13 +399,6 @@ RSpec/ExampleLength:
 # DisallowedExamples: works
 RSpec/ExampleWording:
   Enabled: false
-
-# Offense count: 3
-# This cop supports safe autocorrection (--autocorrect).
-RSpec/ExcessiveDocstringSpacing:
-  Exclude:
-    - 'spec/integration/transport/winrm_spec.rb'
-    - 'spec/unit/plugin/puppetdb_spec.rb'
 
 # Offense count: 32
 RSpec/ExpectInHook:
@@ -886,7 +848,7 @@ Style/HashExcept:
     - 'lib/bolt/plugin/cache.rb'
     - 'lib/bolt/result.rb'
 
-# Offense count: 157
+# Offense count: 160
 # This cop supports safe autocorrection (--autocorrect).
 Style/IfUnlessModifier:
   Enabled: false
@@ -1141,3 +1103,10 @@ Style/TrailingCommaInHashLiteral:
 Style/YAMLFileRead:
   Exclude:
     - 'spec/unit/module_installer_spec.rb'
+
+# Offense count: 2
+# This cop supports safe autocorrection (--autocorrect).
+# Configuration parameters: AllowHeredoc, AllowURI, AllowQualifiedName, URISchemes, IgnoreCopDirectives, AllowedPatterns, SplitStrings.
+# URISchemes: http, https
+Layout/LineLength:
+  Max: 121

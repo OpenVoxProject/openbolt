@@ -56,7 +56,7 @@ module Bolt
           else
             unless skip_unsupported_modules
               raise Bolt::ValidationError,
-                    "Cannot parse Puppetfile at #{path}, module '#{mod.title}' is not a "\
+                    "Cannot parse Puppetfile at #{path}, module '#{mod.title}' is not a " \
                     "Puppet Forge or Git module."
             end
           end
@@ -105,7 +105,7 @@ module Bolt
             Puppetfile does not include modules that satisfy the following specifications:
 
             #{unsatisfied_specs.map(&:to_hash).to_yaml.lines.drop(1).join.chomp}
-            
+
             This Puppetfile might not be managed by Bolt. To forcibly overwrite the
             Puppetfile, run '#{command}'.
           MESSAGE
@@ -116,9 +116,9 @@ module Bolt
         if versionless_mods.any?
           message = <<~MESSAGE.chomp
             Puppetfile includes Forge modules without a version requirement:
-            
+
             #{versionless_mods.map(&:to_spec).join.chomp}
-            
+
             This Puppetfile might not be managed by Bolt. To forcibly overwrite the
             Puppetfile, run '#{command}'.
           MESSAGE

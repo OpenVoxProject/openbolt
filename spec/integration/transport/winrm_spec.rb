@@ -421,7 +421,7 @@ describe Bolt::Transport::WinRM, winrm_transport: true do
           [String]
           $Name
         )
-        
+
         Write-Output "Hello $Name"
       PS
 
@@ -842,7 +842,7 @@ describe Bolt::Transport::WinRM, winrm_transport: true do
         end
       end
 
-      context "fails for PowerShell terminating errors: " do
+      context "fails for PowerShell terminating errors:" do
         it "exception thrown", winrm: true do
           contents = <<-PS
           throw "My Error"

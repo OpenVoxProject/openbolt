@@ -254,7 +254,7 @@ describe Bolt::Plugin::Puppetdb do
         { 'name' => 'certname' }
       end
 
-      context " with no fact_values" do
+      context "with no fact_values" do
         let(:data) { nil }
 
         it "returns the certname" do
@@ -263,7 +263,7 @@ describe Bolt::Plugin::Puppetdb do
         end
       end
 
-      context " with fact_values" do
+      context "with fact_values" do
         let(:data) do
           { certname => [{
             'path' => [1],

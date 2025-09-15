@@ -450,7 +450,7 @@ module Bolt
     MODULE_HELP = <<~HELP
       #{colorize(:cyan, 'Name')}
           module
-      
+
       #{colorize(:cyan, 'Usage')}
           bolt module <action> [options]
 
@@ -470,7 +470,7 @@ module Bolt
     MODULE_ADD_HELP = <<~HELP
       #{colorize(:cyan, 'Name')}
           module add
-      
+
       #{colorize(:cyan, 'Usage')}
           bolt module add <module> [options]
 
@@ -503,7 +503,7 @@ module Bolt
     MODULE_INSTALL_HELP = <<~HELP
       #{colorize(:cyan, 'Name')}
           module install
-      
+
       #{colorize(:cyan, 'Usage')}
           bolt module install [options]
 
@@ -581,10 +581,10 @@ module Bolt
     PLAN_NEW_HELP = <<~HELP
       #{colorize(:cyan, 'Name')}
           plan new
-      
+
       #{colorize(:cyan, 'Usage')}
           bolt plan new <plan name> [options]
-      
+
       #{colorize(:cyan, 'Description')}
           Create a new plan in the current project.
 
@@ -1131,7 +1131,7 @@ module Bolt
       separator "\n#{self.class.colorize(:cyan, 'Display options')}"
       define('--filter FILTER', 'Filter tasks and plans by a matching substring.') do |filter|
         unless /^[a-z0-9_:]+$/.match(filter)
-          msg = "Illegal characters in filter string '#{filter}'. Filters can "\
+          msg = "Illegal characters in filter string '#{filter}'. Filters can " \
           "only include lowercase letters, numbers, underscores, and colons."
           raise Bolt::CLIError, msg
         end

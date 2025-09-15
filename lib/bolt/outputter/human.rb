@@ -661,7 +661,7 @@ module Bolt
 
         print_message(<<~OUTPUT)
           Created plan '#{name}' at '#{path}'
-  
+
           Show this plan with:
               #{show_command} #{name}
           Run this plan with:
@@ -680,7 +680,7 @@ module Bolt
 
         print_message(<<~OUTPUT)
           Created policy '#{name}' at '#{path}'
-          
+
           Apply this policy with:
               #{apply_command}
           Show available policies with:
@@ -791,8 +791,8 @@ module Bolt
         info = +''
 
         # Add target count summary
-        count = "#{inventory_count + adhoc_count} total, "\
-                "#{inventory_count} from inventory, "\
+        count = "#{inventory_count + adhoc_count} total, " \
+                "#{inventory_count} from inventory, " \
                 "#{adhoc_count} adhoc"
         info << colorize(:cyan, "Target count\n")
         info << indent(2, count)
