@@ -144,7 +144,7 @@ jobs:
       - rubocop_and_matrix
       - cache_modules
     name: WinRM Transport
-    runs-on: windows-latest
+    runs-on: windows-2025
     strategy:
       matrix:
         ruby: ${{ fromJSON(needs.rubocop_and_matrix.outputs.ruby) }}
@@ -199,7 +199,7 @@ jobs:
         uses: ./.github/actions/sudo_setup
       - if: matrix.os == 'windows-2025'
         uses: ./.github/actions/windows_agent_setup
-      - if: matrix.os == 'ubuntu-22.04'
+      - if: matrix.os == 'ubuntu-24.04'
         name: Run tests
         run: bundle exec rake ci:apply:linux
       - if: matrix.os == 'windows-2025'
@@ -215,7 +215,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-24.04, windows-2025]
-        ruby: ${{ fromJSON(needs.rubocop_and_matrix.outputs.ruby) }}
+        ruby: ['3.2', '3.3']
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout repository
