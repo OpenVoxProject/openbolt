@@ -16,6 +16,7 @@ module Bolt
       unless @data.is_a?(Array) && @data.all? { |r| r['target'] && r['status'] }
         raise Bolt::FileError.new("Missing data in rerun file: #{@path}", @path)
       end
+
       @data
     end
 

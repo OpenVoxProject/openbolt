@@ -99,12 +99,14 @@ module Bolt
                  Set.new(imp['requirements']).subset?(available_features) && !!remote_impl == @remote
                end
                raise NoImplementationError.new(target, self) unless impl
+
                impl = impl.dup
                impl['path'] = file_path(impl['name'])
                impl.delete('requirements')
                impl
              else
                raise NoImplementationError.new(target, self) unless !!metadata['remote'] == @remote
+
                name = files.first['name']
                { 'name' => name, 'path' => file_path(name) }
              end
@@ -117,6 +119,7 @@ module Bolt
       impl['files'] = filenames.map do |file|
         path = file_path(file)
         raise "No file found for reference #{file}" if path.nil?
+
         { 'name' => file, 'path' => path }
       end
 

@@ -15,6 +15,7 @@ module Bolt
 
       modulepath.each do |path|
         next unless File.exist?(path) && File.directory?(path)
+
         Dir.children(path)
            .map { |dir| File.join(path, dir) }
            .select { |dir| File.directory?(dir) }

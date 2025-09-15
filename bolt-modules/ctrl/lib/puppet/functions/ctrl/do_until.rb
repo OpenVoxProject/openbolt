@@ -35,6 +35,7 @@ Puppet::Functions.create_function(:'ctrl::do_until') do
     until (x = yield)
       i += 1
       break if limit != 0 && i >= limit
+
       Kernel.sleep(interval) if interval
     end
     x

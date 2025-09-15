@@ -16,6 +16,7 @@ module Bolt
           private_class_method def self.name_and_sha(git, ref, proxy)
             repo = parse_repo(git)
             return nil unless repo
+
             [request_name(repo, ref, proxy), request_sha(repo, ref, proxy)]
           end
 
@@ -72,7 +73,7 @@ module Bolt
               message = "GitHub API rate limit exceeded, unable to calculate SHA."
 
               unless ENV['GITHUB_TOKEN']
-                message += " To increase your rate limit, set the GITHUB_TOKEN environment "\
+                message += " To increase your rate limit, set the GITHUB_TOKEN environment " \
                           "variable with a GitHub personal access token."
               end
 

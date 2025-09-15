@@ -57,6 +57,7 @@ begin
   # explicitly packaged plugins should take precedence
   args['bolt_builtin_content'].each do |builtin_dir|
     next unless Dir.exist?(builtin_dir)
+
     Dir.foreach(builtin_dir) do |dir|
       unless ['.', '..'].include? dir
         full_path = File.join(builtin_dir, dir, 'lib')
@@ -74,7 +75,7 @@ begin
     begin
       require 'puppet/resource_api/transport'
     rescue LoadError
-      msg = "Could not load 'puppet/resource_api/transport', puppet-resource_api "\
+      msg = "Could not load 'puppet/resource_api/transport', puppet-resource_api " \
             "gem version 1.8.0 or greater is required on the proxy target"
       puts msg
       exit 1

@@ -139,6 +139,7 @@ Puppet::Functions.create_function(:run_script, Puppet::Functions::InternalFuncti
       if !r.ok && !options[:catch_errors]
         raise Bolt::RunFailure.new(r, 'run_script', script)
       end
+
       r
     end
   end

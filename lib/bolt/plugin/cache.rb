@@ -17,6 +17,7 @@ module Bolt
 
       def read_and_clean_cache
         return if ttl == 0
+
         validate
 
         # Luckily we don't need to use a serious hash algorithm
@@ -53,6 +54,7 @@ module Bolt
         # The default cache `plugin-cache` will be validated by the config
         # validator
         return if reference['_cache'].nil?
+
         r = reference['_cache']
         unless r.is_a?(Hash)
           raise Bolt::ValidationError,

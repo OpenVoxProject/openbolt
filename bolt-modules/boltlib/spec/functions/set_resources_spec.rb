@@ -97,6 +97,7 @@ describe 'set_resources' do
 
   context 'without tasks enabled' do
     let(:tasks_enabled) { false }
+
     it 'fails and reports that set_resources is not available' do
       is_expected.to run.with_params(target, resource)
                         .and_raise_error(/Plan language function 'set_resources' cannot be used/)

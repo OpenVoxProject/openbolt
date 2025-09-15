@@ -30,16 +30,19 @@ module Bolt
         options = { catch_errors: true }
 
         raise Bolt::ValidationError, "Task plugin requires that the 'task' is specified" unless opts['task']
+
         task = @context.get_validated_task(opts['task'], params)
 
         result = @context.run_local_task(task, params, options).first
 
         raise Bolt::Error.new(result.error_hash['msg'], result.error_hash['kind']) if result.error_hash
+
         result
       end
 
       def validate_options(opts)
         raise Bolt::ValidationError, "Task plugin requires that the 'task' is specified" unless opts['task']
+
         @context.get_validated_task(opts['task'], opts['parameters'] || {})
       end
       alias validate_resolve_reference validate_options

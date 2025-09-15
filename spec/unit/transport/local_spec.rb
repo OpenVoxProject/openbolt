@@ -96,6 +96,7 @@ describe Bolt::Transport::Local do
 
     context 'without with_connection' do
       let(:data) { { 'targets' => [] } }
+
       it 'applies bundled-ruby config' do
         target = get_target(inventory, 'local://foo')
         expect(target.transport).to eq('local')

@@ -10,8 +10,8 @@ module Bolt
     def self.validate_plan_name(project, plan_name)
       if project.name.nil?
         raise Bolt::Error.new(
-          "Project directory '#{project.path}' is not a named project. Unable to create "\
-          "a project-level plan. To name a project, set the 'name' key in the 'bolt-project.yaml' "\
+          "Project directory '#{project.path}' is not a named project. Unable to create " \
+          "a project-level plan. To name a project, set the 'name' key in the 'bolt-project.yaml' " \
           "configuration file.",
           "bolt/unnamed-project-error"
         )
@@ -36,7 +36,7 @@ module Bolt
       prefix, _, basename = segment_plan_name(plan_name)
 
       unless prefix == project.name
-        message = "Incomplete plan name: A plan name must be prefixed with the name of the "\
+        message = "Incomplete plan name: A plan name must be prefixed with the name of the " \
           "project or module. Did you mean '#{project.name}::#{plan_name}'?"
 
         raise Bolt::ValidationError, message
@@ -44,6 +44,7 @@ module Bolt
 
       %w[pp yaml].each do |ext|
         next unless (path = project.plans_path + "#{basename}.#{ext}").exist?
+
         raise Bolt::Error.new(
           "A plan with the name '#{plan_name}' already exists at '#{path}', nothing to do.",
           'bolt/existing-plan-error'
@@ -146,7 +147,7 @@ module Bolt
       <<~YAML
         # This is the structure of a simple plan. To learn more about writing
         # YAML plans, see the documentation: http://pup.pt/bolt-yaml-plans
-        
+
         # The description sets the description of the plan that will appear
         # in 'bolt plan show' output.
         description: A plan created with bolt plan new

@@ -2,6 +2,7 @@
 
 describe 'remove_from_group' do
   include PuppetlabsSpec::Fixtures
+
   let(:executor)      { Bolt::Executor.new }
   let(:config)        { Bolt::Config.default }
   let(:pal)           { nil }
@@ -44,6 +45,7 @@ describe 'remove_from_group' do
 
   context 'without tasks enabled' do
     let(:tasks_enabled) { false }
+
     it 'fails and reports that remove_from_group is not available' do
       is_expected.to run.with_params(target1, parent)
                         .and_raise_error(/Plan language function 'remove_from_group' cannot be used/)

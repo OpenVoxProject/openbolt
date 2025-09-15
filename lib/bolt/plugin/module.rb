@@ -67,6 +67,7 @@ module Bolt
 
       def process_schema(schema)
         raise InvalidPluginData.new('config specification is not an object', name) unless schema.is_a?(Hash)
+
         schema.each do |key, val|
           unless key =~ /\A[a-z][a-z0-9_]*\z/
             raise InvalidPluginData.new("config specification key, '#{key}',  is not allowed", name)
@@ -102,6 +103,7 @@ module Bolt
           unless spec['pcore_type'].instance?(val)
             raise Bolt::ValidationError, "#{name} plugin expects a #{spec['type']} for key #{key}, got: #{val}"
           end
+
           val.nil?
         end
         nil
@@ -177,8 +179,10 @@ module Bolt
         # Get the intersection of expected types (using Set)
         type_set = @hook_map.each_with_object({}) do |(_hook, task), acc|
           next unless (schema = task['task'].metadata['parameters'])
+
           schema.each do |param, scheme|
             next unless scheme['type'].is_a?(String)
+
             scheme['type'] = Set.new([scheme['type']])
             if acc.dig(param, 'type').is_a?(Set)
               scheme['type'].merge(acc[param]['type'])
@@ -189,6 +193,7 @@ module Bolt
         # Convert Set to string
         type_set.each do |_param, schema|
           next unless schema['type']
+
           schema['type'] = if schema['type'].size > 1
                              "Optional[Variant[#{schema['type'].to_a.join(', ')}]]"
                            else
@@ -210,6 +215,7 @@ module Bolt
                                          options).first
 
         raise Bolt::Error.new(result.error_hash['msg'], result.error_hash['kind']) unless result.ok
+
         result.value
       end
 
@@ -217,6 +223,7 @@ module Bolt
         hook = @hook_map[hook_name]
         # This shouldn't happen if the Plugin api is used
         raise PluginError::UnsupportedHook.new(name, hook_name) unless hook
+
         result = run_task(hook['task'], opts)
 
         if value

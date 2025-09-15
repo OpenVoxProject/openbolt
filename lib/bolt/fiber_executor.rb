@@ -82,6 +82,7 @@ module Bolt
         # Once we've restarted the Fiber, check to see if it's finished again
         # and cleanup if it has.
         next if future.alive?
+
         @logger.trace("Cleaning up future '#{future.name}'")
 
         # If the future errored and the main plan has already exited, log the
@@ -99,6 +100,7 @@ module Bolt
       # execute before checking again. This mitigates CPU
       # thrashing.
       return unless active_futures.all? { |f| %i[returned_immediately unfinished].include?(f.value) }
+
       @logger.trace("Nothing can be resumed. Rechecking in 0.5 seconds.")
 
       sleep(0.5)
@@ -145,7 +147,7 @@ module Bolt
         # futures being waited on.
         until (futures = get_futures_for_plan(plan_id: plan_id)).map(&:alive?).none?
           if futures.map(&:fiber).include?(Fiber.current)
-            msg = "The wait() function cannot be called with no arguments inside a "\
+            msg = "The wait() function cannot be called with no arguments inside a " \
                   "background block in the same plan."
             raise Bolt::Error.new(msg, 'bolt/infinite-wait')
           end

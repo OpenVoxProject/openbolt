@@ -27,7 +27,7 @@ class ChangelogGenerator
   def client
     unless @client
       unless ENV['GITHUB_TOKEN']
-        warn "Missing GitHub personal access token. Set $GITHUB_TOKEN with a "\
+        warn "Missing GitHub personal access token. Set $GITHUB_TOKEN with a " \
              "personal access token to use this script."
         exit 1
       end
@@ -107,6 +107,7 @@ class ChangelogGenerator
 
     entries.each_value do |type|
       next unless type[:entries].any?
+
       new_lines << "### #{type[:name]}\n"
 
       type[:entries].each do |entry|

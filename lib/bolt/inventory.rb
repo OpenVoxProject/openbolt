@@ -71,6 +71,7 @@ module Bolt
           source = ENVIRONMENT_VAR
           data = YAML.safe_load(ENV[ENVIRONMENT_VAR])
           raise Bolt::ParseError, "Could not parse inventory from $#{ENVIRONMENT_VAR}" unless data.is_a?(Hash)
+
           logger.debug("Loaded inventory from environment variable #{ENVIRONMENT_VAR}")
         rescue Psych::Exception
           raise Bolt::ParseError, "Could not parse inventory from $#{ENVIRONMENT_VAR}"

@@ -113,6 +113,7 @@ module Bolt
 
         private def assert_hash_or_config(data)
           return if data.is_a?(Hash) || data.is_a?(self.class)
+
           raise Bolt::ValidationError,
                 "Transport config must be a Hash or #{self.class}, received #{data.class} #{data.inspect}"
         end

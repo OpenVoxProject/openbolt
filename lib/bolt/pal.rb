@@ -147,6 +147,7 @@ module Bolt
 
     def detect_project_conflict(project, environment)
       return unless project && project.load_as_module?
+
       # The environment modulepath has stripped out non-existent directories,
       # so we don't need to check for them
       modules = environment.modulepath.flat_map do |path|
@@ -192,7 +193,7 @@ module Bolt
             rescue Puppet::PreformattedError => e
               if e.issue_code == :UNKNOWN_VARIABLE &&
                  %w[facts trusted server_facts settings].include?(e.arguments[:name])
-                message = "Evaluation Error: Variable '#{e.arguments[:name]}' is not available in the current scope "\
+                message = "Evaluation Error: Variable '#{e.arguments[:name]}' is not available in the current scope " \
                           "unless explicitly defined."
                 details = { file: e.file, line: e.line, column: e.pos }
                 PALError.new(message, details)
@@ -210,6 +211,7 @@ module Bolt
       if r.is_a?(StandardError) && !r.is_a?(Bolt::PuppetError)
         raise r
       end
+
       r
     end
 
@@ -339,6 +341,7 @@ module Bolt
             # If any file has been updated since we last cached, update the
             # cache
             next unless file_modified?(f['path'], f['mtime'])
+
             data = get_task_info(task_name, with_mtime: true)
             data = Bolt::Util.walk_keys(data, &:to_s)
             # Tell Bolt to write to the cache file once we're done

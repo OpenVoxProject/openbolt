@@ -14,6 +14,7 @@ namespace :pwsh do
       files  = Dir.children(source).sort.map { |f| File.join(source, f) }
       files.each_with_object({}) do |file, _guides|
         next if file !~ /\.(yaml|yml)\z/
+
         info = Bolt::Util.read_yaml_hash(file, 'guide')
 
         # Make sure both topic and guide keys are defined

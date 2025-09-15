@@ -38,6 +38,7 @@ module Bolt
               if current_value.is_a?(Hash) && current_value.key?('_plugin')
                 raise invalid_input_data_err("the #{key} key's value contains a plugin reference")
               end
+
               current_value
             end
           end

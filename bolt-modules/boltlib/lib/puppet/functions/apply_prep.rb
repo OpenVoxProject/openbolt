@@ -84,6 +84,7 @@ Puppet::Functions.create_function(:apply_prep) do
 
     tarball = applicator.build_plugin_tarball do |mod|
       next unless required_modules.empty? || required_modules.include?(mod.name)
+
       search_dirs = []
       search_dirs << mod.plugins if mod.plugins?
       search_dirs << mod.pluginfacts if mod.pluginfacts?
@@ -111,6 +112,7 @@ Puppet::Functions.create_function(:apply_prep) do
 
       hook_results.each do |result|
         next unless result.ok?
+
         inventory.set_feature(result.target, 'puppet-agent')
       end
 
@@ -143,7 +145,7 @@ Puppet::Functions.create_function(:apply_prep) do
       if unsupported_puppet?(result['clientversion'])
         Bolt::Logger.deprecate(
           "unsupported_puppet",
-          "Detected unsupported Puppet agent version #{result['clientversion']} on target "\
+          "Detected unsupported Puppet agent version #{result['clientversion']} on target " \
           "#{result.target}. Bolt supports Puppet agent 6.0.0 and higher."
         )
       end

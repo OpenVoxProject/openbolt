@@ -38,6 +38,7 @@ describe Bolt::PuppetDB::Client, puppetdb: true do
       5.times do
         retrieved = client.facts_for_node([target])
         break unless retrieved.empty?
+
         sleep 5
       end
       expect(retrieved).to eq(target => facts)

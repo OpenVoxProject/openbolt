@@ -231,11 +231,13 @@ module Bolt
     #
     private_class_method def self.do_warn(msg, id)
       return if @disable_warnings.include?(id)
+
       logger(self).warn(msg)
     end
 
     private_class_method def self.do_warn_once(msg, id)
       return unless @warnings.add?(id)
+
       do_warn(msg, id)
     end
 

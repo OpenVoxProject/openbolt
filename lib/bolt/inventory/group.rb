@@ -179,6 +179,7 @@ module Bolt
           if (found = @aliases[alia])
             raise ValidationError.new(alias_conflict(alia, found, target_name), @name)
           end
+
           @aliases[alia] = target_name
         end
       end
@@ -339,8 +340,10 @@ module Bolt
 
         Bolt::Config::Options::TRANSPORT_CONFIG.each_key do |transport|
           next unless result['config'].key?(transport)
+
           transport_config = result['config'][transport]
           next unless transport_config.is_a?(Hash)
+
           transport_config = Bolt::Util.postwalk_vals(transport_config) do |val|
             if val.is_a?(Hash)
               val = val.compact

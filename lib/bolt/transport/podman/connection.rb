@@ -11,6 +11,7 @@ module Bolt
 
         def initialize(target)
           raise Bolt::ValidationError, "Target #{target.safe_name} does not have a host" unless target.host
+
           @target = target
           @user = ENV['USER'] || Etc.getlogin
           @logger = Bolt::Logger.logger(target.safe_name)
@@ -44,6 +45,7 @@ module Bolt
               Array(item["Names"]).include?(@target.host)
           }
           raise "Could not find a container with name or ID matching '#{@target.host}'" if container.nil?
+
           # Now find the indepth container information
           id = container["ID"] || container["Id"]
           output = execute_local_json_command('inspect', [id])

@@ -30,6 +30,7 @@ module BoltSpec
         end
 
         next unless definition.key?(:items)
+
         msg = ":items key for option '#{option}' must be a Hash"
         expect(definition[:items].class).to eq(Hash), msg
 

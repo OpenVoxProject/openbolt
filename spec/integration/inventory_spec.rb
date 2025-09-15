@@ -92,6 +92,7 @@ describe 'running with an inventory file', reset_puppet_settings: true do
 
     context 'with a uriless target' do
       let(:target) { 'uriless' }
+
       it 'connects to run a command' do
         result = run_one_node(run_command)
         expect(result).to be
@@ -117,6 +118,7 @@ describe 'running with an inventory file', reset_puppet_settings: true do
 
   context 'when running a plan' do
     let(:run_plan) { ['plan', 'run', 'inventory::get_host'] + config_flags }
+
     it 'can access the host' do
       r = run_cli_json(run_plan + ['--targets', 'hostless'])
       expect(r).to eq('result' => nil)

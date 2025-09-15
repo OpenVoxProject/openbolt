@@ -57,10 +57,10 @@ module Bolt
       if defined?(ast.body) &&
          (ast.body.is_a?(Puppet::Pops::Model::HostClassDefinition) ||
          ast.body.is_a?(Puppet::Pops::Model::ResourceTypeDefinition))
-        message = "Manifest only contains definitions and will result in no changes on the targets. "\
-                  "Definitions must be declared for their resources to be applied. You can read more "\
-                  "about defining and declaring classes and types in the Puppet documentation at "\
-                  "https://puppet.com/docs/puppet/latest/lang_classes.html and "\
+        message = "Manifest only contains definitions and will result in no changes on the targets. " \
+                  "Definitions must be declared for their resources to be applied. You can read more " \
+                  "about defining and declaring classes and types in the Puppet documentation at " \
+                  "https://puppet.com/docs/puppet/latest/lang_classes.html and " \
                   "https://puppet.com/docs/puppet/latest/lang_defined_types.html"
         Bolt::Logger.warn("empty_manifest", message)
       end
@@ -281,7 +281,7 @@ module Bolt
 
       if config.project.modules.empty? && resolve
         outputter.print_message(
-          "Project configuration file #{config.project.project_file} does not "\
+          "Project configuration file #{config.project.project_file} does not " \
           "specify any module dependencies. Nothing to do."
         )
         return true
@@ -431,8 +431,8 @@ module Bolt
 
         # CODEREVIEW: Phrasing
         raise Bolt::Error.new(
-          "The following policies are not available to the project: '#{unavailable_policies.join("', '")}'. "\
-          "You must list policies in a project's 'policies' setting before Bolt can apply them to targets. "\
+          "The following policies are not available to the project: '#{unavailable_policies.join("', '")}'. " \
+          "You must list policies in a project's 'policies' setting before Bolt can apply them to targets. " \
           "For a list of policies available to the project, run '#{command}'.",
           'bolt/unavailable-policy-error'
         )
@@ -452,7 +452,7 @@ module Bolt
       # CODEREVIEW: Phrasing
       if unloadable_policies.any?
         raise Bolt::Error.new(
-          "The following policies cannot be loaded: '#{unloadable_policies.join("', '")}'. "\
+          "The following policies cannot be loaded: '#{unloadable_policies.join("', '")}'. " \
           "Policies must be a Puppet class saved to a project's or module's manifests directory.",
           'bolt/unloadable-policy-error'
         )
@@ -501,7 +501,7 @@ module Bolt
       # Error if name is not namespaced to project
       unless prefix == @config.project.name
         raise Bolt::ValidationError,
-              "Policy name '#{name}' must begin with project name '#{@config.project.name}'. Did "\
+              "Policy name '#{name}' must begin with project name '#{@config.project.name}'. Did " \
               "you mean '#{@config.project.name}::#{name}'?"
       end
 
@@ -570,9 +570,9 @@ module Bolt
         command = Bolt::Util.powershell? ? 'New-BoltPolicy -Name <NAME>' : 'bolt policy new <NAME>'
 
         raise Bolt::Error.new(
-          "Project configuration file #{@config.project.project_file} does not "\
-          "specify any policies. You can add policies to the project by including "\
-          "a 'policies' key or creating a new policy using the '#{command}' "\
+          "Project configuration file #{@config.project.project_file} does not " \
+          "specify any policies. You can add policies to the project by including " \
+          "a 'policies' key or creating a new policy using the '#{command}' " \
           "command.",
           'bolt/no-policies-error'
         )
@@ -711,7 +711,7 @@ module Bolt
       unless project.project_file?
         command = Bolt::Util.powershell? ? 'New-BoltProject' : 'bolt project init'
 
-        msg = "Could not find project configuration file #{project.project_file}, unable "\
+        msg = "Could not find project configuration file #{project.project_file}, unable " \
               "to install modules. To create a Bolt project, run '#{command}'."
 
         raise Bolt::Error.new(msg, 'bolt/missing-project-config-error')
@@ -725,6 +725,7 @@ module Bolt
     #
     private def filter_content(content, filter)
       return content unless content && filter
+
       content.select { |name,| name.include?(filter) }
     end
 
@@ -737,6 +738,7 @@ module Bolt
     #
     private def find_file(path)
       return path if File.exist?(path) || Pathname.new(path).absolute?
+
       modulepath = Bolt::Config::Modulepath.new(config.modulepath)
       modules    = Bolt::Module.discover(modulepath.full_modulepath, config.project)
       mod, file  = path.split(File::SEPARATOR, 2)
@@ -758,6 +760,7 @@ module Bolt
 
       files.each_with_object({}) do |file, guides|
         next if file !~ /\.(yaml|yml)\z/
+
         topic = File.basename(file, ".*")
         guides[topic] = File.join(root_path, file)
       end

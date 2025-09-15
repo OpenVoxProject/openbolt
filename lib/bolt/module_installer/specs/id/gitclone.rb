@@ -96,6 +96,7 @@ module Bolt
             Bolt::Logger.debug("Executing command '#{bare_clone.join(' ')}'")
             _out, err, status = Open3.capture3(*bare_clone)
             return true if status.success?
+
             Bolt::Logger.debug("Unable to clone bare repository at #{loc(git, proxy)}: #{err}")
 
             # Fall back to cloning the full repository

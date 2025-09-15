@@ -46,8 +46,10 @@ def puppetfile_set_mod_versions!(versions_new)
   # update lines
   lines.each do |line|
     next unless line.start_with?("mod 'puppetlabs")
+
     match = module_re.match(line)
     next unless match
+
     mod = match[1].strip
     ver_old = match[2].strip
     ver_new = versions_new[mod]

@@ -6,6 +6,7 @@ require 'bolt/inventory'
 
 describe 'add_facts' do
   include PuppetlabsSpec::Fixtures
+
   let(:executor) { Bolt::Executor.new }
   let(:inventory) { Bolt::Inventory.empty }
   let(:target) { inventory.get_target('example') }
@@ -37,6 +38,7 @@ describe 'add_facts' do
 
   context 'without tasks enabled' do
     let(:tasks_enabled) { false }
+
     it 'fails and reports that add_facts is not available' do
       is_expected.to run.with_params(target, {})
                         .and_raise_error(/Plan language function 'add_facts' cannot be used/)

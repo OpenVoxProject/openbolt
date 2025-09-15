@@ -23,7 +23,7 @@ module Bolt
       # Exit early if project config already includes a spec with this name.
       if project_specs.include?(name)
         @outputter.print_message(
-          "Project configuration file #{project_file} already includes specification "\
+          "Project configuration file #{project_file} already includes specification " \
           "with name #{name}. Nothing to do."
         )
         return true
@@ -92,11 +92,13 @@ module Bolt
       # modified.
       old = (old&.modules || []).each_with_object({}) do |mod, acc|
         next unless mod.type == :forge
+
         acc[mod.full_name] = mod
       end
 
       new = new.modules.each_with_object({}) do |mod, acc|
         next unless mod.type == :forge
+
         acc[mod.full_name] = mod
       end
 

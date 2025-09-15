@@ -36,10 +36,12 @@ module Bolt
           unless status.exitstatus.zero?
             raise "Error listing available containers: #{err}"
           end
+
           containers = JSON.parse(out)
           if containers.empty?
             raise "Could not find a container with name or ID matching '#{container_id}'"
           end
+
           @logger.trace("Opened session")
           true
         rescue StandardError => e

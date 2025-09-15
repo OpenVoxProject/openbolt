@@ -638,7 +638,7 @@ describe "Bolt::Outputter::Human" do
         Tasks
           module::task_one
           module::task_two     a description
-        
+
         Plans
           module::plan_one     a description
           module::plan_two

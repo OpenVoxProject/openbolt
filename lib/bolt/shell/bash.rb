@@ -301,6 +301,7 @@ module Bolt
         if result.exit_code != 0
           raise Bolt::Node::FileError.new("Could not make tmpdir: #{result.stderr.string}", 'TMPDIR_ERROR')
         end
+
         path = tmppath || result.stdout.string.chomp
         Bolt::Shell::Bash::Tmpdir.new(self, path)
       end
@@ -482,7 +483,7 @@ module Bolt
         when 0
           @logger.trace { "Command `#{command_str}` returned successfully" }
         when 126
-          msg = "\n\nThis might be caused by the default tmpdir being mounted "\
+          msg = "\n\nThis might be caused by the default tmpdir being mounted " \
             "using 'noexec'. See http://pup.pt/task-failure for details and workarounds."
           result_output.stderr        << msg
           result_output.merged_output << msg

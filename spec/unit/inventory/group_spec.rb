@@ -724,6 +724,7 @@ describe Bolt::Inventory::Group do
 
     context 'with unexpected keys' do
       let(:mock_logger) { instance_double("Logging.logger") }
+
       before(:each) do
         allow(Bolt::Logger).to receive(:logger).and_return(mock_logger)
       end

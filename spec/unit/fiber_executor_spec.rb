@@ -146,6 +146,7 @@ describe "Bolt::FiberExecutor" do
         end
         allow(Fiber).to receive(:yield)
       end
+
       let(:timeout) { 0.1 }
 
       it "raises an error if any Futures exceed the timeout without catch_errors" do

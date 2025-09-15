@@ -82,6 +82,7 @@ module Bolt
     def transport(transport)
       impl = @transports[transport || 'ssh']
       raise(Bolt::UnknownTransportError, transport) unless impl
+
       # If there was an error creating the transport, ensure it gets thrown
       impl.no_error!
       impl.value
@@ -105,6 +106,7 @@ module Bolt
         # If types isn't set or if the subscriber is subscribed to
         # that type of event, publish the event
         next unless types.nil? || types.include?(event[:type])
+
         @publisher.post(subscriber) do |sub|
           # Wait for user to input to prompt before printing anything
           sleep(0.1) while @prompting
@@ -127,10 +129,10 @@ module Bolt
     def queue_execute(targets)
       if @warn_concurrency && targets.length > @concurrency
         @warn_concurrency = false
-        msg = "The ulimit is low, which might cause file limit issues. Default concurrency has been set to "\
-              "'#{@concurrency}' to mitigate those issues, which might cause Bolt to run slow. "\
-              "Disable this warning by configuring ulimit using 'ulimit -n <limit>' in your shell "\
-              "configuration, or by configuring Bolt's concurrency. "\
+        msg = "The ulimit is low, which might cause file limit issues. Default concurrency has been set to " \
+              "'#{@concurrency}' to mitigate those issues, which might cause Bolt to run slow. " \
+              "Disable this warning by configuring ulimit using 'ulimit -n <limit>' in your shell " \
+              "configuration, or by configuring Bolt's concurrency. " \
               "See https://puppet.com/docs/bolt/latest/bolt_known_issues.html for details."
         Bolt::Logger.warn("low_ulimit", msg)
       end
@@ -167,6 +169,7 @@ module Bolt
             # exception and some promise is still missing a result.
             result_promises.each do |target, promise|
               next if promise.fulfilled?
+
               error = $ERROR_INFO || Bolt::Error.new("No result was returned for #{target.uri}",
                                                      "puppetlabs.bolt/missing-result-error")
               promise.set(Bolt::Result.from_exception(target, error))
@@ -477,6 +480,7 @@ module Bolt
       start = wait_now
       until yield
         raise(TimeoutError, 'Timed out waiting for target') if (wait_now - start).to_i >= timeout
+
         sleep(retry_interval)
       end
     end
@@ -484,6 +488,7 @@ module Bolt
     def prompt(prompt, options)
       unless $stdin.tty?
         return options[:default] if options[:default]
+
         raise Bolt::Error.new('STDIN is not a tty, unable to prompt', 'bolt/no-tty-error')
       end
 

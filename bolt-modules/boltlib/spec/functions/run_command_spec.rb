@@ -26,6 +26,7 @@ describe 'run_command' do
     let(:command) { 'hostname' }
     let(:result) { Bolt::Result.new(target, value: { 'stdout' => hostname }) }
     let(:result_set) { Bolt::ResultSet.new([result]) }
+
     before(:each) do
       Puppet.features.stubs(:bolt?).returns(true)
     end
@@ -211,6 +212,7 @@ describe 'run_command' do
 
   context 'without tasks enabled' do
     let(:tasks_enabled) { false }
+
     it 'fails and reports that run_command is not available' do
       is_expected.to run
         .with_params('echo hello', [])

@@ -58,7 +58,7 @@ module Bolt
                   * => $res['parameters'],
                 }
               }
-  
+
               # Add relationships if there is more than one resource
               if $resources.length > 1 {
                 ($resources.length - 1).each |$index| {

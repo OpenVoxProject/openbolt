@@ -10,6 +10,7 @@ require 'bolt/task'
 
 describe 'get_resources' do
   include PuppetlabsSpec::Fixtures
+
   let(:applicator) { mock('Bolt::Applicator') }
   let(:executor) { Bolt::Executor.new }
   let(:inventory) { Bolt::Inventory.empty }
@@ -82,6 +83,7 @@ describe 'get_resources' do
 
     context 'without tasks enabled' do
       let(:tasks_enabled) { false }
+
       it 'fails and reports that get_resources is not available' do
         is_expected.to run.with_params(hostnames, 'file')
                           .and_raise_error(/Plan language function 'get_resources' cannot be used/)

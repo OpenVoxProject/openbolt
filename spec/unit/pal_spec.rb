@@ -10,6 +10,7 @@ describe Bolt::PAL do
     Puppet.settings.send(:clear_everything_for_tests)
     Bolt::PAL.load_puppet
   end
+
   after(:each) { Puppet.settings.send(:clear_everything_for_tests) }
 
   let(:project) { Bolt::Project.new({ 'name' => 'pal_test' }, Dir.getwd) }

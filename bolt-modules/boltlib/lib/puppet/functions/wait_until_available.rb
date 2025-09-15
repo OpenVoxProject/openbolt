@@ -54,6 +54,7 @@ Puppet::Functions.create_function(:wait_until_available) do
     if !r.ok && !options['_catch_errors']
       raise Bolt::RunFailure.new(r, 'wait_until_available')
     end
+
     r
   end
 end
