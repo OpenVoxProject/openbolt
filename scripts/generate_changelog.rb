@@ -107,6 +107,7 @@ class ChangelogGenerator
 
     entries.each_value do |type|
       next unless type[:entries].any?
+
       new_lines << "### #{type[:name]}\n"
 
       type[:entries].each do |entry|

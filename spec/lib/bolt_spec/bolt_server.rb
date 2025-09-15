@@ -101,6 +101,7 @@ module BoltSpec
       unless resp.code == '200'
         raise "request #{path} #{params} failed with: #{resp.body}"
       end
+
       JSON.parse(resp.body)
     end
 

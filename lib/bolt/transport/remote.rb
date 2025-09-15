@@ -16,6 +16,7 @@ module Bolt
       def get_proxy(target)
         inventory = target.inventory
         raise "Target was created without inventory? Not get_targets?" unless inventory
+
         proxy = inventory.get_targets(target.options['run-on'] || 'localhost').first
 
         if proxy.transport == 'remote'

@@ -64,6 +64,7 @@ describe Bolt::ApplyResult do
   describe :from_task_result do
     context 'with an unparseable result' do
       let(:result_value) { 'oops' }
+
       it 'generates an error when keys are missing' do
         expect(apply_result.ok).to eq(false)
         expect(apply_result['_error']['kind']).to eq('bolt/invalid-report')
@@ -72,6 +73,7 @@ describe Bolt::ApplyResult do
 
     context 'with missing keys' do
       let(:result_value) { {} }
+
       it 'generates an error when keys are missing' do
         expect(apply_result.ok).to eq(false)
         expect(apply_result['_error']['kind']).to eq('bolt/invalid-report')

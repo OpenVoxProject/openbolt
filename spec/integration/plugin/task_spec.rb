@@ -136,6 +136,7 @@ describe 'using the task plugin' do
     let(:inventory) {
       { 'targets' => [plugin] }
     }
+
     it 'supports a target lookup' do
       output = run_cli(command)
 
@@ -175,6 +176,7 @@ describe 'using the task plugin' do
             'parameters' => params
           }
         }
+
         it 'errors when the task fails' do
           result = run_cli_json(command)
           expect(result['msg']).to match(/The task failed/)

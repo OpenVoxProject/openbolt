@@ -827,6 +827,7 @@ module Bolt
     #
     private def parse_vars(vars)
       return unless vars
+
       Hash[vars.map { |a| a.split('=', 2) }]
     end
 

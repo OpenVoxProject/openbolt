@@ -92,11 +92,13 @@ module Bolt
       # modified.
       old = (old&.modules || []).each_with_object({}) do |mod, acc|
         next unless mod.type == :forge
+
         acc[mod.full_name] = mod
       end
 
       new = new.modules.each_with_object({}) do |mod, acc|
         next unless mod.type == :forge
+
         acc[mod.full_name] = mod
       end
 

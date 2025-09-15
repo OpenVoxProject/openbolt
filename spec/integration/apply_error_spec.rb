@@ -39,6 +39,7 @@ describe "errors gracefully attempting to apply a manifest block", apply: true d
 
     context 'when it cannot connect to the target' do
       let(:password) { 'incorrect_password' }
+
       it 'displays a connection error' do
         result = run_cli_json(%w[plan run basic::class] + config_flags)
         error = result['details']['result_set'][0]['value']['_error']

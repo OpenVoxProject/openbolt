@@ -124,6 +124,7 @@ Puppet::Functions.create_function(:download_file, Puppet::Functions::InternalFun
       if !r.ok && !options[:catch_errors]
         raise Bolt::RunFailure.new(r, 'download_file', source)
       end
+
       r
     end
   end

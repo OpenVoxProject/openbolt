@@ -190,11 +190,13 @@ def to_schema(data, plugin = false)
   # Recurse through some properties, as each can have their own defintions.
   %i[items additionalProperties].each do |key|
     next unless data.key?(key)
+
     data[key] = to_schema(data[key], plugin)
   end
 
   %i[properties definitions].each do |key|
     next unless data.key?(key)
+
     data[key] = data[key].transform_values { |opt| to_schema(opt, plugin) }
   end
 

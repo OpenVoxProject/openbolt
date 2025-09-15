@@ -12,6 +12,7 @@ require 'bolt/task'
 
 describe 'apply_prep' do
   include PuppetlabsSpec::Fixtures
+
   let(:applicator)    { mock('Bolt::Applicator') }
   let(:config)        { Bolt::Config.default }
   let(:executor)      { Bolt::Executor.new }
@@ -314,6 +315,7 @@ describe 'apply_prep' do
 
   context 'without tasks enabled' do
     let(:tasks_enabled) { false }
+
     it 'fails and reports that apply_prep is not available' do
       is_expected.to run.with_params('foo')
                         .and_raise_error(/Plan language function 'apply_prep' cannot be used/)

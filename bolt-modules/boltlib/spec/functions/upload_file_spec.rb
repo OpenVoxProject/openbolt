@@ -8,6 +8,7 @@ require 'bolt/target'
 
 describe 'upload_file' do
   include PuppetlabsSpec::Fixtures
+
   let(:executor) { Bolt::Executor.new }
   let(:inventory) { mock('inventory') }
   let(:tasks_enabled) { true }
@@ -32,6 +33,7 @@ describe 'upload_file' do
     let(:full_path) { File.join(module_root, 'files/uploads/index.html') }
     let(:full_dir_path) { File.dirname(full_path) }
     let(:destination) { '/var/www/html' }
+
     before(:each) do
       Puppet.features.stubs(:bolt?).returns(true)
     end

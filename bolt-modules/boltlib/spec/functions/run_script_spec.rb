@@ -8,6 +8,7 @@ require 'bolt/result_set'
 
 describe 'run_script' do
   include PuppetlabsSpec::Fixtures
+
   let(:executor) { Bolt::Executor.new }
   let(:inventory) { mock('inventory') }
   let(:tasks_enabled) { true }
@@ -28,6 +29,7 @@ describe 'run_script' do
     let(:target) { Bolt::Target.new(hostname) }
     let(:result) { Bolt::Result.new(target, value: { 'stdout' => hostname }) }
     let(:result_set) { Bolt::ResultSet.new([result]) }
+
     before(:each) do
       Puppet.features.stubs(:bolt?).returns(true)
     end

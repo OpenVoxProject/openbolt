@@ -8,6 +8,7 @@ require 'puppet/pops/types/p_sensitive_type'
 
 describe 'run_plan' do
   include PuppetlabsSpec::Fixtures
+
   let(:executor) { Bolt::Executor.new }
   let(:tasks_enabled) { true }
   let(:inventory) { Bolt::Inventory.empty }
@@ -108,6 +109,7 @@ describe 'run_plan' do
 
   context 'without tasks enabled' do
     let(:tasks_enabled) { false }
+
     it 'fails and reports that run_plan is not available' do
       is_expected.to run.with_params('test::run_me')
                         .and_raise_error(/Plan language function 'run_plan' cannot be used/)

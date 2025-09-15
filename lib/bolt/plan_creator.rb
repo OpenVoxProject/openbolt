@@ -44,6 +44,7 @@ module Bolt
 
       %w[pp yaml].each do |ext|
         next unless (path = project.plans_path + "#{basename}.#{ext}").exist?
+
         raise Bolt::Error.new(
           "A plan with the name '#{plan_name}' already exists at '#{path}', nothing to do.",
           'bolt/existing-plan-error'

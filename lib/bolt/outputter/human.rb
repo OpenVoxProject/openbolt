@@ -36,6 +36,7 @@ module Bolt
 
       def start_spin
         return unless @spin && @stream.isatty && !@spinning
+
         @spinning = true
         @spin_thread = Thread.new do
           loop do
@@ -47,6 +48,7 @@ module Bolt
 
       def stop_spin
         return unless @spin && @stream.isatty && @spinning
+
         @spinning = false
         @spin_thread.terminate
         @stream.print("\b")
@@ -61,6 +63,7 @@ module Bolt
       #
       def wrap(string, width = 80)
         return string unless string.is_a?(String)
+
         string.gsub(/(.{1,#{width}})(\s+|\Z)/, "\\1\n")
       end
 
@@ -68,6 +71,7 @@ module Bolt
       #
       def truncate(string, width = 80)
         return string unless string.is_a?(String) && string.length > width
+
         string.lines.first[0...width].gsub(/\s\w+\s*$/, '...')
       end
 
@@ -164,6 +168,7 @@ module Bolt
           result.resource_logs.each do |log|
             # Omit low-level info/debug messages
             next if %w[info debug].include?(log['level'])
+
             message = format_log(log)
             @stream.puts(indent(2, message))
           end

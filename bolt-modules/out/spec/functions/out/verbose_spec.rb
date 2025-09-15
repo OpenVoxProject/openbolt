@@ -31,6 +31,7 @@ describe 'out::verbose' do
 
   context 'without tasks enabled' do
     let(:tasks_enabled) { false }
+
     it 'fails and reports that out::verbose is not available' do
       is_expected.to run.with_params('This is a message')
                         .and_raise_error(/Plan language function 'out::verbose' cannot be used/)

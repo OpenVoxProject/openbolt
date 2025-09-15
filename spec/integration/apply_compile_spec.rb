@@ -471,6 +471,7 @@ describe "passes parsed AST to the apply_catalog task", apply: true do
 
     context 'with fact/variable collisions' do
       let(:lines)  { @log_output.readlines }
+
       after(:each) { @log_output.level = :all }
 
       it 'warns about collisions' do

@@ -143,6 +143,7 @@ module Bolt
         if result.exit_code != 0
           raise Bolt::Node::FileError.new("Could not make tmpdir: #{result.stderr.string}", 'TMPDIR_ERROR')
         end
+
         result.stdout.string.chomp
       end
 

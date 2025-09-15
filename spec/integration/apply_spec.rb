@@ -226,8 +226,10 @@ describe 'apply', apply: true do
 
           local_pid = resources['Notify[local pid]']['events'][0]['desired_value'][/(\d+)/, 1]
           raise 'local pid was not found' if local_pid.nil?
+
           remote_pid = resources['Notify[remote pid]']['events'][0]['desired_value'][/(\d+)/, 1]
           raise 'remote pid was not found' if remote_pid.nil?
+
           expect(local_pid).not_to eq(remote_pid)
         end
       end

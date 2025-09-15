@@ -148,6 +148,7 @@ module Bolt
       if error && !error.is_a?(Hash)
         raise "TODO: how did we get a string error"
       end
+
       @value['_error'] = error if error
       @value['_output'] = message if message
     end

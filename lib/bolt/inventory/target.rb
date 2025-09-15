@@ -59,6 +59,7 @@ module Bolt
 
       def set_local_defaults
         return if @set_local_default
+
         defaults = {
           'local' => { 'interpreters' => { '.rb' => RbConfig.ruby } }
         }

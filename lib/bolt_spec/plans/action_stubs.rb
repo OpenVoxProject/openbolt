@@ -103,6 +103,7 @@ module BoltSpec
         unless result_set.is_a?(Bolt::ResultSet)
           raise "Return block for #{object} did not return a Bolt::ResultSet"
         end
+
         result_set
       end
 
@@ -110,6 +111,7 @@ module BoltSpec
         unless plan_result.is_a?(Bolt::PlanResult)
           raise "Return block for #{plan_clj.closure_name} did not return a Bolt::PlanResult"
         end
+
         plan_result
       end
 
@@ -144,6 +146,7 @@ module BoltSpec
 
       def return(&block)
         raise "Cannot set return values and return block." if @data_set
+
         @return_block = block
         self
       end
@@ -153,12 +156,14 @@ module BoltSpec
       def return_for_targets(data)
         data.each_with_object(@data) do |(target, result), hsh|
           raise "Mocked results must be hashes: #{target}: #{result}" unless result.is_a? Hash
+
           # set the inventory from the BoltSpec::Plans, otherwise if we try to convert
           # this target to a string, it will fail to string conversion because the
           # inventory is nil
           hsh[target] = result_for(Bolt::Target.new(target, @inventory), **Bolt::Util.walk_keys(result, &:to_sym))
         end
         raise "Cannot set return values and return block." if @return_block
+
         @data_set = true
         self
       end

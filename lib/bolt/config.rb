@@ -309,6 +309,7 @@ module Bolt
 
     private def normalize_log(target)
       return target if target == 'console'
+
       target = target[5..-1] if target.start_with?('file:')
       'file:' + File.expand_path(target, @project.path)
     end
@@ -479,6 +480,7 @@ module Bolt
     # Check if there is a case-insensitive match to the path
     def check_path_case(type, paths)
       return if paths.nil?
+
       matches = matching_paths(paths)
 
       if matches.any?

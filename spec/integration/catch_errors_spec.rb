@@ -83,6 +83,7 @@ describe "catch_errors", ssh: true do
 
   context "when breaking" do
     let(:plan) { "catch_errors::break" }
+
     it "breaks from enumeration" do
       params = { list: %w[firstcomment b c] }
       result = run_cli_json(%W[plan run #{plan} --params #{params.to_json}] +

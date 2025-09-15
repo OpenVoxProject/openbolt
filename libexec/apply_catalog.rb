@@ -57,6 +57,7 @@ begin
   # explicitly packaged plugins should take precedence
   args['bolt_builtin_content'].each do |builtin_dir|
     next unless Dir.exist?(builtin_dir)
+
     Dir.foreach(builtin_dir) do |dir|
       unless ['.', '..'].include? dir
         full_path = File.join(builtin_dir, dir, 'lib')

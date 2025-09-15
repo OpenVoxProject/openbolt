@@ -26,6 +26,7 @@ describe Bolt::Plugin::Cache do
           'var' => env_var,
           '_cache' => 120 }
       }
+
       it "fails" do
         expect { plugin_cache.validate }
           .to raise_error(Bolt::ValidationError, /_cache must be a Hash/)
@@ -38,6 +39,7 @@ describe Bolt::Plugin::Cache do
           'var' => env_var,
           '_cache' => { 'tl' => 120 } }
       }
+
       it "fails" do
         expect { plugin_cache.validate }
           .to raise_error(Bolt::ValidationError, /_cache must set 'ttl' key/)

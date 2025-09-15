@@ -109,6 +109,7 @@ module Bolt
         if target_array.count > 1
           raise ValidationError.new("'#{target}' refers to #{target_array.count} targets", nil)
         end
+
         target_array.first
       end
 
@@ -158,6 +159,7 @@ module Bolt
           # Find groups that match the glob
           group_lookup.each do |name, grp|
             next unless match_wildcard?(target, name, ext_glob: ext_glob)
+
             targets += grp.all_targets.to_a
           end
 

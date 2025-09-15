@@ -725,6 +725,7 @@ module Bolt
     #
     private def filter_content(content, filter)
       return content unless content && filter
+
       content.select { |name,| name.include?(filter) }
     end
 
@@ -737,6 +738,7 @@ module Bolt
     #
     private def find_file(path)
       return path if File.exist?(path) || Pathname.new(path).absolute?
+
       modulepath = Bolt::Config::Modulepath.new(config.modulepath)
       modules    = Bolt::Module.discover(modulepath.full_modulepath, config.project)
       mod, file  = path.split(File::SEPARATOR, 2)
@@ -758,6 +760,7 @@ module Bolt
 
       files.each_with_object({}) do |file, guides|
         next if file !~ /\.(yaml|yml)\z/
+
         topic = File.basename(file, ".*")
         guides[topic] = File.join(root_path, file)
       end

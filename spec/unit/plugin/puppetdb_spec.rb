@@ -41,6 +41,7 @@ describe Bolt::Plugin::Puppetdb do
         'value' => name_fact
       }] }
     end
+
     before(:each) do
       allow(plugin.puppetdb_client).to receive(:query_certnames).and_return([certname])
       allow(plugin.puppetdb_client).to receive(:fact_values).and_return(values_hash)

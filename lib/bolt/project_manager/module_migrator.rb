@@ -161,6 +161,7 @@ module Bolt
           source.each_child do |mod|
             next unless mod.directory?
             next if (moduledir + mod.basename).directory?
+
             FileUtils.mv(mod, moduledir)
           end
 

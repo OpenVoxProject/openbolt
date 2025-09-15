@@ -1049,6 +1049,7 @@ module Bolt
         if ENV.include?(Bolt::Inventory::ENVIRONMENT_VAR)
           raise Bolt::CLIError, "Cannot pass inventory file when #{Bolt::Inventory::ENVIRONMENT_VAR} is set"
         end
+
         @options[:inventoryfile] = File.expand_path(path)
       end
       define('--[no-]save-rerun', 'Whether to update the rerun file after this command.') do |save|
@@ -1063,6 +1064,7 @@ module Bolt
         unless envvar.include?('=')
           raise Bolt::CLIError, "Environment variables must be specified using 'myenvvar=key' format"
         end
+
         @options[:env_vars] ||= {}
         @options[:env_vars].store(*envvar.split('=', 2))
       end

@@ -6,6 +6,7 @@ require 'bolt/error'
 
 describe 'fail_plan' do
   include PuppetlabsSpec::Fixtures
+
   let(:tasks_enabled) { true }
   let(:executor) { Bolt::Executor.new }
 
@@ -36,6 +37,7 @@ describe 'fail_plan' do
 
   context 'without tasks enabled' do
     let(:tasks_enabled) { false }
+
     it 'fails and reports that fail_plan is not available' do
       is_expected.to run.with_params('foo')
                         .and_raise_error(/Plan language function 'fail_plan' cannot be used/)

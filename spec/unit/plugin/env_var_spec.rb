@@ -30,6 +30,7 @@ describe Bolt::Plugin::EnvVar do
 
   describe 'when optional is true' do
     let(:env_var_data) { super().merge({ 'optional' => true }) }
+
     it 'raises a validation error when no var is provided' do
       env_var_data.delete('var')
       expect { subject.validate_resolve_reference(env_var_data) }
@@ -44,6 +45,7 @@ describe Bolt::Plugin::EnvVar do
 
   describe 'when default is provided' do
     let(:env_var_data) { super().merge({ 'default' => 'DEFAULT_STRING' }) }
+
     it 'raises a validation error when no var is provided' do
       env_var_data.delete('var')
       expect { subject.validate_resolve_reference(env_var_data) }

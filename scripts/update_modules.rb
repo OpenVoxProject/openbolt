@@ -36,6 +36,7 @@ Net::HTTP.start(uri.host, uri.port, use_ssl: true) do |http|
     response = http.get("/v3/modules/#{name}")
 
     next unless response.is_a?(Net::HTTPOK)
+
     latest_version = JSON.parse(response.body).dig('current_release', 'version')
 
     if version != latest_version

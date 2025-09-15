@@ -174,6 +174,7 @@ module Bolt
         elsif data['version'] != 5
           raise Bolt::ParseError, "Hiera v5 is required, found v#{data['version'] || 3} in #{hiera_config}"
         end
+
         hiera_config
       end
     end
@@ -181,6 +182,7 @@ module Bolt
     def apply(args, apply_body, scope)
       raise(ArgumentError, 'apply requires a TargetSpec') if args.empty?
       raise(ArgumentError, 'apply requires at least one statement in the apply block') if apply_body.nil?
+
       type0 = Puppet.lookup(:pal_script_compiler).type('TargetSpec')
       Puppet::Pal.assert_type(type0, args[0], 'apply targets')
 
@@ -241,6 +243,7 @@ module Bolt
       @plugin_tarball = Concurrent::Delay.new do
         build_plugin_tarball do |mod|
           next unless required_modules.nil? || required_modules.include?(mod.name)
+
           search_dirs = []
           search_dirs << mod.plugins if mod.plugins?
           search_dirs << mod.pluginfacts if mod.pluginfacts?
@@ -317,6 +320,7 @@ module Bolt
       if !r.ok && !options[:catch_errors]
         raise Bolt::ApplyFailure, r
       end
+
       r
     end
 

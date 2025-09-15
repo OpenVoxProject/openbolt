@@ -34,6 +34,7 @@ Puppet::Functions.create_function(:get_resources) do
     task = Bolt::Task.from_task_signature(tasksig)
     results = executor.run_task(targets, task, args)
     raise Bolt::RunFailure.new(results, 'run_task', task.name) unless results.ok?
+
     results
   end
 
@@ -80,6 +81,7 @@ Puppet::Functions.create_function(:get_resources) do
         }
         results = executor.run_task(targets, task, arguments)
         raise Bolt::RunFailure.new(results, 'run_task', task.name) unless results.ok?
+
         results
       end
     end

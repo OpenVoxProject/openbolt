@@ -105,6 +105,7 @@ module Bolt
 
       def http_client
         return @http if @http
+
         # lazy-load expensive gem code
         require 'httpclient'
         @logger.trace("Creating HTTP Client")

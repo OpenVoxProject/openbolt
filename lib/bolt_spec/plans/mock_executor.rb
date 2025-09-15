@@ -251,11 +251,13 @@ module BoltSpec
 
       def queue_execute(targets)
         raise "Unexpected call to apply(#{targets})" unless @allow_apply
+
         targets
       end
 
       def await_results(promises)
         raise "Unexpected call to apply(#{targets})" unless @allow_apply
+
         Bolt::ResultSet.new(promises.map { |target| Bolt::ApplyResult.new(target) })
       end
       # End Apply mocking

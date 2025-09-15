@@ -11,6 +11,7 @@ module Bolt
 
         def initialize(target)
           raise Bolt::ValidationError, "Target #{target.safe_name} does not have a host" unless target.host
+
           @target = target
           @user = @target.user || ENV['USER'] || Etc.getlogin
           @logger = Bolt::Logger.logger(target.safe_name)
@@ -38,6 +39,7 @@ module Bolt
           output = JSON.parse(`jls --libxo=json`)
           @jail_info = output['jail-information']['jail'].select { |jail| jail['hostname'] == target.host }.first
           raise "Could not find a jail with name matching #{target.host}" if @jail_info.nil?
+
           @logger.trace { "Opened session" }
           true
         rescue StandardError => e

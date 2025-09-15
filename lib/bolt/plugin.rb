@@ -203,6 +203,7 @@ module Bolt
 
     def config_for_plugin(plugin_name)
       return {} unless @unresolved_plugin_configs.include?(plugin_name)
+
       if @resolution_stack.include?(plugin_name)
         msg = "Configuration for plugin '#{plugin_name}' depends on the plugin itself"
         raise PluginError.new(msg, 'bolt/plugin-error')
@@ -225,6 +226,7 @@ module Bolt
       plugin = by_name(plugin_name)
       raise PluginError::Unknown, plugin_name unless plugin
       raise PluginError::UnsupportedHook.new(plugin_name, hook) unless plugin.hooks.include?(hook)
+
       @analytics.report_bundled_content("Plugin #{hook}", plugin_name)
 
       plugin.method(hook)
@@ -260,6 +262,7 @@ module Bolt
         when Bolt::Plugin::Module
           plugin.hook_map.each do |hook, spec|
             next unless hooks.include?(hook)
+
             hooks[hook][name] = spec['task'].description
           end
         else
@@ -277,6 +280,7 @@ module Bolt
     private def load_all_plugins
       modules.each do |name, mod|
         next unless mod.plugin?
+
         by_name(name)
       end
 

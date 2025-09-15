@@ -10,6 +10,7 @@ describe "transpiling YAML plans" do
   include BoltSpec::Integration
 
   after(:each) { Puppet.settings.send(:clear_everything_for_tests) }
+
   let(:modulepath) { fixtures_path('modules') }
   let(:yaml_path) { File.join(modulepath, 'yaml', 'plans') }
   let(:plan_path) { File.join(yaml_path, 'conversion.yaml') }

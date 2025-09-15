@@ -16,6 +16,7 @@ module Bolt
           private_class_method def self.name_and_sha(git, ref, proxy)
             repo = parse_repo(git)
             return nil unless repo
+
             [request_name(repo, ref, proxy), request_sha(repo, ref, proxy)]
           end
 

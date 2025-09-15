@@ -61,6 +61,7 @@ module Bolt
 
       def token
         return @token if @token_computed
+
         # Allow nil in config to skip loading a token
         if @settings.include?('token')
           if @settings['token']
@@ -81,6 +82,7 @@ module Bolt
       def expand_paths(project_path)
         %w[cacert cert key token].each do |file|
           next unless @settings[file]
+
           @settings[file] = File.expand_path(@settings[file], project_path)
         end
       end
@@ -89,6 +91,7 @@ module Bolt
         if @settings[file] && !File.exist?(@settings[file])
           raise Bolt::PuppetDBError, "#{file} file #{@settings[file]} does not exist"
         end
+
         true
       end
 
@@ -107,6 +110,7 @@ module Bolt
 
       def uri
         return @uri if @uri
+
         require 'addressable/uri'
 
         uri = case @settings['server_urls']

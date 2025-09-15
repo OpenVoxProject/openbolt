@@ -301,6 +301,7 @@ module Bolt
         if result.exit_code != 0
           raise Bolt::Node::FileError.new("Could not make tmpdir: #{result.stderr.string}", 'TMPDIR_ERROR')
         end
+
         path = tmppath || result.stdout.string.chomp
         Bolt::Shell::Bash::Tmpdir.new(self, path)
       end

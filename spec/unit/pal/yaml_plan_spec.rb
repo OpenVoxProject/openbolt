@@ -249,6 +249,7 @@ describe Bolt::PAL::YamlPlan do
 
   describe Bolt::PAL::YamlPlan::EvaluableString do
     let(:evaluator) { Puppet::Pops::Parser::EvaluatingParser.new }
+
     describe Bolt::PAL::YamlPlan::DoubleQuotedString do
       it "treats literal strings as literal strings" do
         str = described_class.new("hello world")

@@ -5,6 +5,7 @@ require 'fileutils'
 
 describe 'dir::children' do
   include PuppetlabsSpec::Fixtures
+
   let(:path) { fixtures('modules', 'test') }
 
   around(:each) do |example|
@@ -18,6 +19,7 @@ describe 'dir::children' do
 
   context 'finding an absolute path' do
     let(:abs_path) { File.expand_path(File.join(path, 'facts.d')) }
+
     it {
       is_expected.to run.with_params(abs_path).and_return(%w[.hidden fact.py two.sh])
     }

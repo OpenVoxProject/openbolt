@@ -56,6 +56,7 @@ module Bolt
           logs = result.resource_logs&.map do |log|
             # Omit low-level info/debug messages
             next if %w[info debug].include?(log['level'])
+
             indent(2, format_log(log))
           end
           hash = result.to_data

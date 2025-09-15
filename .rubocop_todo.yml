@@ -21,16 +21,6 @@ Layout/ClosingHeredocIndentation:
     - 'spec/unit/pal_spec.rb'
     - 'spec/unit/util/format_spec.rb'
 
-# Offense count: 119
-# This cop supports safe autocorrection (--autocorrect).
-Layout/EmptyLineAfterGuardClause:
-  Enabled: false
-
-# Offense count: 26
-# This cop supports safe autocorrection (--autocorrect).
-Layout/EmptyLinesAfterModuleInclusion:
-  Enabled: false
-
 # Offense count: 656
 # This cop supports safe autocorrection (--autocorrect).
 # Configuration parameters: AllowMultipleStyles, EnforcedHashRocketStyle, EnforcedColonStyle, EnforcedLastArgumentHashStyle.
@@ -428,21 +418,6 @@ RSpec/DescribeSymbol:
 # SupportedStyles: described_class, explicit
 RSpec/DescribedClass:
   Enabled: false
-
-# Offense count: 31
-# This cop supports safe autocorrection (--autocorrect).
-RSpec/EmptyLineAfterFinalLet:
-  Enabled: false
-
-# Offense count: 4
-# This cop supports safe autocorrection (--autocorrect).
-# Configuration parameters: AllowConsecutiveOneLiners.
-RSpec/EmptyLineAfterHook:
-  Exclude:
-    - 'spec/integration/local_spec.rb'
-    - 'spec/integration/transpiler_spec.rb'
-    - 'spec/unit/fiber_executor_spec.rb'
-    - 'spec/unit/pal_spec.rb'
 
 # Offense count: 655
 # Configuration parameters: CountAsOne.
