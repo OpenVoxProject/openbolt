@@ -213,7 +213,7 @@ jobs:
       - unit
       - run-dita
       - local_transports
-      - winrm_transporti
+      - winrm_transport
       - apply
     runs-on: ubuntu-24.04
     name: Test suite
