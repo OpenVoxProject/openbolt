@@ -195,14 +195,14 @@ jobs:
         with:
           path: modules
           key: ${{ runner.os }}-modules-${{ hashFiles('**/Puppetfile') }}
-      - if: matrix.os == 'ubuntu-22.04'
+      - if: matrix.os == 'ubuntu-24.04'
         uses: ./.github/actions/sudo_setup
-      - if: matrix.os == 'windows-latest'
+      - if: matrix.os == 'windows-2025'
         uses: ./.github/actions/windows_agent_setup
       - if: matrix.os == 'ubuntu-22.04'
         name: Run tests
         run: bundle exec rake ci:apply:linux
-      - if: matrix.os == 'windows-latest'
+      - if: matrix.os == 'windows-2025'
         name: Run tests
         run: bundle exec rake ci:apply:windows
 
