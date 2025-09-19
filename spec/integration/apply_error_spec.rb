@@ -32,7 +32,7 @@ describe "errors gracefully attempting to apply a manifest block", apply: true d
       with_tempfile_containing('site', 'load_error()', '.pp') do |tempfile|
         run_cli(%W[apply #{tempfile.path} --run-as root --sudo-password #{password}] + config_flags)
         logs = @log_output.readlines
-        expect(logs).to include(/`require': cannot load such file -- fake \(LoadError\)/)
+        expect(logs).to include(/cannot load such file -- fake \(LoadError\)/)
         expect(logs).to include(/Something's gone terribly wrong! STDERR is logged/)
       end
     end
