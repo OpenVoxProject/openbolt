@@ -20,7 +20,7 @@ permissions:
 jobs:
   integration:
     name: Integration
-    runs-on: windows-latest
+    runs-on: windows-2025
     strategy:
       matrix:
         ruby: [3.2]
@@ -52,8 +52,20 @@ jobs:
       - name: Test WSMan connection
         run: Test-WSMan localhost
       - uses: ./.github/actions/windows_agent_setup
-      - name: Run tests
+      - name: Run test
         run: bundle exec rake ci:windows:integration --trace -v
+      - name: Sessions
+        if: always()
+        run: Get-PSSession
+      - name: Test WSMan connection
+        if: always()
+        run: Test-WSMan localhost
+      - name: Print EventLog
+        if: always()
+        run: winrm enumerate winrm/config/Listener
+      - name: Print EventLog
+        if: always()
+        run: Get-WinEvent -ListLog *winrm*  | fl *
 
   agentless:
     name: Agentless
