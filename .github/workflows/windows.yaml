@@ -53,7 +53,7 @@ jobs:
         run: Test-WSMan localhost
       - uses: ./.github/actions/windows_agent_setup
       - name: Run tests
-        run: bundle exec rake ci:windows:integration
+        run: bundle exec rake ci:windows:integration --trace -v
 
   agentless:
     name: Agentless

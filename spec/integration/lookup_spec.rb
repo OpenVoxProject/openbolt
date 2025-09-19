@@ -145,7 +145,7 @@ describe 'lookup' do
       let(:uri)          { 'localhost' }
 
       it 'uses plan_hierarchy outside apply block, and hierarchy in apply block' do
-        result = run_cli_json(cli_command + %W[-t #{uri} --log-level debug])
+        result = run_cli_json(cli_command + %W[-t #{uri}])
         expect(result['outside_apply']).to eq('goes the weasel')
         expect(result['in_apply'].keys).to include('Notify[tarts]')
       end
