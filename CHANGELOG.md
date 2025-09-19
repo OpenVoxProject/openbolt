@@ -2,6 +2,37 @@
 
 All notable changes to this project will be documented in this file.
 
+## [5.1.0](https://github.com/openvoxproject/openbolt/tree/5.1.0) (2025-09-19)
+
+[Full Changelog](https://github.com/openvoxproject/openbolt/compare/5.0.0-rc2...5.1.0)
+
+**Breaking changes:**
+
+- Remove orchestrator\_client / pcp transport [\#45](https://github.com/OpenVoxProject/openbolt/pull/45) ([smortex](https://github.com/smortex))
+
+**Implemented enhancements:**
+
+- mocha: Allow 2.x [\#74](https://github.com/OpenVoxProject/openbolt/pull/74) ([bastelfreak](https://github.com/bastelfreak))
+- r10k: Allow 5.x [\#73](https://github.com/OpenVoxProject/openbolt/pull/73) ([bastelfreak](https://github.com/bastelfreak))
+- rack-test: Allow 2.x [\#72](https://github.com/OpenVoxProject/openbolt/pull/72) ([bastelfreak](https://github.com/bastelfreak))
+- openvox-strings: Allow 6.x [\#71](https://github.com/OpenVoxProject/openbolt/pull/71) ([bastelfreak](https://github.com/bastelfreak))
+
+**Fixed bugs:**
+
+- Ruby error: Adjust pattern matching to newer ruby/rubygems [\#70](https://github.com/OpenVoxProject/openbolt/pull/70) ([bastelfreak](https://github.com/bastelfreak))
+
+**Closed issues:**
+
+- Remove orchestrator\_client \(PE\) integration [\#25](https://github.com/OpenVoxProject/openbolt/issues/25)
+
+**Merged pull requests:**
+
+- CI: Move apply tests to central workflow [\#66](https://github.com/OpenVoxProject/openbolt/pull/66) ([bastelfreak](https://github.com/bastelfreak))
+- CI: update module cache in central job [\#64](https://github.com/OpenVoxProject/openbolt/pull/64) ([bastelfreak](https://github.com/bastelfreak))
+- CI: Cleanup linux integration tests [\#59](https://github.com/OpenVoxProject/openbolt/pull/59) ([bastelfreak](https://github.com/bastelfreak))
+- Revert "Allow ruby\_smb 2.x and 3.x" [\#58](https://github.com/OpenVoxProject/openbolt/pull/58) ([bastelfreak](https://github.com/bastelfreak))
+- bolt: Bump version from 5.0.0-rc2-\>5.1.0 [\#56](https://github.com/OpenVoxProject/openbolt/pull/56) ([bastelfreak](https://github.com/bastelfreak))
+
 ## [5.0.0-rc2](https://github.com/openvoxproject/openbolt/tree/5.0.0-rc2) (2025-07-29)
 
 [Full Changelog](https://github.com/openvoxproject/openbolt/compare/5.0.0.rc1...5.0.0-rc2)
