@@ -76,7 +76,7 @@ function Grant-WinRMHttpsAccess($certThumbprint)
   $winRMArgs = @{
     ResourceURI = 'winrm/config/Listener'
     SelectorSet = @{ Address = '*'; Transport = 'HTTPS'; }
-    ValueSet    = @{ Hostname = 'boltserver'; CertificateThumbprint = $certThumbprint }
+    ValueSet    = @{ Hostname = 'localhost'; CertificateThumbprint = $certThumbprint }
   }
   $instance = Set-WSManInstance @winRMArgs
   Write-Information ($instance | Format-List | Out-String)
