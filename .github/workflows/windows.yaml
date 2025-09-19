@@ -43,6 +43,10 @@ jobs:
       - name: Install modules
         if: steps.modules.outputs.cache-hit != 'true'
         run: bundle exec r10k puppetfile install
+      - name: Output powershell version
+        run: $PSVersionTable
+      - name: List trusted WSMan hosts
+        run: Get-Item WSMan:\localhost\Client\TrustedHosts
       - uses: ./.github/actions/windows_agent_setup
       - name: Run tests
         run: bundle exec rake ci:windows:integration
