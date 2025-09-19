@@ -49,6 +49,8 @@ jobs:
         run: Get-Item WSMan:\localhost\Client\TrustedHosts
       - name: Output WinRM logs
         run: winrm enumerate winrm/config/listener
+      - name: Test WSMan connection
+        run: Test-WSMan localhost
       - uses: ./.github/actions/windows_agent_setup
       - name: Run tests
         run: bundle exec rake ci:windows:integration
