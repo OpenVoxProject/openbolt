@@ -15,7 +15,7 @@ gem "paint", "~> 2.2"
 
 group(:test) do
   gem "beaker-hostgenerator"
-  gem "mocha", '~> 1.4.0'
+  gem "mocha", '>= 1.4.0', '< 3'
   gem "rack-test", '>= 1', '< 3'
   gem 'rspec-github', require: false
 end
