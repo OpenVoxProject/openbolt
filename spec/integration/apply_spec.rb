@@ -34,7 +34,8 @@ describe 'apply', apply: true do
 
   # The following are run with both *nix and Windows targets.
   shared_examples 'agentful tests' do |targets|
-    it 'runs a ruby task' do
+    it 'lists all modules & runs a ruby task' do
+      run_cli_json(%w[module show], project: project)
       results = run_cli_json(%W[task run basic::ruby_task -t #{targets}], project: project)
 
       results['items'].each do |result|
