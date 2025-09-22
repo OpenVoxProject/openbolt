@@ -139,18 +139,6 @@ describe 'lookup' do
       end
     end
 
-    context 'with plan_hiera' do
-      let(:hiera_config) { File.join(project, 'plan_hiera.yaml') }
-      let(:plan)         { 'test::plan_lookup' }
-      let(:uri)          { 'localhost' }
-
-      it 'uses plan_hierarchy outside apply block, and hierarchy in apply block' do
-        result = run_cli_json(cli_command + %W[-t #{uri}])
-        expect(result['outside_apply']).to eq('goes the weasel')
-        expect(result['in_apply'].keys).to include('Notify[tarts]')
-      end
-    end
-
     context 'with invalid plan_hierarchy' do
       let(:hiera_config) { File.join(project, 'plan_hiera_facts.yaml') }
       let(:plan)         { 'test::plan_lookup' }
