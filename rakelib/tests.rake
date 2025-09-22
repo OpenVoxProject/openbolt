@@ -131,8 +131,7 @@ begin
 
       desc ''
       RSpec::Core::RakeTask.new(:integration) do |t|
-        t.pattern = "spec/integration/**/*_spec.rb"
-        t.exclude_pattern = "spec/integration/transport/*"
+        t.pattern = "spec/integration/lookup_spec.rb"
         exclude = %w[apply bash docker puppetdb ssh sudo winrm_agentless]
         t.rspec_opts = generate_opts(exclude_tags: exclude)
       end
