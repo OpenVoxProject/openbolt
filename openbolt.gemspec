@@ -60,7 +60,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency "openvox-strings", '>= 5.0', '< 7'
   spec.add_dependency "puppetfile-resolver", ">= 0.6.2", "< 1.0"
   spec.add_dependency "puppet-resource_api", ">= 1.8.1"
-  spec.add_dependency "r10k", ">= 3.10", "< 6"
+  spec.add_dependency "r10k", ">= 3.10", "< 5"
   spec.add_dependency "ruby_smb", "~> 1.0"
   spec.add_dependency "terminal-table", "~> 3.0"
   spec.add_dependency "winrm", "~> 2.0"
