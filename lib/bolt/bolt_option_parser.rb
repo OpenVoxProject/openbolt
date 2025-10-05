@@ -197,13 +197,13 @@ module Bolt
 
     BANNER = <<~HELP
       #{colorize(:cyan, 'Name')}
-          bolt
+          OpenBolt
 
       #{colorize(:cyan, 'Usage')}
           bolt <subcommand> [action] [options]
 
       #{colorize(:cyan, 'Description')}
-          Bolt is an orchestration tool that automates the manual work it takes to
+          OpenBolt is an orchestration tool that automates the manual work it takes to
           maintain your infrastructure.
 
       #{colorize(:cyan, 'Subcommands')}

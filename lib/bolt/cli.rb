@@ -197,7 +197,7 @@ module Bolt
       prev_cmd << " #{@argv[0]}" unless @argv.empty?
 
       message = <<~MSG
-      🎉 Welcome to Bolt #{VERSION}
+      🎉 Welcome to OpenBolt #{VERSION}
       😌 We're here to help bring order to the chaos
       📖 Find our documentation at https://bolt.guide
       🙋 Ask a question in #bolt on https://slack.puppet.com/
