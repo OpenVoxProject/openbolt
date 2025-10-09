@@ -20,7 +20,7 @@ permissions:
 jobs:
   integration:
     name: Integration
-    runs-on: windows-latest
+    runs-on: openvox-windows-runner
     strategy:
       matrix:
         ruby: [3.2]
