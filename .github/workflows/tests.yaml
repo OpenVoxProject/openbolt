@@ -144,7 +144,7 @@ jobs:
       - rubocop_and_matrix
       - cache_modules
     name: WinRM Transport
-    runs-on: windows-latest
+    runs-on: openvox-windows-runner
     strategy:
       matrix:
         ruby: ${{ fromJSON(needs.rubocop_and_matrix.outputs.ruby) }}
