@@ -146,6 +146,7 @@ jobs:
     name: WinRM Transport
     runs-on: windows-latest
     strategy:
+      fail-fast: false
       matrix:
         ruby: ${{ fromJSON(needs.rubocop_and_matrix.outputs.ruby) }}
     steps:
