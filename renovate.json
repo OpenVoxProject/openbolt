@@ -5,6 +5,5 @@
   "automerge": true,
   "automergeType": "pr",
   "dependencyDashboard": true,
-  "enabledManagers": ["puppet"],
-  "extends": ["group:allNonMajor"]
+  "enabledManagers": ["puppet"]
 }
