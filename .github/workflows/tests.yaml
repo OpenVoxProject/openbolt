@@ -200,7 +200,7 @@ jobs:
         uses: ./.github/actions/sudo_setup
       - if: matrix.os == 'windows-2025'
         uses: ./.github/actions/windows_agent_setup
-      - if: matrix.os == 'ubuntu-22.04'
+      - if: matrix.os == 'ubuntu-24.04'
         name: Run tests
         run: bundle exec rake ci:apply:linux
       - if: matrix.os == 'windows-2025'
