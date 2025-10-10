@@ -207,6 +207,44 @@ jobs:
         name: Run tests
         run: bundle exec rake ci:apply:windows
 
+  boltspec:
+    name: BoltSpec
+    needs:
+      - rubocop_and_matrix
+      - cache_modules
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-2025]
+        # currently fails on Ruby 3.4
+        #ruby: ${{ fromJSON(needs.rubocop_and_matrix.outputs.ruby) }}
+        ruby: ['3.2', '3.3']
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby }}
+          bundler-cache: true
+      - name: Cache modules
+        id: modules
+        uses: actions/cache@v4
+        with:
+          path: modules
+          key: ${{ runner.os }}-modules-${{ hashFiles('**/Puppetfile') }}
+      - if: runner.os == 'Linux'
+        uses: ./.github/actions/docker_setup
+      - if: runner.os == 'Windows'
+        uses: ./.github/actions/windows_agentless_setup
+      - name: Run tests
+        if: runner.os == 'Windows'
+        run: bundle exec rake ci:boltspec:windows
+      - name: Run tests
+        if: runner.os == 'Linux'
+        run: bundle exec rake ci:boltspec:linux
+
   tests:
     needs:
       - rubocop_and_matrix
@@ -216,6 +254,7 @@ jobs:
       - local_transports
       - winrm_transport
       - apply
+      - boltspec
     runs-on: ubuntu-24.04
     name: Test suite
     steps:
