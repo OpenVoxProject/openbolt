@@ -203,7 +203,7 @@ describe 'apply', apply: true do
             results.each do |result|
               expect(result['status']).to eq('failure')
               expect(result.dig('value', '_error', 'msg').lines.count).to be > 1
-              expect(result.dig('value', '_error', 'msg').lines).to include(/in `cmp_Numeric'/)
+              expect(result.dig('value', '_error', 'msg').lines).to include(/A Numeric is not comparable to non Numeric/)
             end
           end
         end
