@@ -69,7 +69,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "octokit", ">= 4.0", "< 9"
   spec.add_development_dependency "rake", ">= 12.0", "< 14"
   spec.add_development_dependency "rspec", ">= 3.0", "< 4"
-  spec.add_development_dependency 'voxpupuli-rubocop', '~> 4.2.0'
+  spec.add_development_dependency 'voxpupuli-rubocop', '~> 5.0.0'
 
   platform = RUBY_PLATFORM
   if platform =~ /mingw|mswin/
