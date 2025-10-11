@@ -60,12 +60,13 @@ Lint/HashCompareByIdentity:
   Exclude:
     - 'lib/bolt/util.rb'
 
-# Offense count: 3
+# Offense count: 5
 # Configuration parameters: AllowedParentClasses.
 Lint/MissingSuper:
   Exclude:
     - 'lib/bolt/apply_result.rb'
     - 'lib/bolt/transport/podman/connection.rb'
+    - 'scripts/check_dependencies.rb'
     - 'spec/unit/logger_spec.rb'
 
 # Offense count: 2
@@ -88,6 +89,12 @@ Lint/NonAtomicFileOperation:
 Lint/RedundantCopDisableDirective:
   Exclude:
     - 'lib/bolt/apply_inventory.rb'
+
+# Offense count: 1
+# This cop supports unsafe autocorrection (--autocorrect-all).
+Lint/RedundantDirGlobSort:
+  Exclude:
+    - 'scripts/check_dependencies.rb'
 
 # Offense count: 7
 # This cop supports safe autocorrection (--autocorrect).
@@ -241,7 +248,7 @@ Performance/RedundantStringChars:
   Exclude:
     - 'lib/bolt/config/transport/base.rb'
 
-# Offense count: 35
+# Offense count: 36
 # This cop supports safe autocorrection (--autocorrect).
 Performance/RegexpMatch:
   Enabled: false
@@ -388,7 +395,7 @@ RSpec/DescribeSymbol:
 RSpec/DescribedClass:
   Enabled: false
 
-# Offense count: 655
+# Offense count: 656
 # Configuration parameters: CountAsOne.
 RSpec/ExampleLength:
   Max: 42
@@ -728,7 +735,7 @@ Style/ConcatArrayLiterals:
     - 'spec/integration/cli/cli_spec.rb'
     - 'spec/unit/module_installer_spec.rb'
 
-# Offense count: 181
+# Offense count: 183
 # Configuration parameters: AllowedConstants.
 Style/Documentation:
   Enabled: false
@@ -804,6 +811,15 @@ Style/FileWrite:
   Exclude:
     - 'spec/lib/bolt_spec/pal.rb'
 
+# Offense count: 1
+# This cop supports unsafe autocorrection (--autocorrect-all).
+# Configuration parameters: EnforcedStyle.
+# SupportedStyles: always, always_true, never
+Style/FrozenStringLiteralComment:
+  Exclude:
+    - '**/*.arb'
+    - 'scripts/check_dependencies.rb'
+
 # Offense count: 97
 # This cop supports safe autocorrection (--autocorrect).
 # Configuration parameters: MinBodyLength, AllowConsecutiveConditionals.
@@ -822,14 +838,15 @@ Style/HashAsLastArrayItem:
     - 'spec/unit/applicator_spec.rb'
     - 'spec/unit/pal/yaml_plan/evaluator_spec.rb'
 
-# Offense count: 2
+# Offense count: 3
 # This cop supports unsafe autocorrection (--autocorrect-all).
 # Configuration parameters: AllowSplatArgument.
 Style/HashConversion:
   Exclude:
     - 'lib/bolt/cli.rb'
+    - 'scripts/check_dependencies.rb'
 
-# Offense count: 4
+# Offense count: 5
 # This cop supports unsafe autocorrection (--autocorrect-all).
 # Configuration parameters: AllowedReceivers.
 # AllowedReceivers: Thread.current
@@ -838,6 +855,7 @@ Style/HashEachMethods:
     - 'acceptance/Rakefile'
     - 'lib/bolt/plugin/module.rb'
     - 'lib/bolt/shell/bash.rb'
+    - 'scripts/check_dependencies.rb'
     - 'spec/unit/executor_spec.rb'
 
 # Offense count: 5
@@ -847,6 +865,12 @@ Style/HashExcept:
     - 'lib/bolt/module_installer.rb'
     - 'lib/bolt/plugin/cache.rb'
     - 'lib/bolt/result.rb'
+
+# Offense count: 1
+# This cop supports unsafe autocorrection (--autocorrect-all).
+Style/HashTransformValues:
+  Exclude:
+    - 'scripts/check_dependencies.rb'
 
 # Offense count: 160
 # This cop supports safe autocorrection (--autocorrect).
@@ -1054,7 +1078,7 @@ Style/StderrPuts:
 Style/StringConcatenation:
   Enabled: false
 
-# Offense count: 3271
+# Offense count: 3277
 # This cop supports safe autocorrection (--autocorrect).
 # Configuration parameters: EnforcedStyle, ConsistentQuotesInMultiline.
 # SupportedStyles: single_quotes, double_quotes
@@ -1069,6 +1093,14 @@ Style/SuperArguments:
     - 'lib/bolt/config/transport/ssh.rb'
     - 'lib/bolt/error.rb'
     - 'lib/bolt_spec/plans/action_stubs/plan_stub.rb'
+
+# Offense count: 1
+# This cop supports unsafe autocorrection (--autocorrect-all).
+# Configuration parameters: AllowMethodsWithArguments, AllowedMethods, AllowedPatterns, AllowComments.
+# AllowedMethods: define_method
+Style/SymbolProc:
+  Exclude:
+    - 'scripts/check_dependencies.rb'
 
 # Offense count: 29
 # This cop supports safe autocorrection (--autocorrect).
@@ -1104,7 +1136,7 @@ Style/YAMLFileRead:
   Exclude:
     - 'spec/unit/module_installer_spec.rb'
 
-# Offense count: 2
+# Offense count: 3
 # This cop supports safe autocorrection (--autocorrect).
 # Configuration parameters: AllowHeredoc, AllowURI, AllowQualifiedName, URISchemes, IgnoreCopDirectives, AllowedPatterns, SplitStrings.
 # URISchemes: http, https
