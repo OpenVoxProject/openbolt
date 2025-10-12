@@ -26,7 +26,7 @@ mod 'puppetlabs-yumrepo_core', '2.1.0'
 mod 'puppetlabs-zone_core', '1.2.0'
 
 # Useful additional modules
-mod 'puppetlabs-package', '3.0.1'
+mod 'puppetlabs-package', '3.1.0'
 mod 'puppetlabs-puppet_conf', '2.0.0'
 mod 'puppetlabs-reboot', '5.0.0'
 mod 'puppetlabs-stdlib', '9.6.0'
