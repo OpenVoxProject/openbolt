@@ -245,6 +245,28 @@ jobs:
         if: runner.os == 'Linux'
         run: bundle exec rake ci:boltspec:linux
 
+  check_dependencies:
+    name: Check mod deps
+    needs:
+      - cache_modules
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.4'
+          bundler-cache: true
+      - name: Cache modules
+        id: modules
+        uses: actions/cache@v4
+        with:
+          path: modules
+          key: ${{ runner.os }}-modules-${{ hashFiles('**/Puppetfile') }}
+      - name: Validate all module dependencies
+        run: bundle exec ./scripts/check_dependencies.rb
+
   tests:
     needs:
       - rubocop_and_matrix
@@ -255,6 +277,7 @@ jobs:
       - winrm_transport
       - apply
       - boltspec
+      - check_dependencies
     runs-on: ubuntu-24.04
     name: Test suite
     steps:
