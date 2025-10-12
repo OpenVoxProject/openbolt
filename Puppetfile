@@ -16,7 +16,7 @@ mod 'puppetlabs-apt', '9.4.0'
 # Core types and providers for Puppet 6
 mod 'puppetlabs-augeas_core', '1.5.0'
 mod 'puppetlabs-host_core', '1.3.0'
-mod 'puppetlabs-scheduled_task', '4.0.3'
+mod 'puppetlabs-scheduled_task', '4.0.0'
 mod 'puppetlabs-sshkeys_core', '2.5.1'
 mod 'puppetlabs-zfs_core', '1.6.1'
 mod 'puppetlabs-cron_core', '1.3.0'
