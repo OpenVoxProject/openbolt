@@ -34,7 +34,7 @@ mod 'puppetlabs-stdlib', '9.6.0'
 # Task helpers
 mod 'puppetlabs-powershell_task_helper', '0.1.0'
 mod 'puppetlabs-ruby_task_helper', '0.6.1'
-mod 'puppetlabs-ruby_plugin_helper', '0.2.0'
+mod 'puppetlabs-ruby_plugin_helper', '0.3.0'
 mod 'puppetlabs-python_task_helper', '0.5.0'
 mod 'puppetlabs-bash_task_helper', '2.2.0'
 
