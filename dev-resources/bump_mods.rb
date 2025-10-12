@@ -7,7 +7,7 @@ require 'pry'
 require 'rss'
 
 def parse_puppetfile_get_mod_versions
-  module_re = /^mod 'puppetlabs-([a-z_\-]+)', *'([0-9.]+)'$/i
+  module_re = /^mod 'puppetlabs-([a-z_-]+)', *'([0-9.]+)'$/i
   versions = {}
   File.foreach('Puppetfile') do |line|
     match = module_re.match(line)
@@ -40,7 +40,7 @@ versions_old.each do |mod, ver|
 end
 
 def puppetfile_set_mod_versions!(versions_new)
-  module_re = /^mod 'puppetlabs-([a-z_\-]+)', *'([0-9.]+)'$/i
+  module_re = /^mod 'puppetlabs-([a-z_-]+)', *'([0-9.]+)'$/i
   lines = File.open('Puppetfile').readlines
 
   # update lines
