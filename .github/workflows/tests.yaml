@@ -267,6 +267,64 @@ jobs:
       - name: Validate all module dependencies
         run: bundle exec ./scripts/check_dependencies.rb
 
+  integration:
+    needs:
+      - rubocop_and_matrix
+      - cache_modules
+    name: Windows Integration
+    runs-on: windows-2025
+    strategy:
+      matrix:
+        ruby: ${{ fromJSON(needs.rubocop_and_matrix.outputs.ruby) }}
+    env:
+      WINDOWS_AGENTS: true
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby }}
+          bundler-cache: true
+      - name: Cache modules
+        id: modules
+        uses: actions/cache@v4
+        with:
+          path: modules
+          key: ${{ runner.os }}-modules-${{ hashFiles('**/Puppetfile') }}
+      - uses: ./.github/actions/windows_agent_setup
+      - name: Run tests
+        run: bundle exec rake ci:windows:integration
+
+  agentless:
+    needs:
+      - rubocop_and_matrix
+      - cache_modules
+    name: Windows Agentless
+    runs-on: windows-2025
+    strategy:
+      matrix:
+        ruby: ${{ fromJSON(needs.rubocop_and_matrix.outputs.ruby) }}
+    env:
+      BOLT_WINDOWS: true
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby }}
+          bundler-cache: true
+      - name: Cache modules
+        id: modules
+        uses: actions/cache@v4
+        with:
+          path: modules
+          key: ${{ runner.os }}-modules-${{ hashFiles('**/Puppetfile') }}
+      - uses: ./.github/actions/windows_agentless_setup
+      - name: Run tests
+        run: bundle exec rake ci:windows:agentless
+
   tests:
     if: always()
     needs:
@@ -279,6 +337,8 @@ jobs:
       - apply
       - boltspec
       - check_dependencies
+      - integration
+      - agentless
     runs-on: ubuntu-24.04
     name: Test suite
     steps:
