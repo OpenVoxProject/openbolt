@@ -11,7 +11,7 @@ mod 'puppetlabs-facts', '1.7.0'
 
 # puppetlabs-puppet_agent deps
 mod 'puppetlabs-inifile', '6.2.0'
-mod 'puppetlabs-apt', '9.4.0'
+mod 'puppetlabs-apt', '10.0.1'
 
 # Core types and providers for Puppet 6
 mod 'puppetlabs-augeas_core', '1.5.0'
