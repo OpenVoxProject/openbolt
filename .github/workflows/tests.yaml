@@ -268,6 +268,7 @@ jobs:
         run: bundle exec ./scripts/check_dependencies.rb
 
   tests:
+    if: always()
     needs:
       - rubocop_and_matrix
       - cache_modules
@@ -281,4 +282,7 @@ jobs:
     runs-on: ubuntu-24.04
     name: Test suite
     steps:
-      - run: echo Test suite complete
+      - name: Decide whether the needed jobs succeeded or failed
+        uses: re-actors/alls-green@release/v1
+        with:
+          jobs: ${{ toJSON(needs) }}
