@@ -225,6 +225,8 @@ jobs:
       - if: runner.os == 'Linux'
         name: Run tests
         run: bundle exec rake ci:apply:linux
+      - name: Show tasks
+        run: bundle exec bolt task show
       - if: runner.os == 'Windows'
         name: Run tests
         run: bundle exec rake ci:apply:windows
