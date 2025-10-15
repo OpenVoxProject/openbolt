@@ -365,7 +365,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby: ${{ fromJSON(needs.rubocop_and_matrix.outputs.ruby) }}
+        ruby: ['3.2', '3.3']
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
