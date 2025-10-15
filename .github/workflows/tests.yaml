@@ -35,12 +35,12 @@ jobs:
       - id: ruby
         uses: voxpupuli/ruby-version@v1
 
-  cache_modules:
+  cache_modules_linux:
+    name: 'Linux: Generate module cache'
     runs-on: ubuntu-24.04
-    name: 'Run r10k and update module cache'
     steps:
       - uses: actions/checkout@v5
-      - name: Install Ruby ${{ matrix.ruby }}
+      - name: Install Ruby
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: "3.4"
@@ -55,10 +55,30 @@ jobs:
         if: steps.modules.outputs.cache-hit != 'true'
         run: bundle exec r10k puppetfile install
 
+  cache_modules_windows:
+    name: 'Windows: Generate module cache'
+    runs-on: 'windows-2025'
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.4"
+          bundler-cache: true
+      - name: Cache modules
+        id: modules
+        uses: actions/cache@v4
+        with:
+          path: modules
+          key: ${{ runner.os }}-modules-${{ hashFiles('**/Puppetfile') }}
+      - name: Install modules
+        if: steps.modules.outputs.cache-hit != 'true'
+        run: bundle exec r10k puppetfile install
   unit:
     needs:
       - rubocop_and_matrix
-      - cache_modules
+      - cache_modules_linux
+      - cache_modules_windows
     name: "Unit tests ${{ matrix.ruby }} ${{ matrix.os }}"
     strategy:
       fail-fast: false
@@ -107,7 +127,8 @@ jobs:
     name: "local transport ${{ matrix.ruby }} ${{ matrix.os }}"
     needs:
     - rubocop_and_matrix
-    - cache_modules
+    - cache_modules_linux
+    - cache_modules_windows
     strategy:
       fail-fast: false
       matrix:
@@ -142,7 +163,7 @@ jobs:
   winrm_transport:
     needs:
       - rubocop_and_matrix
-      - cache_modules
+      - cache_modules_windows
     name: WinRM Transport
     runs-on: windows-latest
     strategy:
@@ -175,7 +196,8 @@ jobs:
     name: bolt apply
     needs:
       - rubocop_and_matrix
-      - cache_modules
+      - cache_modules_linux
+      - cache_modules_windows
     strategy:
       fail-fast: false
       matrix:
@@ -211,7 +233,8 @@ jobs:
     name: BoltSpec
     needs:
       - rubocop_and_matrix
-      - cache_modules
+      - cache_modules_windows
+      - cache_modules_linux
     strategy:
       fail-fast: false
       matrix:
@@ -248,7 +271,7 @@ jobs:
   check_dependencies:
     name: Check mod deps
     needs:
-      - cache_modules
+      - cache_modules_linux
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout repository
@@ -270,7 +293,7 @@ jobs:
   integration:
     needs:
       - rubocop_and_matrix
-      - cache_modules
+      - cache_modules_windows
     name: Windows Integration
     runs-on: windows-2025
     strategy:
@@ -299,7 +322,7 @@ jobs:
   agentless:
     needs:
       - rubocop_and_matrix
-      - cache_modules
+      - cache_modules_windows
     name: Windows Agentless
     runs-on: windows-2025
     strategy:
@@ -329,7 +352,8 @@ jobs:
     if: always()
     needs:
       - rubocop_and_matrix
-      - cache_modules
+      - cache_modules_linux
+      - cache_modules_windows
       - unit
       - run-dita
       - local_transports
