@@ -156,3 +156,4 @@ Set-WSManQuickConfig -Force
 Set-WinRMHostConfiguration
 Test-WinRMConfiguration @User | Out-Null
 Add-Content -Path $ENV:GITHUB_ENV -Value "BOLT_WINRM_PASSWORD=$pass"
+Restart-Service WinRm
