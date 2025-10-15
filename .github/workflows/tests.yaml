@@ -112,7 +112,6 @@ jobs:
 
   run-dita:
     runs-on: ubuntu-24.04
-
     steps:
     - name: Initialize
       uses: actions/checkout@v5
@@ -304,6 +303,7 @@ jobs:
     name: Windows Integration
     runs-on: windows-2025
     strategy:
+      fail-fast: false
       matrix:
         ruby: ${{ fromJSON(needs.rubocop_and_matrix.outputs.ruby) }}
     env:
@@ -333,6 +333,7 @@ jobs:
     name: Windows Agentless
     runs-on: windows-2025
     strategy:
+      fail-fast: false
       matrix:
         ruby: ${{ fromJSON(needs.rubocop_and_matrix.outputs.ruby) }}
     env:
@@ -362,6 +363,7 @@ jobs:
     name: SSH Transport
     runs-on: ubuntu-24.04
     strategy:
+      fail-fast: false
       matrix:
         ruby: ${{ fromJSON(needs.rubocop_and_matrix.outputs.ruby) }}
     steps:
@@ -389,6 +391,7 @@ jobs:
     name: Docker Transport
     runs-on: ubuntu-24.04
     strategy:
+      fail-fast: false
       matrix:
         ruby: ${{ fromJSON(needs.rubocop_and_matrix.outputs.ruby) }}
     steps:
@@ -413,6 +416,7 @@ jobs:
     name: Linux Integration
     runs-on: ubuntu-24.04
     strategy:
+      fail-fast: false
       matrix:
         ruby: ${{ fromJSON(needs.rubocop_and_matrix.outputs.ruby) }}
     steps:
