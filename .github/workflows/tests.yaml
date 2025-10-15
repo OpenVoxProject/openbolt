@@ -36,8 +36,12 @@ jobs:
         uses: voxpupuli/ruby-version@v1
 
   cache_modules:
-    runs-on: ubuntu-24.04
     name: 'Run r10k and update module cache'
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-2025]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v5
       - name: Install Ruby ${{ matrix.ruby }}
