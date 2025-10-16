@@ -2,6 +2,58 @@
 
 All notable changes to this project will be documented in this file.
 
+## [5.1.0](https://github.com/openvoxproject/openbolt/tree/5.1.0) (2025-10-16)
+
+[Full Changelog](https://github.com/openvoxproject/openbolt/compare/5.0.0-rc2...5.1.0)
+
+**Breaking changes:**
+
+- Remove orchestrator\_client / pcp transport [\#45](https://github.com/OpenVoxProject/openbolt/pull/45) ([smortex](https://github.com/smortex))
+
+**Implemented enhancements:**
+
+- puppetlabs/apt: Update 9.4.0-\>11.1.0 & puppetlabs/puppet\_agent: Update 4.21.0-\>4.25.0 & Add puppetlabs/powershhell 6.0.2 [\#109](https://github.com/OpenVoxProject/openbolt/pull/109) ([bastelfreak](https://github.com/bastelfreak))
+- mocha: Allow 2.x [\#74](https://github.com/OpenVoxProject/openbolt/pull/74) ([bastelfreak](https://github.com/bastelfreak))
+- r10k: Allow 5.x [\#73](https://github.com/OpenVoxProject/openbolt/pull/73) ([bastelfreak](https://github.com/bastelfreak))
+- rack-test: Allow 2.x [\#72](https://github.com/OpenVoxProject/openbolt/pull/72) ([bastelfreak](https://github.com/bastelfreak))
+- openvox-strings: Allow 6.x [\#71](https://github.com/OpenVoxProject/openbolt/pull/71) ([bastelfreak](https://github.com/bastelfreak))
+
+**Fixed bugs:**
+
+- CI: Regenerate fixture TLS certificates & Use os matrix for cache builds [\#124](https://github.com/OpenVoxProject/openbolt/pull/124) ([bastelfreak](https://github.com/bastelfreak))
+- Validate module dependencies & puppetlabs/puppet\_agent: Add missing deps [\#107](https://github.com/OpenVoxProject/openbolt/pull/107) ([bastelfreak](https://github.com/bastelfreak))
+- CI: Run docker transport tests on all changes [\#86](https://github.com/OpenVoxProject/openbolt/pull/86) ([bastelfreak](https://github.com/bastelfreak))
+- CI: Fix apply job setup & Make Linux vs Windows setup easier & Fix Linux apply tests for Ruby 3.4 [\#85](https://github.com/OpenVoxProject/openbolt/pull/85) ([bastelfreak](https://github.com/bastelfreak))
+- Use minitar 0.x on windows [\#81](https://github.com/OpenVoxProject/openbolt/pull/81) ([sebastianrakel](https://github.com/sebastianrakel))
+- Ruby error: Adjust pattern matching to newer ruby/rubygems [\#70](https://github.com/OpenVoxProject/openbolt/pull/70) ([bastelfreak](https://github.com/bastelfreak))
+
+**Closed issues:**
+
+- Remove orchestrator\_client \(PE\) integration [\#25](https://github.com/OpenVoxProject/openbolt/issues/25)
+
+**Merged pull requests:**
+
+- CI: Unify workflows & reduce r10k calls [\#125](https://github.com/OpenVoxProject/openbolt/pull/125) ([bastelfreak](https://github.com/bastelfreak))
+- CI: Restart WinRM after Setup in ci.ps1 [\#123](https://github.com/OpenVoxProject/openbolt/pull/123) ([bastelfreak](https://github.com/bastelfreak))
+- CI: Display existing bolt tasks [\#122](https://github.com/OpenVoxProject/openbolt/pull/122) ([bastelfreak](https://github.com/bastelfreak))
+- Revert "Update dependency puppetlabs-ruby\_plugin\_helper to v0.3.0" [\#117](https://github.com/OpenVoxProject/openbolt/pull/117) ([bastelfreak](https://github.com/bastelfreak))
+- CI: Move windows checks to global config [\#116](https://github.com/OpenVoxProject/openbolt/pull/116) ([bastelfreak](https://github.com/bastelfreak))
+- Revert "Update dependency puppetlabs-scheduled\_task to v4.0.3" [\#114](https://github.com/OpenVoxProject/openbolt/pull/114) ([bastelfreak](https://github.com/bastelfreak))
+- Revert "Update dependency puppetlabs-package to v3.1.0" [\#113](https://github.com/OpenVoxProject/openbolt/pull/113) ([bastelfreak](https://github.com/bastelfreak))
+- Revert "Update dependency puppetlabs-puppet\_conf to v2.1.0" [\#112](https://github.com/OpenVoxProject/openbolt/pull/112) ([bastelfreak](https://github.com/bastelfreak))
+- Revert "Update dependency puppetlabs-puppet\_agent to v4.25.0" [\#110](https://github.com/OpenVoxProject/openbolt/pull/110) ([bastelfreak](https://github.com/bastelfreak))
+- voxpupuli-rubocop: Update 4.2.0-\>5.0.0 [\#106](https://github.com/OpenVoxProject/openbolt/pull/106) ([bastelfreak](https://github.com/bastelfreak))
+- Add renovate for Puppetfile [\#89](https://github.com/OpenVoxProject/openbolt/pull/89) ([bastelfreak](https://github.com/bastelfreak))
+- CI: List existing modules [\#87](https://github.com/OpenVoxProject/openbolt/pull/87) ([bastelfreak](https://github.com/bastelfreak))
+- WinRM tests: disable fail-fast [\#84](https://github.com/OpenVoxProject/openbolt/pull/84) ([bastelfreak](https://github.com/bastelfreak))
+- Use OpenBolt in help text and welcome message [\#80](https://github.com/OpenVoxProject/openbolt/pull/80) ([austb](https://github.com/austb))
+- CI: Move BoltSpec tests to central workflow & always use Ubuntu 24.04/Windows 2025 [\#67](https://github.com/OpenVoxProject/openbolt/pull/67) ([bastelfreak](https://github.com/bastelfreak))
+- CI: Move apply tests to central workflow [\#66](https://github.com/OpenVoxProject/openbolt/pull/66) ([bastelfreak](https://github.com/bastelfreak))
+- CI: update module cache in central job [\#64](https://github.com/OpenVoxProject/openbolt/pull/64) ([bastelfreak](https://github.com/bastelfreak))
+- CI: Cleanup linux integration tests [\#59](https://github.com/OpenVoxProject/openbolt/pull/59) ([bastelfreak](https://github.com/bastelfreak))
+- Revert "Allow ruby\_smb 2.x and 3.x" [\#58](https://github.com/OpenVoxProject/openbolt/pull/58) ([bastelfreak](https://github.com/bastelfreak))
+- bolt: Bump version from 5.0.0-rc2-\>5.1.0 [\#56](https://github.com/OpenVoxProject/openbolt/pull/56) ([bastelfreak](https://github.com/bastelfreak))
+
 ## [5.0.0-rc2](https://github.com/openvoxproject/openbolt/tree/5.0.0-rc2) (2025-07-29)
 
 [Full Changelog](https://github.com/openvoxproject/openbolt/compare/5.0.0.rc1...5.0.0-rc2)
