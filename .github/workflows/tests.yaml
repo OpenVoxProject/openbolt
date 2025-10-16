@@ -54,6 +54,8 @@ jobs:
       - name: Install modules
         if: steps.modules.outputs.cache-hit != 'true'
         run: bundle exec r10k puppetfile install
+      - name: list modules
+        run: bundle exec puppet module list --modulepath=modules/
 
   cache_modules_windows:
     name: 'Windows: Generate module cache'
@@ -74,6 +76,9 @@ jobs:
       - name: Install modules
         if: steps.modules.outputs.cache-hit != 'true'
         run: bundle exec r10k puppetfile install
+      - name: list modules
+        run: bundle exec puppet module list --modulepath=modules/
+
   unit:
     needs:
       - rubocop_and_matrix
@@ -107,7 +112,6 @@ jobs:
 
   run-dita:
     runs-on: ubuntu-24.04
-
     steps:
     - name: Initialize
       uses: actions/checkout@v5
@@ -292,13 +296,14 @@ jobs:
       - name: Validate all module dependencies
         run: bundle exec ./scripts/check_dependencies.rb
 
-  integration:
+  integration_windows:
     needs:
       - rubocop_and_matrix
       - cache_modules_windows
     name: Windows Integration
     runs-on: windows-2025
     strategy:
+      fail-fast: false
       matrix:
         ruby: ${{ fromJSON(needs.rubocop_and_matrix.outputs.ruby) }}
     env:
@@ -328,6 +333,7 @@ jobs:
     name: Windows Agentless
     runs-on: windows-2025
     strategy:
+      fail-fast: false
       matrix:
         ruby: ${{ fromJSON(needs.rubocop_and_matrix.outputs.ruby) }}
     env:
@@ -350,6 +356,90 @@ jobs:
       - name: Run tests
         run: bundle exec rake ci:windows:agentless
 
+  ssh_transport:
+    needs:
+      - rubocop_and_matrix
+      - cache_modules_linux
+    name: SSH Transport
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        ruby: ['3.2', '3.3']
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby }}
+          bundler-cache: true
+      - name: Cache modules
+        id: modules
+        uses: actions/cache@v4
+        with:
+          path: modules
+          key: ${{ runner.os }}-modules-${{ hashFiles('**/Puppetfile') }}
+      - uses: ./.github/actions/sudo_setup
+      - name: Run tests
+        run: bundle exec rake ci:ssh_transport
+
+  docker_transport:
+    needs:
+      - rubocop_and_matrix
+      - cache_modules_linux
+    name: Docker Transport
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        ruby: ${{ fromJSON(needs.rubocop_and_matrix.outputs.ruby) }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby }}
+          bundler-cache: true
+      - name: Cache modules
+        id: modules
+        uses: actions/cache@v4
+        with:
+          path: modules
+          key: ${{ runner.os }}-modules-${{ hashFiles('**/Puppetfile') }}
+      - uses: ./.github/actions/sudo_setup
+      - name: Run tests
+        run: bundle exec rake ci:docker_transport
+
+  integration_linux:
+    needs:
+      - rubocop_and_matrix
+      - cache_modules_linux
+    name: Linux Integration
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        ruby: ${{ fromJSON(needs.rubocop_and_matrix.outputs.ruby) }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby }}
+          bundler-cache: true
+      - name: Cache modules
+        id: modules
+        uses: actions/cache@v4
+        with:
+          path: modules
+          key: ${{ runner.os }}-modules-${{ hashFiles('**/Puppetfile') }}
+      - uses: ./.github/actions/sudo_setup
+      - name: Run tests
+        run: bundle exec rake ci:linux:integration
+
   tests:
     if: always()
     needs:
@@ -363,8 +453,11 @@ jobs:
       - apply
       - boltspec
       - check_dependencies
-      - integration
+      - integration_windows
       - agentless
+      - ssh_transport
+      - docker_transport
+      - integration_linux
     runs-on: ubuntu-24.04
     name: Test suite
     steps:
