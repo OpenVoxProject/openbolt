@@ -795,7 +795,7 @@ module Bolt
     end
 
     def lookup(key, targets, inventory, executor, plan_vars: {})
-      # Install the puppet-agent package and collect facts. Facts are
+      # Install the openvox-agent package and collect facts. Facts are
       # automatically added to the targets.
       in_plan_compiler(executor, inventory, nil) do |compiler|
         compiler.call_function('apply_prep', targets)

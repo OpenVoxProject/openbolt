@@ -105,7 +105,7 @@ describe "BoltSpec::Run", ssh: true do
     end
   end
 
-  context 'with a target that has a puppet-agent installed' do
+  context 'with a target that has a openvox-agent installed' do
     def root_config
       { 'ssh' => {
         'run-as' => 'root',
@@ -115,16 +115,16 @@ describe "BoltSpec::Run", ssh: true do
     end
 
     before(:all) do
-      result = run_task('puppet_agent::version', 'ssh', {}, inventory: conn_inventory, config: root_config)
+      result = run_task('openvox_bootstrap::check', 'ssh', {}, inventory: conn_inventory, config: root_config)
       expect(result.first['status']).to eq('success')
       unless result.first['value']['version']
-        result = run_task('puppet_agent::install', 'ssh', {}, inventory: conn_inventory, config: root_config)
+        result = run_task('openvox_bootstrap::install', 'ssh', {}, inventory: conn_inventory, config: root_config)
       end
       expect(result.first['status']).to eq('success')
     end
 
     after(:all) do
-      uninstall = '/opt/puppetlabs/bin/puppet resource package puppet-agent ensure=absent'
+      uninstall = '/opt/puppetlabs/bin/puppet resource package openvox-agent ensure=absent'
       run_command(uninstall, 'ssh', inventory: conn_inventory, config: root_config)
     end
 

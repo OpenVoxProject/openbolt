@@ -225,7 +225,7 @@ describe Bolt::Config do
         },
         'plugin-hooks' => {
           'puppet_library' => {
-            'plugin' => 'puppet_agent',
+            'plugin' => 'openvox_bootstrap',
             '_run_as' => 'root'
           }
         },
@@ -344,7 +344,7 @@ describe Bolt::Config do
     it 'performs a shallow merge on hash values' do
       expect(config.plugin_hooks).to eq(
         'puppet_library' => {
-          'plugin' => 'puppet_agent',
+          'plugin' => 'openvox_bootstrap',
           '_run_as' => 'root'
         },
         'fake_hook' => {

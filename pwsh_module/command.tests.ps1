@@ -256,9 +256,9 @@ Describe "test all bolt command examples" {
       $result = Get-BoltModule
       $result | Should -Be 'bolt module show'
     }
-    It "bolt module show puppet_agent" {
-      $result = Get-BoltModule -Name 'puppet_agent'
-      $result | Should -Be 'bolt module show puppet_agent'
+    It "bolt module show openvox_bootstrap" {
+      $result = Get-BoltModule -Name 'openvox_bootstrap'
+      $result | Should -Be 'bolt module show openvox_bootstrap'
     }
   }
 

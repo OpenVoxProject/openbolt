@@ -683,7 +683,7 @@ describe 'running with an inventory file', reset_puppet_settings: true do
       {
         'puppet_library' => {
           'plugin'     => 'task',
-          'task'       => 'puppet_agent::install',
+          'task'       => 'openvox_bootstrap::install',
           'parameters' => {
             'version'    => '6.19.0',
             'collection' => 'puppet6'

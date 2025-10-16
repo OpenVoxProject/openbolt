@@ -6,7 +6,9 @@ moduledir File.join(File.dirname(__FILE__), 'modules')
 
 # Core modules used by 'apply'
 mod 'puppetlabs-service', '3.1.0'
-mod 'puppetlabs-puppet_agent', '4.25.0'
+mod 'puppet-openvox_bootstrap',
+    git: 'https://github.com/jpartlow/puppet-openvox_bootstrap.git',
+    ref: 'gh-35-add-stop-service-to-install'
 mod 'puppetlabs-facts', '1.7.0'
 
 # puppetlabs-puppet_agent deps
