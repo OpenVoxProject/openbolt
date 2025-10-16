@@ -12,6 +12,8 @@ mod 'puppetlabs-facts', '1.7.0'
 # puppetlabs-puppet_agent deps
 mod 'puppetlabs-inifile', '6.2.0'
 mod 'puppetlabs-apt', '10.0.1'
+mod 'puppetlabs-stdlib', '9.7.0'
+mod 'puppetlabs-powershell', '6.0.2'
 
 # Core types and providers for Puppet 6
 mod 'puppetlabs-augeas_core', '1.5.0'
@@ -29,7 +31,6 @@ mod 'puppetlabs-zone_core', '1.2.0'
 mod 'puppetlabs-package', '3.1.0'
 mod 'puppetlabs-puppet_conf', '2.1.0'
 mod 'puppetlabs-reboot', '5.1.0'
-mod 'puppetlabs-stdlib', '9.7.0'
 
 # Task helpers
 mod 'puppetlabs-powershell_task_helper', '0.1.0'
