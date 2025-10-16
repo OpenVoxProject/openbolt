@@ -14,6 +14,7 @@ mod 'puppetlabs-inifile', '6.2.0'
 mod 'puppetlabs-apt', '10.0.1'
 mod 'puppetlabs-stdlib', '9.7.0'
 mod 'puppetlabs-powershell', '6.0.2'
+mod 'puppetlabs-pwshlib', '1.2.3'
 
 # Core types and providers for Puppet 6
 mod 'puppetlabs-augeas_core', '1.5.0'
