@@ -413,6 +413,9 @@ jobs:
         run: bundle exec rake ci:docker_transport
 
   integration_linux:
+    needs:
+      - rubocop_and_matrix
+      - cache_modules_linux
     name: Linux Integration
     runs-on: ubuntu-24.04
     strategy:
