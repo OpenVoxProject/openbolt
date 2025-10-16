@@ -55,7 +55,7 @@ jobs:
         if: steps.modules.outputs.cache-hit != 'true'
         run: bundle exec r10k puppetfile install
       - name: list modules
-        run: bundle exec bundle exec puppet module list --modulepath=modules/
+        run: bundle exec puppet module list --modulepath=modules/
 
   cache_modules_windows:
     name: 'Windows: Generate module cache'
