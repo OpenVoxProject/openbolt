@@ -116,11 +116,10 @@ describe "BoltSpec::Run", ssh: true do
 
     before(:all) do
       result = run_task('openvox_bootstrap::check', 'ssh', {}, inventory: conn_inventory, config: root_config)
-      expect(result.first['status']).to eq('success')
-      unless result.first['value']['version']
+      if result.first['status'] != 'success'
         result = run_task('openvox_bootstrap::install', 'ssh', {}, inventory: conn_inventory, config: root_config)
+        expect(result.first['status']).to eq('success')
       end
-      expect(result.first['status']).to eq('success')
     end
 
     after(:all) do
