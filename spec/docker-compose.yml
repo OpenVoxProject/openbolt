@@ -10,7 +10,7 @@ services:
     build:
       context: .
       args:
-        PUPPET_COLLECTION: puppet7
+        PUPPET_COLLECTION: openvox7
     container_name: puppet_7_node
     ports:
       - "20025:22"
