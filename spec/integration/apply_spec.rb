@@ -9,7 +9,7 @@ require 'bolt_spec/puppet_agent'
 require 'bolt_spec/run'
 
 TEST_VERSIONS = [
-  [8, 'puppet8']
+  [8, 'openvox8']
 ].freeze
 
 describe 'apply', apply: true do
@@ -437,7 +437,7 @@ describe 'apply', apply: true do
     TEST_VERSIONS.each do |version, collection|
       context "with puppet#{version} installed" do
         before(:all) do
-          install('winrm', collection: collection, inventory: conn_inventory)
+          install('winrm', version: "8.19.2", collection: collection, inventory: conn_inventory)
         end
 
         after(:all) do

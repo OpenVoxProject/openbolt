@@ -26,7 +26,7 @@ module BoltSpec
       run_command(uninstall, target, config: config, inventory: inventory)
     end
 
-    def install(target, collection: nil, inventory: nil)
+    def install(target, version: nil, collection: nil, inventory: nil)
       config = {
         'ssh' => {
           'run-as' => 'root',
@@ -39,7 +39,7 @@ module BoltSpec
       }
       inventory ||= {}
       # Task will get latest collection without collection specified
-      task_params = collection ? { 'collection' => collection } : {}
+      task_params = { 'collection' => collection, 'version' => version }.compact
 
       result = run_task('openvox_bootstrap::install', target, task_params, config: config, inventory: inventory)
 
