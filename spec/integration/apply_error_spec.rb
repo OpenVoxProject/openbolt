@@ -19,7 +19,7 @@ describe "errors gracefully attempting to apply a manifest block", apply: true d
     let(:tflags) { %w[--no-host-key-check] }
 
     it 'prints a helpful error if Puppet is not present' do
-      uninstall = '/opt/puppetlabs/bin/puppet resource package puppet-agent ensure=absent'
+      uninstall = '/opt/puppetlabs/bin/puppet resource package openvox-agent ensure=absent'
       run_cli_json(%W[command run #{uninstall} --run-as root --sudo-password #{password}] + config_flags)
 
       result = run_cli_json(%w[plan run basic::class] + config_flags)
