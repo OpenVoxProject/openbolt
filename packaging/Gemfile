@@ -10,8 +10,7 @@ def location_for(place)
   end
 end
 
-gem "beaker-hostgenerator", *location_for(ENV['BEAKER_HOSTGENERATOR_VERSION'] || "~> 0.7")
-gem "beaker-abs", *location_for(ENV['BEAKER_ABS_VERSION'] || "~> 0.1")
+gem "beaker-hostgenerator", '~> 3.3'
 gem 'vanagon', *location_for(ENV['VANAGON_LOCATION'] || 'https://github.com/openvoxproject/vanagon#main')
 gem 'packaging', *location_for(ENV['PACKAGING_LOCATION'] || '~> 0.105')
 gem 'json'
