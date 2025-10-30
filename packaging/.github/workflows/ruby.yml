@@ -1,0 +1,39 @@
+---
+name: Ruby
+
+on:
+  pull_request: {}
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    name: Test the configuration
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install Ruby 3.4
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.4
+          bundler-cache: true
+      - name: Run tests
+        run: |
+          bundle exec rake config:environment_variables
+          bundle exec rake config:print
+
+  tests:
+    if: always()
+    needs:
+      - test
+    runs-on: ubuntu-24.04
+    name: Test suite
+    steps:
+      - name: Decide whether the needed jobs succeeded or failed
+        uses: re-actors/alls-green@release/v1
+        with:
+          jobs: ${{ toJSON(needs) }}
