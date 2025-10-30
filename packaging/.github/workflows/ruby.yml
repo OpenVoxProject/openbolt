@@ -16,6 +16,8 @@ jobs:
     name: Test the configuration
     steps:
       - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
       - name: Install Ruby 3.4
         uses: ruby/setup-ruby@v1
         with:
