@@ -18,10 +18,10 @@ describe Bolt::ModuleInstaller::Specs::ID::GitHub do
 
   before(:each) do
     allow(described_class).to receive(:make_request)
-      .with(/raw.githubusercontent.com/, any_args)
+      .with(/raw\.githubusercontent\.com/, any_args)
       .and_return(metadata_response)
     allow(described_class).to receive(:make_request)
-      .with(/api.github.com/, any_args)
+      .with(/api\.github\.com/, any_args)
       .and_return(sha_response)
     allow(Net::HTTPOK).to receive(:===).with(metadata_response).and_return(true)
     allow(Net::HTTPOK).to receive(:===).with(sha_response).and_return(true)
