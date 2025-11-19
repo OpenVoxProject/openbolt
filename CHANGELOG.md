@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [5.2.0](https://github.com/openvoxproject/openbolt/tree/5.2.0) (2025-11-19)
+
+[Full Changelog](https://github.com/openvoxproject/openbolt/compare/5.1.0...5.2.0)
+
+**Implemented enhancements:**
+
+- apply\_prep installs openvox-agent via puppet-openvox\_bootstrap [\#49](https://github.com/OpenVoxProject/openbolt/pull/49) ([jessereynolds](https://github.com/jessereynolds))
+
+**Merged pull requests:**
+
+- chore\(deps\): update dependency puppetlabs-powershell to v6.1.0 [\#135](https://github.com/OpenVoxProject/openbolt/pull/135) ([renovate[bot]](https://github.com/apps/renovate))
+- Update dependency puppetlabs-puppet\_agent to v4.26.0 [\#133](https://github.com/OpenVoxProject/openbolt/pull/133) ([renovate[bot]](https://github.com/apps/renovate))
+- chore\(deps\): update dependency puppetlabs-pwshlib to v2 [\#126](https://github.com/OpenVoxProject/openbolt/pull/126) ([renovate[bot]](https://github.com/apps/renovate))
+- chore\(deps\): update dependency puppetlabs-apt to v11 [\#108](https://github.com/OpenVoxProject/openbolt/pull/108) ([renovate[bot]](https://github.com/apps/renovate))
+
 ## [5.1.0](https://github.com/openvoxproject/openbolt/tree/5.1.0) (2025-10-16)
 
 [Full Changelog](https://github.com/openvoxproject/openbolt/compare/5.0.0-rc2...5.1.0)
