@@ -13,7 +13,7 @@ mod 'puppetlabs-facts', '1.7.0'
 mod 'puppetlabs-inifile', '6.2.0'
 mod 'puppetlabs-apt', '11.1.0'
 mod 'puppetlabs-stdlib', '9.7.0'
-mod 'puppetlabs-powershell', '6.0.2'
+mod 'puppetlabs-powershell', '6.1.0'
 mod 'puppetlabs-pwshlib', '1.2.3'
 
 # Core types and providers for Puppet 6
