@@ -8,6 +8,10 @@
 /spec/reports/
 /spec/examples.txt
 /spec/fixtures/configs/debug.log
+/spec/fixtures/configs/empty/bolt-debug.log
+/spec/fixtures/projects/local/bolt-debug.log
+/spec/fixtures/projects/named/bolt-debug.log
+/spec/fixtures/projects/embedded/Boltdir/bolt-debug.log
 /test/tmp/
 /test/version_tmp/
 /tmp/
@@ -43,6 +47,7 @@ Gemfile.local
 Boltdir/
 bolt.yaml
 project.yaml
+bolt-debug.log
 
 acceptance/hosts.yaml
 

@@ -9,7 +9,7 @@ require 'bolt_spec/puppet_agent'
 require 'bolt_spec/run'
 
 TEST_VERSIONS = [
-  [8, 'puppet8']
+  [8, 'openvox8']
 ].freeze
 
 describe 'apply', apply: true do
@@ -76,7 +76,7 @@ describe 'apply', apply: true do
     let(:user)     { conn_info('ssh')[:user] }
     let(:password) { conn_info('ssh')[:password] }
 
-    # Run tests that require the puppet-agent package to be installed on the target.
+    # Run tests that require the openvox-agent package to be installed on the target.
     # Each test is run against all agent targets unless otherwise noted.
     context 'with puppet installed' do
       # Set up a project directory for the tests. Include an inventory file so Bolt
@@ -307,7 +307,7 @@ describe 'apply', apply: true do
       end
     end
 
-    # Run tests for installing the puppet-agent package using apply_prep.
+    # Run tests for installing the openvox-agent package using apply_prep.
     context 'installing puppet' do
       let(:config) do
         {
@@ -394,9 +394,9 @@ describe 'apply', apply: true do
                 'plugin_hooks' => {
                   'puppet_library' => {
                     'plugin' => 'task',
-                    'task' => 'puppet_agent::install',
+                    'task' => 'openvox_bootstrap::install',
                     'parameters' => {
-                      'version' => '7.0.0'
+                      'version' => '8.19.1'
                     }
                   }
                 }
@@ -415,12 +415,12 @@ describe 'apply', apply: true do
           report = result[0]['value']['report']
           expect(report['resource_statuses']).to include("Notify[Hello #{uri}]")
 
-          results = run_cli_json(%W[task run puppet_agent::version -t #{uri}], project: project)
+          results = run_cli_json(%W[task run openvox_bootstrap::check -t #{uri}], project: project)
 
           result = results['items']
           expect(result.count).to eq(1)
           expect(result[0]).to include('status' => 'success')
-          expect(result[0]['value']['version']).to match(/^7\.0/)
+          expect(result[0]['value']['puppet_version']).to match(/^8\.19/)
         end
       end
     end

@@ -153,7 +153,7 @@ describe 'plans' do
       )
     end
 
-    context 'with puppet-agent installed for get_resources' do
+    context 'with openvox-agent installed for get_resources' do
       let(:config_flags) { %W[--project #{@project.path} -m #{modulepath}] }
 
       around(:each) do |example|
