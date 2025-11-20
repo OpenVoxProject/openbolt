@@ -34,7 +34,7 @@ if File.exist? local_gemfile
   eval_gemfile local_gemfile
 end
 
-# https://github.com/OpenVoxProject/puppet/issues/90
+# https://github.com/OpenVoxProject/openvox/issues/90
 gem 'syslog', '~> 0.3' if RUBY_VERSION >= '3.4'
 
 gem 'puppet_metadata', '~> 5.3'

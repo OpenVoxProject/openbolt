@@ -31,7 +31,7 @@ module Acceptance
     end
 
     def git_fork
-      ENV['GIT_FORK'] || 'puppetlabs/bolt'
+      ENV['GIT_FORK'] || 'OpenVoxProject/openbolt'
     end
 
     def git_branch
