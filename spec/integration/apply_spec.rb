@@ -5,7 +5,7 @@ require 'bolt_spec/conn'
 require 'bolt_spec/files'
 require 'bolt_spec/integration'
 require 'bolt_spec/project'
-require 'bolt_spec/puppet_agent'
+require 'bolt_spec/openvox_bootstrap'
 require 'bolt_spec/run'
 
 TEST_VERSIONS = [

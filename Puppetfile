@@ -9,7 +9,7 @@ mod 'puppetlabs-service', '3.1.0'
 mod 'puppet-openvox_bootstrap', '1.2.0'
 mod 'puppetlabs-facts', '1.7.0'
 
-# puppetlabs-puppet_agent deps
+# Other core Puppet modules
 mod 'puppetlabs-inifile', '6.2.0'
 mod 'puppetlabs-apt', '11.1.0'
 mod 'puppetlabs-stdlib', '9.7.0'
