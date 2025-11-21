@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+# None of this currently works, as it's based on Perforce's old GA setup.
+# It is functionally disabled here, but the code remains in case we want
+# to revive it for Vox Pupuli later.
 require_relative '../bolt/util'
 require_relative '../bolt/version'
 require 'find'
@@ -30,6 +33,8 @@ module Bolt
     }.freeze
 
     def self.build_client(enabled = true)
+      # Remove if we fix this for Vox analytics
+      config = { 'disabled' => true }
       begin
         config_file = config_path
         config = enabled ? load_config(config_file) : {}
@@ -38,7 +43,8 @@ module Bolt
       end
 
       if !enabled || config['disabled'] || ENV['BOLT_DISABLE_ANALYTICS']
-        Bolt::Logger.debug "Analytics opt-out is set, analytics will be disabled"
+        # Uncomment if we fix this for Vox analytics
+        # Bolt::Logger.debug "Analytics opt-out is set, analytics will be disabled"
         NoopClient.new
       else
         unless config.key?('user-id')
@@ -76,7 +82,8 @@ module Bolt
       if File.exist?(filename)
         Bolt::Util.read_optional_yaml_hash(filename, 'analytics')
       else
-        unless ENV['BOLT_DISABLE_ANALYTICS']
+        # Remove || true if we fix this for Vox analytics
+        unless ENV['BOLT_DISABLE_ANALYTICS'] || true
           msg = <<~ANALYTICS
             Bolt collects data about how you use it. You can opt out of providing this data.
             To learn how to disable data collection, or see what data Bolt collects and why,
