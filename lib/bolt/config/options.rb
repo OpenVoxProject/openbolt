@@ -436,7 +436,8 @@ module Bolt
           # rubocop:enable Layout/LineLength
           type: Hash,
           _plugin: true,
-          _example: { "puppet_library" => { "plugin" => "puppet_agent", "version" => "6.15.0", "_run_as" => "root" } }
+          _example: { "puppet_library" => { "plugin" => "openvox_bootstrap", "version" => "1.2.0",
+                      "_run_as" => "root" } }
         },
         "plugins" => {
           description: "A map of plugins and their configuration data, where each key is the name of a plugin and " \

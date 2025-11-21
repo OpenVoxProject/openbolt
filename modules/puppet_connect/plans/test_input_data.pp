@@ -78,11 +78,11 @@ plan puppet_connect::test_input_data(TargetSpec $targets = 'all') {
       }
     }
 
-    # Bolt defaults to using the "module" based form of the puppet_agent plugin. Connect defaults
+    # OpenBolt defaults to using the "module" based form of the openvox_bootstrap plugin. Connect defaults
     # to using the "task" based form as *only* the task based form in supported in Connect. This check
     # ensures that if the default is not being used, only task based plugins are allowed.
     $plugin = $target.plugin_hooks["puppet_library"]
-    $user_configured_plugin = $plugin != { "plugin"=> "puppet_agent", "stop_service"=> true }
+    $user_configured_plugin = $plugin != { "plugin"=> "openvox_bootstrap", "stop_service"=> true }
     if ($user_configured_plugin and $plugin["plugin"] != "task"){
       fail_plan("Only task plugins are acceptable for puppet_library hook")
     }
