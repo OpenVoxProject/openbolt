@@ -19,7 +19,7 @@ jobs:
       BOLT_DISABLE_PWSH_WARNING: 'true'
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           ref: ${{ github.event.inputs.ref }}
       - name: Setup Ruby
