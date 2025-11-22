@@ -12,7 +12,13 @@ require 'rspec/logging_helper'
 require 'puppet_pal'
 # HACK: must be loaded prior to spec libs that implement stub to prevent
 # RubySMB::Dcerpc::Request from shadowing 'stub' through BinData::DSLMixin::DSLFieldValidator
+# In BinData 2.5.0+, the below commit makes things VERY noisy when loading RubySMB, so
+# we temporarily disable warnings while we load it.
+# https://github.com/dmendel/bindata/commit/2c8588a1ae5959080fffa429e07027f2ff20161c
+prev = $VERBOSE
+$VERBOSE = nil
 require 'ruby_smb'
+$VERBOSE = prev
 
 ENV['RACK_ENV'] = 'test'
 $LOAD_PATH.unshift File.join(__dir__, 'lib')
