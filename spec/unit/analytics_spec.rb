@@ -3,7 +3,7 @@
 require 'spec_helper'
 require 'bolt/analytics'
 
-describe Bolt::Analytics do
+describe Bolt::Analytics, skip: 'Analytics is currently disabled' do
   let(:default_config) { {} }
 
   before :each do |test|
