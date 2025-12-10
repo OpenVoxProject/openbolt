@@ -48,7 +48,7 @@ component "openbolt" do |pkg, settings, platform|
 
     if platform.is_macos?
       pkg.add_source 'file://resources/files/paths.d/50-bolt', sum: '4abf75aebbbfbbefc4fe0173c57ed0b2'
-      pkg.install_file('../50-bolt', '/etc/paths.d/50-bolt')
+      pkg.install_file('../50-bolt', '/etc/paths.d/50-bolt', sudo: true)
     else
       pkg.link bolt_exe, File.join(settings[:main_bin], 'bolt')
     end
