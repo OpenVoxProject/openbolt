@@ -1,61 +1,55 @@
 # Contributing
 
-## Bolt Community Slack Channel
+## OpenBolt Community Slack Channel
 
-Join the `#bolt` channel in the [Puppet community
-Slack](https://slack.puppet.com/) where Bolt developers and community members
-who use and contribute to Bolt discuss the tool. Another channel of interest is
-`#office-hours`, where once a week a Bolt developer leads a Q&A session about
-using Bolt.
+Join the `#sig-openbolt` channel in the [Vox Pupuli community
+Slack](https://voxpupuli.slack.com/) where OpenBolt developers and community members
+who use and contribute to OpenBolt discuss the tool.
 
 ## Issues
 
 Please submit new issues on the GitHub issue tracker:
-https://github.com/puppetlabs/bolt/issues
+https://github.com/OpenVoxProject/openbolt/issues
 
 Choose the appropriate template depending on the kind of issue you're filing:
 feature request, bug report, or docs change.
 
 ## Types of Improvements
 
-The Bolt ecosystem is extensible via Puppet modules such as those hosted on the
-[Forge](https://forge.puppet.com/). Many improvements to the Bolt ecosystem
+The OpenBolt ecosystem is extensible via Puppet modules such as those hosted on the
+[Forge](https://forge.puppet.com/). Many improvements to the OpenBolt ecosystem
 can be added there as new modules, including [Bolt
 tasks](https://puppet.com/docs/bolt/latest/writing_tasks.html), [Bolt
 plans](https://puppet.com/docs/bolt/latest/writing_yaml_plans.html), [inventory
 plugins](https://puppet.com/docs/bolt/latest/writing_plugins.html),
 and [Puppet functions](https://puppet.com/docs/puppet/latest/writing_custom_functions.html). Please
-consider if your use case can be solved with one of these tools before modifying Bolt itself.
+consider if your use case can be solved with one of these tools before modifying OpenBolt itself.
 
-There are certain types of improvements that we believe make sense in Bolt
+There are certain types of improvements that we believe make sense in OpenBolt
 itself:
 
 * New Transports. The transports API is a work-in-progress, but is something we
   aim to stabilize. Currently, transports can't be extended via modules, although
   in the future they likely will be.
-* Core functionality we believe makes Bolt a better tool, such as the
+* Core functionality we believe makes OpenBolt a better tool, such as the
   `aggregate` and `canary` plans included in `modules`.
 * New core functions
-    * New functions that use Bolt internals such as the Executor,
+    * New functions that use OpenBolt internals such as the Executor,
       Applicator, or Inventory should live in bolt-modules/boltlib.
-    * Other directories under bolt-modules are used to categorize Bolt's
+    * Other directories under bolt-modules are used to categorize OpenBolt's
       standard library functions.
 * New ways of interacting with plan progress and output, such as prompts to
   continue or output processors.
 
 ## Pull Requests
 
-Pull requests are welcome on GitHub: https://github.com/puppetlabs/bolt
-
-As with other open-source projects managed by Puppet, you must digitally sign
-the Contributor License Agreement before we can accept your pull request:
-https://cla.puppet.com
+Pull requests are welcome on GitHub: https://github.com/OpenVoxProject/openbolt
 
 **If this is your first time submitting a PR**:
-1. Fork the Bolt project (button in the top-right, next to 'star' and 'watch')
-1. Clone your fork of Bolt
-1. Add the puppetlabs repo as an upstream - `git remote add upstream
-   git@github.com:puppetlabs/bolt`
+1. Fork the OpenBolt project (button in the top-right, next to 'star' and 'watch')
+1. Clone your fork of OpenBolt
+1. Add the OpenVoxProject repo as an upstream - `git remote add upstream
+   git@github.com:openvoxproject/openbolt`
 1. Make a new branch off of main - `git checkout -b mybranchname`
 1. Commit your changes and add a useful commit message, including what
    specifically you changed and why - `git commit`
@@ -75,7 +69,7 @@ https://cla.puppet.com
       ```
 1. Push your changes to your branch on your fork - `git push origin
    mybranchname`
-1. Open a PR against main at https://github.com/puppetlabs/bolt
+1. Open a PR against main at https://github.com/OpenVoxProject/openbolt
 1. Ensure tests pass
 
 **If it's not your first PR:**
@@ -87,27 +81,27 @@ https://cla.puppet.com
    specifically you changed and why - `git commit`
 1. Push your changes to your branch on your fork - `git push origin
    mybranchname`
-1. Open a PR against main at https://github.com/puppetlabs/bolt
+1. Open a PR against main at https://github.com/OpenVoxProject/openbolt
 
-Once you've opened a PR the Bolt team will automatically be notified. We're a small team, but we do
+Once you've opened a PR the Vox Pupuli OpenBolt team will automatically be notified. We're a small team, but we do
 our best to review PRs in a timely manner.
 
-## Installing Bolt
+## Installing OpenBolt
 
-If you are interested in trying Bolt out or using it in production, we recommend
+If you are interested in trying OpenBolt out or using it in production, we recommend
 installing from a system package detailed in [Installing
 Bolt](https://puppet.com/docs/bolt/latest/bolt_installing.html). The following
 installation instructions are focused on developers who wish to contribute to
-Bolt.
+OpenBolt.
 
-Depending on your development workflow, you can install Bolt one of three ways:
+Depending on your development workflow, you can install OpenBolt one of three ways:
 
 * From [RubyGems](https://rubygems.org)
 * From your Gemfile with Bundler
 * From source
 
-Bolt vendors a version of Puppet that supports executing tasks and plans, so you
-do not need to install Puppet. If you happen to already have Puppet installed,
+OpenBolt vendors a version of OpenVox that supports executing tasks and plans, so you
+do not need to install OpenVox or Puppet. If you happen to already have OpenVox or Puppet installed,
 then the vendored version takes precedence and does not conflict with the
 already installed version.
 
@@ -115,17 +109,17 @@ already installed version.
 
 To install from [RubyGems](https://rubygems.org), run:
 
-    gem install bolt
+    gem install openbolt
 
 ### Bundler install
 
 To use [Bundler](https://bundler.io), add this to your Gemfile:
 
-    gem 'bolt'
+    gem 'openbolt'
 
-### Run Bolt from source
+### Run OpenBolt from source
 
-To run Bolt from source:
+To run OpenBolt from source:
 
     bundle install --path .bundle --without test
     bundle exec bolt ...

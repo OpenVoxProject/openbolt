@@ -23,16 +23,16 @@
 
 ## Description
 
-This acceptance suite allows you to test bolt using the following methods:
+This acceptance suite allows you to test OpenBolt using the following methods:
 
-* gem: Install bolt via gem from a gemsource defined as an environment
+* gem: Install OpenBolt via gem from a gemsource defined as an environment
  variable (defaults to https://gems.rubygems.org).
-* git: Install bolt via the git repo from a branch or SHA defined as
+* git: Install OpenBolt via the git repo from a branch or SHA defined as
  environment variables (defaults to #main/HEAD).
-* package: Install bolt via the puppet repos 
+* package: Install OpenBolt via the openvox repos 
 
 The tests assume the following [Beaker
-roles](https://github.com/puppetlabs/beaker/blob/master/docs/concepts/roles_what_are_they.md) be assigned to your SUT nodes:
+roles](https://github.com/voxpupuli/beaker/blob/master/docs/concepts/roles_what_are_they.md) be assigned to your SUT nodes:
 * `bolt`: This role defines the node that will act as the `bolt`
  controller node. There should be only one `bolt` node defined in a
  given Beaker hosts file.
@@ -42,7 +42,7 @@ roles](https://github.com/puppetlabs/beaker/blob/master/docs/concepts/roles_what
  connection protocol. Any number of nodes can be defined with this role.
 
 You might also need to specify nodes for
-[beaker-hostgenerator](https://github.com/puppetlabs/beaker-hostgenerator) to
+[beaker-hostgenerator](https://github.com/voxpupuli/beaker-hostgenerator) to
 use to test bolt on. You can see all of the available
 operatingsystem-architecture nodes by running
 ```
@@ -78,16 +78,16 @@ Setup will update passwords on targets to match this value after connecting via
 **BOLT_CONTOLLER** (Default `centos7-64bolt`): Operating system and
 architecture to be used for the node running `bolt`. This value should be one
 of the OS-architecture strings used by
-[beaker-hostgenerator](https://github.com/puppetlabs/beaker-hostgenerator)
+[beaker-hostgenerator](https://github.com/voxpupuli/beaker-hostgenerator)
 (i.e.`windows10ent-64`). See the [beaker-hostgenerator
-usage](https://github.com/puppetlabs/beaker-hostgenerator#usage) for more
+usage](https://github.com/voxpupuli/beaker-hostgenerator#usage) for more
 information about formatting, and see the [examples](#examples) below for
 examples. 
 
 **BOLT_NODES** (Default `ubuntu1604-64,osx1012-64,windows10ent-64`):
 Operating system and architecture to be used for the nodes targeted by the
 bolt tests. This value should be expressed in the notation used by
-[beaker-hostgenerator](https://github.com/puppetlabs/beaker-hostgenerator#usage).
+[beaker-hostgenerator](https://github.com/voxpupuli/beaker-hostgenerator#usage).
 Multiples should be hyphen separated. See [examples](#examples) below for
 examples.
 
@@ -192,14 +192,14 @@ bundle exec rake test:gem
 
 #### Git
 
-Example to test latest git commit to main on https://github.com/puppetlabs/bolt
+Example to test latest git commit to main on https://github.com/OpenVoxProject/openbolt
 ```
 SSH_PASSWORD='S3@ret3' \
 WINRM_PASSWORD='S3@ret3' \
 bundle exec rake test:git
 ```
 
-Example to test specific SHA on https://github.com/puppetlabs/bolt
+Example to test specific SHA on https://github.com/OpenVoxProject/openbolt
 ```
 GIT_SHA=309e197  \
 SSH_PASSWORD='S3@ret3' \
