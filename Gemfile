@@ -20,6 +20,11 @@ ENV['BOLT_GEM'] = 'true'
 
 gemspec
 
+# Need to update the openssl gem on MacOS to avoid SSL errors. Doesn't hurt to have the newest
+# for all platforms.
+# https://www.rubyonmac.dev/certificate-verify-failed-unable-to-get-certificate-crl-openssl-ssl-sslerror
+gem 'openssl' unless `uname -o`.chomp == 'Cygwin'
+
 # Optional paint gem for rainbow outputter
 gem "paint", "~> 2.2"
 
