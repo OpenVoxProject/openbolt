@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="windows-1252"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi" xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
+  <Fragment>
+
+
+    <ComponentGroup Id="FragmentSequences" />
+    <!-- First, save off properties specified on the command line Second,
+         restore the properties set by the command line overriding the recalled
+         value from the registry -->
+    <InstallUISequence>
+      <!-- INSTALLDIR -->
+      <Custom Action='SaveCmdLineInstallDir' Before='AppSearch' />
+      <Custom Action='SetFromCmdLineInstallDir' After='AppSearch'>
+        CMDLINE_INSTALLDIR
+      </Custom>
+    </InstallUISequence>
+
+    <InstallExecuteSequence>
+      <!-- INSTALLDIR -->
+      <Custom Action='SaveCmdLineInstallDir' Before='AppSearch' />
+      <Custom Action='SetFromCmdLineInstallDir' After='AppSearch'>
+        CMDLINE_INSTALLDIR
+      </Custom>
+      <!-- Tarball Extractor on install -->
+      <Custom Action="SetPropertyForExtractTarballs" Before="InstallInitialize">NOT REMOVE</Custom>
+      <Custom Action='ExtractTarballs' After='InstallFiles'>NOT REMOVE</Custom>
+      <!-- Tarball Remover on uninstall -->
+      <Custom Action="SetPropertyForRemoveTarballs" Before="InstallInitialize">REMOVE~="ALL" OR MaintenanceMode="Remove"</Custom>
+      <Custom Action='RemoveTarballs' Before='RemoveFiles'>REMOVE~="ALL" OR MaintenanceMode="Remove"</Custom>
+    </InstallExecuteSequence>
+
+    <SetProperty Id="ARPINSTALLLOCATION" Value="[INSTALLDIR]" After="CostFinalize" />
+
+  </Fragment>
+</Wix>

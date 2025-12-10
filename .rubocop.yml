@@ -11,3 +11,15 @@ AllCops:
     - .vendor/**/*
     - spec/fixtures/**/*
     - modules/**/*
+
+Style/SymbolProc:
+  Enabled: false
+
+Naming/FileName:
+  Enabled: false
+
+Layout/LineLength:
+  Max: 150
+
+Style/FetchEnvVar:
+  Enabled: false

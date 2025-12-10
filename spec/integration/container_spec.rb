@@ -28,7 +28,7 @@ describe 'plans', bash: true do
     cmd = %W[plan run container::volume ls=#{ls} src=#{File.expand_path('.')} dest=#{dest}]
     cmd << 'image=mcr.microsoft.com/windows/servercore:ltsc2019' if Bolt::Util.windows?
     result = run_cli_json(cmd + mpath)
-    expect(result['value']['stdout']).to include("bolt.gemspec")
+    expect(result['value']['stdout']).to include("openbolt.gemspec")
   end
 
   it 'serializes ContainerResults to apply blocks', ssh: true do

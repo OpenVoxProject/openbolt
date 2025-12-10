@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="windows-1252"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi" xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
+  <Fragment>
+
+    <ComponentGroup Id="FragmentProperties" />
+
+    <!-- Add/Remove Programs icon and help link -->
+    <Property
+      Id="ARPPRODUCTICON"
+      Value="<%= settings[:company_id] %>.ico" />
+    <Property
+      Id="ARPHELPLINK"
+      Value="<%= settings[:links][:HelpLink] %>" />
+
+    <!-- This property is used in the localization strings for the GUI -->
+    <Property
+      Id="VersionUIString"
+      Value="<%= @version.sub(/\.g[0-9a-z]{7}$/, '') %>" />
+
+    <!-- To use WixUI_InstallDir, you must set a property named
+       WIXUI_INSTALLDIR with a value of the ID of the directory you want the
+       user to be able to specify the location of. -->
+    <Property
+      Id="WIXUI_INSTALLDIR"
+      Value="INSTALLDIR" />
+    <!-- This text is placed as a literal string in the GUI -->
+    <Property
+      Id="WIXUI_EXITDIALOGOPTIONALTEXT"
+      Value="Puppet Bolt has been installed." />
+
+    <!--
+      Remembered Property Pattern
+      http://robmensching.com/blog/posts/2010/5/2/The-WiX-toolsets-Remember-Property-pattern
+      -->
+
+    <Property Id="INSTALLDIR">
+      <RegistrySearch
+        Id="RecallInstallDir"
+        Root="HKLM"
+        Key="SOFTWARE\<%= settings[:pl_company_name] %>\<%= settings[:product_id] %>"
+        Name="RememberedInstallDir"
+        Type="raw"
+        Win64="yes" />
+    </Property>
+
+  </Fragment>
+</Wix>

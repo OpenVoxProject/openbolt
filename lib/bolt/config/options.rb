@@ -428,12 +428,10 @@ module Bolt
           _example: ["myproject", "myproject::foo", "myproject::bar", "myproject::deploy::*"]
         },
         "plugin-hooks" => {
-          # rubocop:disable Layout/LineLength
           description: "A map of [plugin hooks](writing_plugins.md#hooks) and which plugins a hook should use. " \
                        "The only configurable plugin hook is `puppet_library`, which can use two possible plugins: " \
                        "[`openvox_bootstrap`](https://github.com/voxpupuli/puppet-openvox_bootstrap#openvox_boostrapinstall) " \
                        "and [`task`](using_plugins.md#task).",
-          # rubocop:enable Layout/LineLength
           type: Hash,
           _plugin: true,
           _example: { "puppet_library" => { "plugin" => "openvox_bootstrap", "version" => "1.2.0",

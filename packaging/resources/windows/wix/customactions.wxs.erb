@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="windows-1252"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi" xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
+
+  <Fragment>
+    <ComponentGroup Id="FragmentCustomActions" />
+
+    <!-- Properties for existing Ini Values - expanding the remembered properties pattern just a bit
+    -->
+
+    <!-- Custom Actions to handle command line property values that override
+         remembered property values -->
+    <!-- INSTALLDIR -->
+    <CustomAction
+      Id="SaveCmdLineInstallDir"
+      Property="CMDLINE_INSTALLDIR"
+      Value="[INSTALLDIR]"
+      Execute="firstSequence" />
+    <CustomAction
+      Id="SetFromCmdLineInstallDir"
+      Property="INSTALLDIR"
+      Value="[CMDLINE_INSTALLDIR]"
+      Execute="firstSequence" />
+
+    <!-- INSTALLDIR is not available for Deferred Custom Actions.  So we need to save it for later user -->
+    <CustomAction
+      Id="SetPropertyForExtractTarballs"
+      Property="ExtractTarballs"
+      Value="[INSTALLDIR]" />
+    <Binary Id='TarballScript' SourceFile='..\tarball.vbs' />
+    <CustomAction
+      Id="ExtractTarballs"
+      BinaryKey="TarballScript"
+      VBScriptCall="ExtractTarballs"
+      Execute="deferred"
+      Return="check"
+      Impersonate="no" />
+
+    <!-- INSTALLDIR is not available for Deferred Custom Actions.  So we need to save it for later user -->
+    <CustomAction
+      Id="SetPropertyForRemoveTarballs"
+      Property="RemoveTarballs"
+      Value="[INSTALLDIR]" />
+    <CustomAction
+      Id="RemoveTarballs"
+      BinaryKey="TarballScript"
+      VBScriptCall="RemoveTarballs"
+      Execute="deferred"
+      Return="check"
+      Impersonate="no" />
+  </Fragment>
+</Wix>
