@@ -13,30 +13,30 @@
 -->
 <!--
 First-time install dialog sequence:
- - WixUI_PuppetBoltWelcomeDlg
- - WixUI_PuppetBoltWarningDlg (applicable to 2003)
- - WixUI_PuppetBoltLicenseAgreementDlg
- - WixUI_PuppetBoltInstallDirDlg
+ - WixUI_OpenBoltWelcomeDlg
+ - WixUI_OpenBoltWarningDlg (applicable to 2003)
+ - WixUI_OpenBoltLicenseAgreementDlg
+ - WixUI_OpenBoltInstallDirDlg
  - WixUI_VerifyReadyDlg
  - WixUI_DiskCostDlg
 
 Maintenance dialog sequence:
  - WixUI_MaintenanceWelcomeDlg
  - WixUI_MaintenanceTypeDlg
- - WixUI_PuppetBoltInstallDirDlg
+ - WixUI_OpenBoltInstallDirDlg
  - WixUI_VerifyReadyDlg
 
 Patch dialog sequence:
- - WixUI_PuppetBoltWelcomeDlg
- - WixUI_PuppetBoltWarningDlg (applicable to 2003)
+ - WixUI_OpenBoltWelcomeDlg
+ - WixUI_OpenBoltWarningDlg (applicable to 2003)
  - WixUI_VerifyReadyDlg
 
 -->
 
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
   <Fragment>
-    <UI Id="WixUI_PuppetBoltInstallDir">
-      <!-- Include Puppet Labs UI Text Styles -->
+    <UI Id="WixUI_OpenBoltInstallDir">
+      <!-- Include OpenBolt UI Text Styles -->
       <?include $(sys.SOURCEFILEDIR)../include/textstyles.wxi?>
       <TextStyle Id="WixUI_Font_Normal" FaceName="Tahoma" Size="8" />
       <TextStyle Id="WixUI_Font_Bigger" FaceName="Tahoma" Size="12" />
@@ -61,29 +61,29 @@ Patch dialog sequence:
 
       <Publish Dialog="ExitDialog" Control="Finish" Event="EndDialog" Value="Return" Order="999">1</Publish>
 
-      <Publish Dialog="PuppetBoltWelcomeDlg" Control="Next" Event="NewDialog" Value="PuppetBoltLicenseAgreementDlg"><![CDATA[VersionNT >= 600 AND NOT Installed]]></Publish>
-      <Publish Dialog="PuppetBoltWelcomeDlg" Control="Next" Event="NewDialog" Value="VerifyReadyDlg"><![CDATA[VersionNT >= 600 AND Installed AND PATCH]]></Publish>
-      <Publish Dialog="PuppetBoltWelcomeDlg" Control="Next" Event="NewDialog" Value="PuppetBoltWarningDlg"><![CDATA[VersionNT < 600]]></Publish>
+      <Publish Dialog="OpenBoltWelcomeDlg" Control="Next" Event="NewDialog" Value="OpenBoltLicenseAgreementDlg"><![CDATA[VersionNT >= 600 AND NOT Installed]]></Publish>
+      <Publish Dialog="OpenBoltWelcomeDlg" Control="Next" Event="NewDialog" Value="VerifyReadyDlg"><![CDATA[VersionNT >= 600 AND Installed AND PATCH]]></Publish>
+      <Publish Dialog="OpenBoltWelcomeDlg" Control="Next" Event="NewDialog" Value="OpenBoltWarningDlg"><![CDATA[VersionNT < 600]]></Publish>
 
-      <Publish Dialog="PuppetBoltLicenseAgreementDlg" Control="Back" Event="NewDialog" Value="PuppetBoltWelcomeDlg"><![CDATA[VersionNT >= 600]]></Publish>
-      <Publish Dialog="PuppetBoltLicenseAgreementDlg" Control="Back" Event="NewDialog" Value="PuppetBoltWarningDlg"><![CDATA[VersionNT < 600]]></Publish>
-      <Publish Dialog="PuppetBoltLicenseAgreementDlg" Control="Next" Event="NewDialog" Value="PuppetBoltInstallDirDlg">LicenseAccepted = "1"</Publish>
+      <Publish Dialog="OpenBoltLicenseAgreementDlg" Control="Back" Event="NewDialog" Value="OpenBoltWelcomeDlg"><![CDATA[VersionNT >= 600]]></Publish>
+      <Publish Dialog="OpenBoltLicenseAgreementDlg" Control="Back" Event="NewDialog" Value="OpenBoltWarningDlg"><![CDATA[VersionNT < 600]]></Publish>
+      <Publish Dialog="OpenBoltLicenseAgreementDlg" Control="Next" Event="NewDialog" Value="OpenBoltInstallDirDlg">LicenseAccepted = "1"</Publish>
 
-      <Publish Dialog="PuppetBoltWarningDlg" Control="Next" Event="NewDialog" Value="PuppetBoltLicenseAgreementDlg">NOT Installed</Publish>
-      <Publish Dialog="PuppetBoltWarningDlg" Control="Next" Event="NewDialog" Value="VerifyReadyDlg">Installed AND PATCH</Publish>
+      <Publish Dialog="OpenBoltWarningDlg" Control="Next" Event="NewDialog" Value="OpenBoltLicenseAgreementDlg">NOT Installed</Publish>
+      <Publish Dialog="OpenBoltWarningDlg" Control="Next" Event="NewDialog" Value="VerifyReadyDlg">Installed AND PATCH</Publish>
 
-      <Publish Dialog="PuppetBoltInstallDirDlg" Control="Back" Event="NewDialog" Value="PuppetBoltLicenseAgreementDlg">1</Publish>
-      <Publish Dialog="PuppetBoltInstallDirDlg" Control="Next" Event="SetTargetPath" Value="[WIXUI_INSTALLDIR]" Order="1">1</Publish>
-      <Publish Dialog="PuppetBoltInstallDirDlg" Control="Next" Event="DoAction" Value="WixUIValidatePath" Order="2">NOT WIXUI_DONTVALIDATEPATH</Publish>
-      <Publish Dialog="PuppetBoltInstallDirDlg" Control="Next" Event="SpawnDialog" Value="InvalidDirDlg" Order="3"><![CDATA[NOT WIXUI_DONTVALIDATEPATH AND WIXUI_INSTALLDIR_VALID<>"1"]]></Publish>
-      <Publish Dialog="PuppetBoltInstallDirDlg" Control="Next" Event="NewDialog" Value="VerifyReadyDlg" Order="4">WIXUI_DONTVALIDATEPATH OR WIXUI_INSTALLDIR_VALID="1"</Publish>
-      <Publish Dialog="PuppetBoltInstallDirDlg" Control="ChangeFolder" Property="_BrowseProperty" Value="[WIXUI_INSTALLDIR]" Order="1">1</Publish>
-      <Publish Dialog="PuppetBoltInstallDirDlg" Control="ChangeFolder" Event="SpawnDialog" Value="BrowseDlg" Order="2">1</Publish>
+      <Publish Dialog="OpenBoltInstallDirDlg" Control="Back" Event="NewDialog" Value="OpenBoltLicenseAgreementDlg">1</Publish>
+      <Publish Dialog="OpenBoltInstallDirDlg" Control="Next" Event="SetTargetPath" Value="[WIXUI_INSTALLDIR]" Order="1">1</Publish>
+      <Publish Dialog="OpenBoltInstallDirDlg" Control="Next" Event="DoAction" Value="WixUIValidatePath" Order="2">NOT WIXUI_DONTVALIDATEPATH</Publish>
+      <Publish Dialog="OpenBoltInstallDirDlg" Control="Next" Event="SpawnDialog" Value="InvalidDirDlg" Order="3"><![CDATA[NOT WIXUI_DONTVALIDATEPATH AND WIXUI_INSTALLDIR_VALID<>"1"]]></Publish>
+      <Publish Dialog="OpenBoltInstallDirDlg" Control="Next" Event="NewDialog" Value="VerifyReadyDlg" Order="4">WIXUI_DONTVALIDATEPATH OR WIXUI_INSTALLDIR_VALID="1"</Publish>
+      <Publish Dialog="OpenBoltInstallDirDlg" Control="ChangeFolder" Property="_BrowseProperty" Value="[WIXUI_INSTALLDIR]" Order="1">1</Publish>
+      <Publish Dialog="OpenBoltInstallDirDlg" Control="ChangeFolder" Event="SpawnDialog" Value="BrowseDlg" Order="2">1</Publish>
 
-      <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="PuppetBoltInstallDirDlg" Order="1">NOT Installed</Publish>
+      <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="OpenBoltInstallDirDlg" Order="1">NOT Installed</Publish>
       <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="MaintenanceTypeDlg" Order="2">Installed AND NOT PATCH</Publish>
-      <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="PuppetBoltWelcomeDlg" Order="2"><![CDATA[VersionNT >= 600 AND Installed AND PATCH]]></Publish>
-      <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="PuppetBoltWarningDlg" Order="2"><![CDATA[VersionNT < 600 AND Installed AND PATCH]]></Publish>
+      <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="OpenBoltWelcomeDlg" Order="2"><![CDATA[VersionNT >= 600 AND Installed AND PATCH]]></Publish>
+      <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="OpenBoltWarningDlg" Order="2"><![CDATA[VersionNT < 600 AND Installed AND PATCH]]></Publish>
 
       <Publish Dialog="MaintenanceWelcomeDlg" Control="Next" Event="NewDialog" Value="MaintenanceTypeDlg">1</Publish>
 

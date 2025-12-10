@@ -13,10 +13,10 @@
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
   <Fragment>
     <UI>
-      <Dialog Id="PuppetBoltWarningDlg" Width="370" Height="270" Title="!(loc.WarningDlg_Title)">
+      <Dialog Id="OpenBoltWarningDlg" Width="370" Height="270" Title="!(loc.WarningDlg_Title)">
         <Control Id="Next" Type="PushButton" X="236" Y="243" Width="56" Height="17" Default="yes" Text="!(loc.WixUINext)" />
         <Control Id="Back" Type="PushButton" X="180" Y="243" Width="56" Height="17" Text="!(loc.WixUIBack)">
-          <Publish Event="NewDialog" Value="PuppetBoltWelcomeDlg" />
+          <Publish Event="NewDialog" Value="OpenBoltWelcomeDlg" />
         </Control>
         <Control Id="Cancel" Type="PushButton" X="304" Y="243" Width="56" Height="17" Cancel="yes" Text="!(loc.WixUICancel)">
           <Publish Event="SpawnDialog" Value="CancelDlg">1</Publish>

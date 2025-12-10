@@ -27,7 +27,7 @@
 
     <String Id="AdvancedWelcomeEulaDlg_Title" Overridable="yes"><!-- _locID_text="AdvancedWelcomeEulaDlg_Title" _locComment="AdvancedWelcomeEulaDlg_Title" -->[ProductName] Setup</String>
     <String Id="AdvancedWelcomeEulaDlgBannerBitmap" Overridable="yes"><!-- _locID_text="AdvancedWelcomeEulaDlgBannerBitmap" _locComment="AdvancedWelcomeEulaDlgBannerBitmap" -->WixUI_Bmp_Banner</String>
-    <String Id="AdvancedWelcomeEulaDlgTitle" Overridable="yes"><!-- _locID_text="AdvancedWelcomeEulaDlgTitle" _locComment="AdvancedWelcomeEulaDlgTitle" -->{\PuppetLabs_Font_Title_White}Please read the [ProductName] License Agreement</String>
+    <String Id="AdvancedWelcomeEulaDlgTitle" Overridable="yes"><!-- _locID_text="AdvancedWelcomeEulaDlgTitle" _locComment="AdvancedWelcomeEulaDlgTitle" -->{\VoxPupuli_Font_Title_White}Please read the [ProductName] License Agreement</String>
     <String Id="AdvancedWelcomeEulaDlgLicenseAcceptedCheckBox" Overridable="yes"><!-- _locID_text="AdvancedWelcomeEulaDlgLicenseAcceptedCheckBox" _locComment="AdvancedWelcomeEulaDlgLicenseAcceptedCheckBox" -->I &amp;accept the terms in the License Agreement</String>
     <String Id="AdvancedWelcomeEulaDlgDescriptionPerMachine" Overridable="yes"><!-- _locID_text="AdvancedWelcomeEulaDlgDescriptionPerMachine" _locComment="AdvancedWelcomeEulaDlgDescriptionPerMachine" -->Click Install to install the product with default options for all users. Click Advanced to change installation options.</String>
     <String Id="AdvancedWelcomeEulaDlgDescriptionPerUser" Overridable="yes"><!-- _locID_text="AdvancedWelcomeEulaDlgDescriptionPerUser" _locComment="AdvancedWelcomeEulaDlgDescriptionPerUser" -->Click Install to install the product with default options just for you. Click Advanced to change installation options.</String>
@@ -47,8 +47,8 @@
     <String Id="BrowseDlgNewFolderTooltip" Overridable="yes"><!-- _locID_text="BrowseDlgNewFolderTooltip" _locComment="BrowseDlgNewFolderTooltip" -->Create a new folder</String>
     <String Id="BrowseDlgPathLabel" Overridable="yes"><!-- _locID_text="BrowseDlgPathLabel" _locComment="BrowseDlgPathLabel" -->&amp;Folder name:</String>
     <String Id="BrowseDlgBannerBitmap" Overridable="yes"><!-- _locID_text="BrowseDlgBannerBitmap" _locComment="BrowseDlgBannerBitmap" -->WixUI_Bmp_Banner</String>
-    <String Id="BrowseDlgDescription" Overridable="yes"><!-- _locID_text="BrowseDlgDescription" _locComment="BrowseDlgDescription" -->{\PuppetLabs_Font_Normal_White}Browse to the destination folder</String>
-    <String Id="BrowseDlgTitle" Overridable="yes"><!-- _locID_text="BrowseDlgTitle" _locComment="BrowseDlgTitle" -->{\PuppetLabs_Font_Title_White}Change destination folder</String>
+    <String Id="BrowseDlgDescription" Overridable="yes"><!-- _locID_text="BrowseDlgDescription" _locComment="BrowseDlgDescription" -->{\VoxPupuli_Font_Normal_White}Browse to the destination folder</String>
+    <String Id="BrowseDlgTitle" Overridable="yes"><!-- _locID_text="BrowseDlgTitle" _locComment="BrowseDlgTitle" -->{\VoxPupuli_Font_Title_White}Change destination folder</String>
 
     <String Id="CancelDlg_Title" Overridable="yes"><!-- _locID_text="CancelDlg_Title" _locComment="CancelDlg_Title" -->[ProductName] Setup</String>
     <String Id="CancelDlgText" Overridable="yes"><!-- _locID_text="CancelDlgText" _locComment="CancelDlgText" -->Are you sure you want to cancel [ProductName] installation?</String>
@@ -111,8 +111,8 @@
 
     <String Id="InstallDirDlg_Title" Overridable="yes"><!-- _locID_text="InstallDirDlg_Title" _locComment="InstallDirDlg_Title" -->[ProductName] Setup</String>
     <String Id="InstallDirDlgChange" Overridable="yes"><!-- _locID_text="InstallDirDlgChange" _locComment="InstallDirDlgChange" -->&amp;Change...</String>
-    <String Id="InstallDirDlgTitle" Overridable="yes"><!-- _locID_text="InstallDirDlgTitle" _locComment="InstallDirDlgTitle" -->{\PuppetLabs_Font_Title_White}Configuration</String>
-    <String Id="InstallDirDlgDescription" Overridable="yes"><!-- _locID_text="InstallDirDlgDescription" _locComment="InstallDirDlgDescription" -->{\PuppetLabs_Font_Normal_White}Click Next to install to the default folder.</String>
+    <String Id="InstallDirDlgTitle" Overridable="yes"><!-- _locID_text="InstallDirDlgTitle" _locComment="InstallDirDlgTitle" -->{\VoxPupuli_Font_Title_White}Configuration</String>
+    <String Id="InstallDirDlgDescription" Overridable="yes"><!-- _locID_text="InstallDirDlgDescription" _locComment="InstallDirDlgDescription" -->{\VoxPupuli_Font_Normal_White}Click Next to install to the default folder.</String>
     <String Id="InstallDirDlgBannerBitmap" Overridable="yes"><!-- _locID_text="InstallDirDlgBannerBitmap" _locComment="InstallDirDlgBannerBitmap" -->WixUI_Bmp_Banner</String>
     <String Id="InstallDirDlgFolderLabel" Overridable="yes"><!-- _locID_text="InstallDirDlgFolderLabel" _locComment="InstallDirDlgFolderLabel" -->Install [ProductName] to:</String>
 
@@ -136,8 +136,8 @@
     <String Id="LicenseAgreementDlg_Title" Overridable="yes"><!-- _locID_text="LicenseAgreementDlg_Title" _locComment="LicenseAgreementDlg_Title" -->[ProductName] Setup</String>
     <String Id="LicenseAgreementDlgLicenseAcceptedCheckBox" Overridable="yes"><!-- _locID_text="LicenseAgreementDlgLicenseAcceptedCheckBox" _locComment="LicenseAgreementDlgLicenseAcceptedCheckBox" -->I &amp;accept the terms in the License Agreement</String>
     <String Id="LicenseAgreementDlgBannerBitmap" Overridable="yes"><!-- _locID_text="LicenseAgreementDlgBannerBitmap" _locComment="LicenseAgreementDlgBannerBitmap" -->WixUI_Bmp_Banner</String>
-    <String Id="LicenseAgreementDlgDescription" Overridable="yes"><!-- _locID_text="LicenseAgreementDlgDescription" _locComment="LicenseAgreementDlgDescription" -->{\PuppetLabs_Font_Normal_White}Please read the following license agreement carefully</String>
-    <String Id="LicenseAgreementDlgTitle" Overridable="yes"><!-- _locID_text="LicenseAgreementDlgTitle" _locComment="LicenseAgreementDlgTitle" -->{\PuppetLabs_Font_Title_White}End-User License Agreement</String>
+    <String Id="LicenseAgreementDlgDescription" Overridable="yes"><!-- _locID_text="LicenseAgreementDlgDescription" _locComment="LicenseAgreementDlgDescription" -->{\VoxPupuli_Font_Normal_White}Please read the following license agreement carefully</String>
+    <String Id="LicenseAgreementDlgTitle" Overridable="yes"><!-- _locID_text="LicenseAgreementDlgTitle" _locComment="LicenseAgreementDlgTitle" -->{\VoxPupuli_Font_Title_White}End-User License Agreement</String>
 
     <String Id="MaintenanceTypeDlg_Title" Overridable="yes"><!-- _locID_text="MaintenanceTypeDlg_Title" _locComment="MaintenanceTypeDlg_Title" -->[ProductName] Setup</String>
     <String Id="MaintenanceTypeDlgChangeButton" Overridable="yes"><!-- _locID_text="MaintenanceTypeDlgChangeButton" _locComment="MaintenanceTypeDlgChangeButton" -->&amp;Change</String>
@@ -147,8 +147,8 @@
     <String Id="MaintenanceTypeDlgRemoveButton" Overridable="yes"><!-- _locID_text="MaintenanceTypeDlgRemoveButton" _locComment="MaintenanceTypeDlgRemoveButton" -->&amp;Remove</String>
     <String Id="MaintenanceTypeDlgRemoveButtonTooltip" Overridable="yes"><!-- _locID_text="MaintenanceTypeDlgRemoveButtonTooltip" _locComment="MaintenanceTypeDlgRemoveButtonTooltip" -->Remove Installation</String>
     <String Id="MaintenanceTypeDlgBannerBitmap" Overridable="yes"><!-- _locID_text="MaintenanceTypeDlgBannerBitmap" _locComment="MaintenanceTypeDlgBannerBitmap" -->WixUI_Bmp_Banner</String>
-    <String Id="MaintenanceTypeDlgDescription" Overridable="yes"><!-- _locID_text="MaintenanceTypeDlgDescription" _locComment="MaintenanceTypeDlgDescription" -->{\PuppetLabs_Font_Normal_White}Select the operation you wish to perform.</String>
-    <String Id="MaintenanceTypeDlgTitle" Overridable="yes"><!-- _locID_text="MaintenanceTypeDlgTitle" _locComment="MaintenanceTypeDlgTitle" -->{\PuppetLabs_Font_Title_White}Change, repair, or remove installation</String>
+    <String Id="MaintenanceTypeDlgDescription" Overridable="yes"><!-- _locID_text="MaintenanceTypeDlgDescription" _locComment="MaintenanceTypeDlgDescription" -->{\VoxPupuli_Font_Normal_White}Select the operation you wish to perform.</String>
+    <String Id="MaintenanceTypeDlgTitle" Overridable="yes"><!-- _locID_text="MaintenanceTypeDlgTitle" _locComment="MaintenanceTypeDlgTitle" -->{\VoxPupuli_Font_Title_White}Change, repair, or remove installation</String>
     <String Id="MaintenanceTypeDlgChangeText" Overridable="yes"><!-- _locID_text="MaintenanceTypeDlgChangeText" _locComment="MaintenanceTypeDlgChangeText" -->Lets you change the way features are installed.</String>
     <String Id="MaintenanceTypeDlgChangeDisabledText" Overridable="yes"><!-- _locID_text="MaintenanceTypeDlgChangeDisabledText" _locComment="MaintenanceTypeDlgChangeDisabledText" -->[ProductName] has no independently selectable features.</String>
     <String Id="MaintenanceTypeDlgRemoveText" Overridable="yes"><!-- _locID_text="MaintenanceTypeDlgRemoveText" _locComment="MaintenanceTypeDlgRemoveText" -->Removes [ProductName] from your computer.</String>
@@ -192,15 +192,15 @@
     <String Id="ProgressDlg_Title" Overridable="yes"><!-- _locID_text="ProgressDlg_Title" _locComment="ProgressDlg_Title" -->[ProductName] Setup</String>
     <String Id="ProgressDlgBannerBitmap" Overridable="yes"><!-- _locID_text="ProgressDlgBannerBitmap" _locComment="ProgressDlgBannerBitmap" -->WixUI_Bmp_Banner</String>
     <String Id="ProgressDlgTextInstalling" Overridable="yes"><!-- _locID_text="ProgressDlgTextInstalling" _locComment="ProgressDlgTextInstalling" -->Please wait while the Setup Wizard installs [ProductName].</String>
-    <String Id="ProgressDlgTitleInstalling" Overridable="yes"><!-- _locID_text="ProgressDlgTitleInstalling" _locComment="ProgressDlgTitleInstalling" -->{\PuppetLabs_Font_Title_White}Installing [ProductName]</String>
+    <String Id="ProgressDlgTitleInstalling" Overridable="yes"><!-- _locID_text="ProgressDlgTitleInstalling" _locComment="ProgressDlgTitleInstalling" -->{\VoxPupuli_Font_Title_White}Installing [ProductName]</String>
     <String Id="ProgressDlgTextChanging" Overridable="yes"><!-- _locID_text="ProgressDlgTextChanging" _locComment="ProgressDlgTextChanging" -->Please wait while the Setup Wizard changes [ProductName].</String>
-    <String Id="ProgressDlgTitleChanging" Overridable="yes"><!-- _locID_text="ProgressDlgTitleChanging" _locComment="ProgressDlgTitleChanging" -->{\PuppetLabs_Font_Title_White}Changing [ProductName]</String>
+    <String Id="ProgressDlgTitleChanging" Overridable="yes"><!-- _locID_text="ProgressDlgTitleChanging" _locComment="ProgressDlgTitleChanging" -->{\VoxPupuli_Font_Title_White}Changing [ProductName]</String>
     <String Id="ProgressDlgTextRepairing" Overridable="yes"><!-- _locID_text="ProgressDlgTextRepairing" _locComment="ProgressDlgTextRepairing" -->Please wait while the Setup Wizard repairs [ProductName].</String>
-    <String Id="ProgressDlgTitleRepairing" Overridable="yes"><!-- _locID_text="ProgressDlgTitleRepairing" _locComment="ProgressDlgTitleRepairing" -->{\PuppetLabs_Font_Title_White}Repairing [ProductName]</String>
+    <String Id="ProgressDlgTitleRepairing" Overridable="yes"><!-- _locID_text="ProgressDlgTitleRepairing" _locComment="ProgressDlgTitleRepairing" -->{\VoxPupuli_Font_Title_White}Repairing [ProductName]</String>
     <String Id="ProgressDlgTextRemoving" Overridable="yes"><!-- _locID_text="ProgressDlgTextRemoving" _locComment="ProgressDlgTextRemoving" -->Please wait while the Setup Wizard removes [ProductName].</String>
-    <String Id="ProgressDlgTitleRemoving" Overridable="yes"><!-- _locID_text="ProgressDlgTitleRemoving" _locComment="ProgressDlgTitleRemoving" -->{\PuppetLabs_Font_Title_White}Removing [ProductName]</String>
+    <String Id="ProgressDlgTitleRemoving" Overridable="yes"><!-- _locID_text="ProgressDlgTitleRemoving" _locComment="ProgressDlgTitleRemoving" -->{\VoxPupuli_Font_Title_White}Removing [ProductName]</String>
     <String Id="ProgressDlgTextUpdating" Overridable="yes"><!-- _locID_text="ProgressDlgTextUpdating" _locComment="ProgressDlgTextUpdating" -->Please wait while the Setup Wizard updates [ProductName].</String>
-    <String Id="ProgressDlgTitleUpdating" Overridable="yes"><!-- _locID_text="ProgressDlgTitleUpdating" _locComment="ProgressDlgTitleUpdating" -->{\PuppetLabs_Font_Title_White}Updating [ProductName]</String>
+    <String Id="ProgressDlgTitleUpdating" Overridable="yes"><!-- _locID_text="ProgressDlgTitleUpdating" _locComment="ProgressDlgTitleUpdating" -->{\VoxPupuli_Font_Title_White}Updating [ProductName]</String>
     <String Id="ProgressDlgProgressBar" Overridable="yes"><!-- _locID_text="ProgressDlgProgressBar" _locComment="ProgressDlgProgressBar" -->Progress done</String>
     <String Id="ProgressDlgStatusLabel" Overridable="yes"><!-- _locID_text="ProgressDlgStatusLabel" _locComment="ProgressDlgStatusLabel" -->Status:</String>
 
@@ -234,19 +234,19 @@
     <String Id="VerifyReadyDlgBannerBitmap" Overridable="yes"><!-- _locID_text="VerifyReadyDlgBannerBitmap" _locComment="VerifyReadyDlgBannerBitmap" -->WixUI_Bmp_Banner</String>
     <String Id="VerifyReadyDlgInstall" Overridable="yes"><!-- _locID_text="VerifyReadyDlgInstall" _locComment="VerifyReadyDlgInstall" -->&amp;Install</String>
     <String Id="VerifyReadyDlgInstallText" Overridable="yes"><!-- _locID_text="VerifyReadyDlgInstallText" _locComment="VerifyReadyDlgInstallText" -->Click Install to begin the installation. Click Back to review or change any of your installation settings. Click Cancel to exit the wizard.</String>
-    <String Id="VerifyReadyDlgInstallTitle" Overridable="yes"><!-- _locID_text="VerifyReadyDlgInstallTitle" _locComment="VerifyReadyDlgInstallTitle" -->{\PuppetLabs_Font_Title_White}Ready to install [ProductName]</String>
+    <String Id="VerifyReadyDlgInstallTitle" Overridable="yes"><!-- _locID_text="VerifyReadyDlgInstallTitle" _locComment="VerifyReadyDlgInstallTitle" -->{\VoxPupuli_Font_Title_White}Ready to install [ProductName]</String>
     <String Id="VerifyReadyDlgChange" Overridable="yes"><!-- _locID_text="VerifyReadyDlgChange" _locComment="VerifyReadyDlgChange" -->&amp;Change</String>
     <String Id="VerifyReadyDlgChangeText" Overridable="yes"><!-- _locID_text="VerifyReadyDlgChangeText" _locComment="VerifyReadyDlgChangeText" -->Click Change to begin the installation. Click Back to review or change any of your installation settings. Click Cancel to exit the wizard.</String>
-    <String Id="VerifyReadyDlgChangeTitle" Overridable="yes"><!-- _locID_text="VerifyReadyDlgChangeTitle" _locComment="VerifyReadyDlgChangeTitle" -->{\PuppetLabs_Font_Title_White}Ready to change [ProductName]</String>
+    <String Id="VerifyReadyDlgChangeTitle" Overridable="yes"><!-- _locID_text="VerifyReadyDlgChangeTitle" _locComment="VerifyReadyDlgChangeTitle" -->{\VoxPupuli_Font_Title_White}Ready to change [ProductName]</String>
     <String Id="VerifyReadyDlgRepair" Overridable="yes"><!-- _locID_text="VerifyReadyDlgRepair" _locComment="VerifyReadyDlgRepair" -->Re&amp;pair</String>
     <String Id="VerifyReadyDlgRepairText" Overridable="yes"><!-- _locID_text="VerifyReadyDlgRepairText" _locComment="VerifyReadyDlgRepairText" -->Click Repair to repair the installation of [ProductName]. Click Back to review or change any of your installation settings. Click Cancel to exit the wizard.</String>
-    <String Id="VerifyReadyDlgRepairTitle" Overridable="yes"><!-- _locID_text="VerifyReadyDlgRepairTitle" _locComment="VerifyReadyDlgRepairTitle" -->{\PuppetLabs_Font_Title_White}Ready to repair [ProductName]</String>
+    <String Id="VerifyReadyDlgRepairTitle" Overridable="yes"><!-- _locID_text="VerifyReadyDlgRepairTitle" _locComment="VerifyReadyDlgRepairTitle" -->{\VoxPupuli_Font_Title_White}Ready to repair [ProductName]</String>
     <String Id="VerifyReadyDlgRemove" Overridable="yes"><!-- _locID_text="VerifyReadyDlgRemove" _locComment="VerifyReadyDlgRemove" -->&amp;Remove</String>
     <String Id="VerifyReadyDlgRemoveText" Overridable="yes"><!-- _locID_text="VerifyReadyDlgRemoveText" _locComment="VerifyReadyDlgRemoveText" -->Click Remove to remove [ProductName] from your computer. Click Back to review or change any of your installation settings. Click Cancel to exit the wizard.</String>
-    <String Id="VerifyReadyDlgRemoveTitle" Overridable="yes"><!-- _locID_text="VerifyReadyDlgRemoveTitle" _locComment="VerifyReadyDlgRemoveTitle" -->{\PuppetLabs_Font_Title_White}Ready to remove [ProductName]</String>
+    <String Id="VerifyReadyDlgRemoveTitle" Overridable="yes"><!-- _locID_text="VerifyReadyDlgRemoveTitle" _locComment="VerifyReadyDlgRemoveTitle" -->{\VoxPupuli_Font_Title_White}Ready to remove [ProductName]</String>
     <String Id="VerifyReadyDlgUpdate" Overridable="yes"><!-- _locID_text="VerifyReadyDlgUpdate" _locComment="VerifyReadyDlgUpdate" -->&amp;Update</String>
     <String Id="VerifyReadyDlgUpdateText" Overridable="yes"><!-- _locID_text="VerifyReadyDlgUpdateText" _locComment="VerifyReadyDlgUpdateText" -->Click Update to update [ProductName] from your computer. Click Back to review or change any of your installation settings. Click Cancel to exit the wizard.</String>
-    <String Id="VerifyReadyDlgUpdateTitle" Overridable="yes"><!-- _locID_text="VerifyReadyDlgUpdateTitle" _locComment="VerifyReadyDlgUpdateTitle" -->{\PuppetLabs_Font_Title_White}Ready to update [ProductName]</String>
+    <String Id="VerifyReadyDlgUpdateTitle" Overridable="yes"><!-- _locID_text="VerifyReadyDlgUpdateTitle" _locComment="VerifyReadyDlgUpdateTitle" -->{\VoxPupuli_Font_Title_White}Ready to update [ProductName]</String>
 
     <String Id="WaitForCostingDlg_Title" Overridable="yes"><!-- _locID_text="WaitForCostingDlg_Title" _locComment="WaitForCostingDlg_Title" -->[ProductName] Setup</String>
     <String Id="WaitForCostingDlgReturn" Overridable="yes"><!-- _locID_text="WaitForCostingDlgReturn" _locComment="WaitForCostingDlgReturn" -->&amp;Return</String>
@@ -259,10 +259,10 @@
     <String Id="WelcomeDlgDescription" Overridable="yes"><!-- _locID_text="WelcomeDlgDescription" _locComment="WelcomeDlgDescription" -->
 [TODO]
 
-This wizard will install Puppet Bolt version [VersionUIString].
+This wizard will install OpenBolt version [VersionUIString].
 </String>
     <String Id="WelcomeDlgDescriptionLink" Overridable="yes"><!-- _locID_text="WelcomeDlgDescription" _locComment="WelcomeDlgDescriptionLink" -->
-<![CDATA[<a href="https://puppet.com/docs/bolt/">Read more</a> about Puppet Bolt.]]>
+<![CDATA[<a href="https://puppet.com/docs/bolt/">Read more</a> about Puppet Bolt and <a href="https://github.com/OpenVoxProject/openbolt">OpenBolt</a>.]]>
     </String>
     <String Id="WelcomeUpdateDlgDescriptionUpdate" Overridable="yes"><!-- _locID_text="WelcomeUpdateDlgDescriptionUpdate" _locComment="WelcomeUpdateDlgDescriptionUpdate" -->This will update [ProductName] to version [VersionUIString].</String>
     <String Id="WelcomeDlgTitle" Overridable="yes"><!-- _locID_text="WelcomeDlgTitle" _locComment="WelcomeDlgTitle" -->{\WixUI_Font_Bigger}Welcome to the [ProductName] Setup Wizard</String>
@@ -277,7 +277,7 @@ This wizard will install Puppet Bolt version [VersionUIString].
     <String Id="WelcomeEulaDlgLicenseAcceptedCheckBox" Overridable="yes"><!-- _locID_text="WelcomeEulaDlgLicenseAcceptedCheckBox" _locComment="WelcomeEulaDlgLicenseAcceptedCheckBox" -->I &amp;accept the terms in the License Agreement</String>
     <String Id="WelcomeEulaDlgInstall" Overridable="yes"><!-- _locID_text="WelcomeEulaDlgInstall" _locComment="WelcomeEulaDlgInstall" -->&amp;Install</String>
     <String Id="WelcomeEulaDlgUpdate" Overridable="yes"><!-- _locID_text="WelcomeEulaDlgUpdate" _locComment="WelcomeEulaDlgUpdate" -->&amp;Update</String>
-    <String Id="WelcomeEulaDlgTitle" Overridable="yes"><!-- _locID_text="WelcomeEulaDlgTitle" _locComment="WelcomeEulaDlgTitle" -->{\PuppetLabs_Font_Title_White}Please read the [ProductName] License Agreement</String>
+    <String Id="WelcomeEulaDlgTitle" Overridable="yes"><!-- _locID_text="WelcomeEulaDlgTitle" _locComment="WelcomeEulaDlgTitle" -->{\VoxPupuli_Font_Title_White}Please read the [ProductName] License Agreement</String>
 
     <String Id="ProgressTextInstallValidate" Overridable="yes"><!-- _locID_text="ProgressTextInstallValidate" _locComment="ProgressTextInstallValidate" -->Validating install</String>
     <String Id="ProgressTextInstallFiles" Overridable="yes"><!-- _locID_text="ProgressTextInstallFiles" _locComment="ProgressTextInstallFiles" -->Copying new files</String>

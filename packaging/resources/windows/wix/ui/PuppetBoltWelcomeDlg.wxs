@@ -13,7 +13,7 @@
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
   <Fragment>
     <UI>
-      <Dialog Id="PuppetBoltWelcomeDlg" Width="370" Height="270" Title="!(loc.WelcomeDlg_Title)">
+      <Dialog Id="OpenBoltWelcomeDlg" Width="370" Height="270" Title="!(loc.WelcomeDlg_Title)">
         <Control Id="Next" Type="PushButton" X="236" Y="243" Width="56" Height="17" Default="yes" Text="!(loc.WixUINext)" >
           <Publish Property="WixUI_InstallMode" Value="Update">Installed AND PATCH</Publish>
         </Control>
