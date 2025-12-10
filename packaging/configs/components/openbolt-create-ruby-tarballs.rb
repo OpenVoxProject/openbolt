@@ -1,4 +1,4 @@
-component "bolt-create-ruby-tarballs" do |pkg, settings, platform|
+component "openbolt-create-ruby-tarballs" do |pkg, settings, platform|
   # We only create the tarballs on Windows right now
   if platform.is_windows?
     pkg.add_source("file://resources/files/install-tarballs/extract_all.rb")

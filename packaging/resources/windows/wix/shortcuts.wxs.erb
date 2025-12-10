@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='windows-1252'?>
 <Wix xmlns='http://schemas.microsoft.com/wix/2006/wi' xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
   <!--
-    Puppet Bolt specific shortcut config
+    OpenBolt specific shortcut config
     This overrides the generic file in the vanagon directory
   -->
   <Fragment>
@@ -14,27 +14,27 @@
     <!-- Directory Definitions for Start Menu Shortcuts -->
     <DirectoryRef Id='TARGETDIR'>
       <Directory Id='ProgramMenuFolder'>
-        <Directory Id='PuppetBoltShortcutDir' Name="<%= settings[:shortcut_name] %>">
+        <Directory Id='OpenBoltShortcutDir' Name="<%= settings[:shortcut_name] %>">
         </Directory>
       </Directory>
     </DirectoryRef>
 
     <ComponentGroup Id="ShortCutsComponentGroup">
       <Component
-        Id="PuppetBoltDocumentationShortcuts"
+        Id="OpenBoltDocumentationShortcuts"
         Guid="7502770F-9143-4616-A5D5-1536D18549A7"
-        Directory="PuppetBoltShortcutDir"
+        Directory="OpenBoltShortcutDir"
         Win64="yes">
         <IniFile
-          Id="PuppetBoltSupportURL"
+          Id="OpenBoltSupportURL"
           Name="<%= settings[:product_name] %> Documentation.url"
           Action="addLine"
           Section="InternetShortcut"
           Key="URL"
           Value="<%= settings[:links][:ManualLink] %>"
-          Directory="PuppetBoltShortcutDir" />
+          Directory="OpenBoltShortcutDir" />
         <RemoveFolder
-          Id="PuppetBoltShortcutDir"
+          Id="OpenBoltShortcutDir"
           On="uninstall"/>
         <RegistryValue
           Root="HKCU"

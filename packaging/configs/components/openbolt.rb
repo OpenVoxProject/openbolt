@@ -1,8 +1,8 @@
-component "bolt" do |pkg, settings, platform|
-  pkg.load_from_json('configs/components/bolt.json')
-
-  # Install the bolt runtime for access to rubygem-r10k:
-  pkg.build_requires 'bolt-runtime'
+require_relative '../../../lib/bolt/version'
+component "openbolt" do |pkg, settings, platform|
+  pkg.url 'file://../'
+  pkg.version Bolt::VERSION
+  pkg.build_requires 'openbolt-runtime'
 
   # We need to run r10k before building the gem.
   pkg.build do

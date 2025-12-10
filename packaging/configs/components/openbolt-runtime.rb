@@ -1,4 +1,4 @@
-component 'bolt-runtime' do |pkg, settings, platform|
+component 'openbolt-runtime' do |pkg, settings, platform|
   # The JSON name intentionally differs from the component, because automation to update
   # the puppet-runtime ref relies on the puppet-runtime name.
   unless settings[:puppet_runtime_version] && settings[:puppet_runtime_location] && settings[:puppet_runtime_basename]
