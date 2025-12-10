@@ -2,13 +2,12 @@
 
 source ENV['GEM_SOURCE'] || 'https://rubygems.org'
 
-def location_for(place)
-  case place
-  when /^(git[:@][^#]*)#(.*)/
-    [{ git: Regexp.last_match(1), branch: Regexp.last_match(2), require: false }]
-  when %r{^file://(.*)}
+def location_for(place, fake_version = nil)
+  if place.is_a?(String) && place =~ /^((?:git[:@]|https:)[^#]*)#(.*)/
+    [fake_version, { git: Regexp.last_match(1), branch: Regexp.last_match(2), require: false }].compact
+  elsif place.is_a?(String) && place =~ %r{^file://(.*)}
     ['>= 0', { path: File.expand_path(Regexp.last_match(1)), require: false }]
-  when /(\d+\.\d+\.\d+)/
+  else
     [place, { require: false }]
   end
 end
