@@ -76,7 +76,7 @@ project "openbolt" do |proj|
   proj.directory proj.link_bindir
 
   # rubocop:disable Style/RedundantStringEscape, Style/FormatStringToken
-  if platform.is_fedora?
+  if platform.is_rpm?
     proj.package_override("# Disable check-rpaths since /opt/* is not a valid path\n%global __brp_check_rpaths \%{nil}")
     proj.package_override("# Disable the removal of la files, they are still required\n%global __brp_remove_la_files \%{nil}")
   end
