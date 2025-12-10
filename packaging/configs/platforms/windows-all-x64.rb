@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 platform 'windows-all-x64' do |plat|
   plat.servicetype "windows"
 

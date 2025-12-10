@@ -52,13 +52,11 @@ module Bolt
       missing_keys = expected_report_keys.reject { |k| result.value.include?(k) }
 
       unless missing_keys.empty?
-        if result['_output']
-          # rubocop:disable Layout/LineLength
-          msg = "Report result contains an '_output' key. Catalog application might have printed extraneous output to stdout: #{result['_output']}"
-          # rubocop:enable Layout/LineLength
-        else
-          msg = "Report did not contain all expected keys missing: #{missing_keys.join(', ')}"
-        end
+        msg = if result['_output']
+                "Report result contains an '_output' key. Catalog application might have printed extraneous output to stdout: #{result['_output']}"
+              else
+                "Report did not contain all expected keys missing: #{missing_keys.join(', ')}"
+              end
 
         { 'msg' => msg,
           'kind' => 'bolt/invalid-report' }

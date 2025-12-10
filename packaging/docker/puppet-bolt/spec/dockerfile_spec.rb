@@ -1,9 +1,12 @@
+# frozen_string_literal: true
+
 require 'rspec/core'
 SPEC_DIRECTORY = File.dirname(__FILE__)
 
 describe 'puppet-bolt container' do
   include Pupperware::SpecHelpers
 
+  # rubocop:disable RSpec/BeforeAfterAll
   before(:all) do
     @image = ENV['PUPPET_TEST_DOCKER_IMAGE']
     if @image.nil?
@@ -13,9 +16,10 @@ describe 'puppet-bolt container' do
   know which image to test against!
 * * * * *
       MSG
-      fail error_message
+      raise error_message
     end
   end
+  # rubocop:enable RSpec/BeforeAfterAll
 
   it 'should run the image' do
     result = run_command("docker run --detach #{@image}")

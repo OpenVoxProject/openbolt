@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 namespace :vox do
   desc 'Upload artifacts from the output directory to S3. Requires the AWS CLI to be installed and configured appropriately.'
   task :upload, [:tag, :platform] do |_, args|
@@ -8,7 +10,7 @@ namespace :vox do
     arch = nil
     if args[:platform]
       parts = args[:platform].split('-')
-      os = parts[0].gsub('fedora','fc')
+      os = parts[0].gsub('fedora', 'fc')
       osver = parts[1]
       # On MacOS, the dmg name has "macos.all"
       os = os == 'macos' ? "#{os}.#{osver}" : "#{os}#{osver}"
@@ -19,7 +21,7 @@ namespace :vox do
     abort 'You must set the BUCKET_NAME environment variable to the S3 bucket you are uploading to.' if bucket.nil? || bucket.empty?
     abort 'You must provide a tag.' if args[:tag].nil? || args[:tag].empty?
 
-    munged_tag = args[:tag].gsub('-', '.')
+    munged_tag = args[:tag].tr('-', '.')
     s3 = "aws s3 --endpoint-url=#{endpoint}"
 
     # Ensure the AWS CLI isn't going to fail with the given parameters
@@ -27,15 +29,15 @@ namespace :vox do
 
     glob = "#{__dir__}/../packaging/output/**/*#{munged_tag}*"
     if os
-      if os =~ /windows/
-        # We don't put the OS in the filename for Windows
-        glob += "#{arch}.msi"
-      else
-        # "arch" is not used here because we are currently horrifyingly
-        # inconsistent with the platform -> package name
-        # (e.g. debian-12-aarch64 ends up as debian12.arm64).
-        glob += "#{os}*"
-      end
+      glob += if os =~ /windows/
+                # We don't put the OS in the filename for Windows
+                "#{arch}.msi"
+              else
+                # "arch" is not used here because we are currently horrifyingly
+                # inconsistent with the platform -> package name
+                # (e.g. debian-12-aarch64 ends up as debian12.arm64).
+                "#{os}*"
+              end
     end
     puts "Searching for files with glob #{glob}"
     files = Dir.glob(glob)

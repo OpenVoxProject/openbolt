@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'pathname'
 require 'fileutils'
 
@@ -17,9 +19,9 @@ end
 # right now. We need that!
 dirs_to_delete = ["lib/ruby/gems"]
 
-dirs_to_delete.each { |dir| logmessage("'#{dir}' is scheduled for deletion") }
-dirs_to_delete.each do |dir|
+dirs_to_delete.each { |dir|
+  logmessage("'#{dir}' is scheduled for deletion")
   absolute_dir = File.join(install_dir, dir)
   logmessage("Attempting to delete '#{absolute_dir}'...")
   FileUtils.rm_rf(absolute_dir)
-end
+}

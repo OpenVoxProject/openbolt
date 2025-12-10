@@ -3,12 +3,13 @@
 source ENV['GEM_SOURCE'] || 'https://rubygems.org'
 
 def location_for(place)
-  if place =~ /^(git[:@][^#]*)#(.*)/
-    [{ :git => $1, :branch => $2, :require => false }]
-  elsif place =~ /^file:\/\/(.*)/
-    ['>= 0', { :path => File.expand_path($1), :require => false }]
-  elsif place =~ /(\d+\.\d+\.\d+)/
-    [ place, { :require => false }]
+  case place
+  when /^(git[:@][^#]*)#(.*)/
+    [{ git: Regexp.last_match(1), branch: Regexp.last_match(2), require: false }]
+  when %r{^file://(.*)}
+    ['>= 0', { path: File.expand_path(Regexp.last_match(1)), require: false }]
+  when /(\d+\.\d+\.\d+)/
+    [place, { require: false }]
   end
 end
 
@@ -36,10 +37,10 @@ group(:release, optional: true) do
 end
 
 group(:packaging) do
-  gem 'vanagon', *location_for(ENV['VANAGON_LOCATION'] || 'https://github.com/openvoxproject/vanagon#main')
-  gem 'packaging', '~> 0.105'
   gem 'json'
+  gem 'packaging', '~> 0.105'
   gem 'rake'
+  gem 'vanagon', *location_for(ENV['VANAGON_LOCATION'] || 'https://github.com/openvoxproject/vanagon#main')
 end
 
 local_gemfile = File.join(__dir__, 'Gemfile.local')

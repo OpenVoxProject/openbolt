@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 platform 'macos-all-arm64' do |plat|
   plat.inherit_from_default
   packages = %w[cmake pkg-config yaml-cpp]

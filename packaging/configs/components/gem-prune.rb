@@ -1,4 +1,6 @@
-component 'gem-prune' do |pkg, settings, platform|
+# frozen_string_literal: true
+
+component 'gem-prune' do |pkg, settings, _platform|
   pkg.build_requires 'bolt-runtime'
 
   pkg.add_source('file://resources/rubygems-prune')

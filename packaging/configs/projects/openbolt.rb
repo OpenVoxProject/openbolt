@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 project "openbolt" do |proj|
   proj.license "See components"
   proj.vendor "Vox Pupuli <openvox@voxpupuli.org>"
@@ -33,20 +35,21 @@ project "openbolt" do |proj|
     proj.setting(:upgrade_code, "5F2FFC54-3620-429C-B90E-D16E0348A1E7")
     proj.setting(:product_name, "OpenBolt")
     proj.setting(:base_dir, "ProgramFiles64Folder")
-    proj.setting(:links, {
-      :HelpLink => "https://voxpupuli.slack.com",
-      :CommunityLink => "https://voxpupuli.org/",
-      :ForgeLink => "http://forge.puppet.com",
-      :NextStepLink => "https://puppet.com/docs/bolt/",
-      :ManualLink => "https://puppet.com/docs/bolt/",
-    })
+    proj.setting(:links,
+                 {
+                   HelpLink: "https://voxpupuli.slack.com",
+                   CommunityLink: "https://voxpupuli.org/",
+                   ForgeLink: "http://forge.puppet.com",
+                   NextStepLink: "https://puppet.com/docs/bolt/",
+                   ManualLink: "https://puppet.com/docs/bolt/",
+                 })
     proj.setting(:LicenseRTF, "wix/license/LICENSE.rtf")
     proj.setting(:install_root, File.join("C:", proj.base_dir, proj.pl_company_id, proj.product_id))
     proj.setting(:link_bindir, File.join(proj.install_root, "bin"))
 
-    module_directory = File.join(proj.datadir.sub(/^.*:\//, ''), 'PowerShell', 'Modules')
-    #proj.extra_file_to_sign File.join(module_directory, 'PuppetBolt', 'PuppetBolt.psm1')
-    #proj.extra_file_to_sign File.join(module_directory, 'PuppetBolt', 'PuppetBolt.psd1')
+    File.join(proj.datadir.sub(%r{^.*:/}, ''), 'PowerShell', 'Modules')
+    # proj.extra_file_to_sign File.join(module_directory, 'PuppetBolt', 'PuppetBolt.psm1')
+    # proj.extra_file_to_sign File.join(module_directory, 'PuppetBolt', 'PuppetBolt.psd1')
   else
     proj.setting(:link_bindir, "/opt/puppetlabs/bin")
     proj.setting(:main_bin, "/usr/local/bin")
@@ -61,11 +64,12 @@ project "openbolt" do |proj|
   proj.directory proj.prefix
   proj.directory proj.link_bindir
 
-
+  # rubocop:disable Style/RedundantStringEscape, Style/FormatStringToken
   if platform.is_fedora?
     proj.package_override("# Disable check-rpaths since /opt/* is not a valid path\n%global __brp_check_rpaths \%{nil}")
     proj.package_override("# Disable the removal of la files, they are still required\n%global __brp_remove_la_files \%{nil}")
   end
+  # rubocop:enable Style/RedundantStringEscape, Style/FormatStringToken
 
   if platform.name =~ /^el-(8)-.*/
     # Disable build-id generation since it's currently generating conflicts

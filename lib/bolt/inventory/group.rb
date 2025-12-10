@@ -256,7 +256,7 @@ module Bolt
 
         # DEPRECATION : remove this before finalization
         if input.key?('target-lookups')
-          msg = "'target-lookups' are no longer a separate key. Merge 'target-lookups' and 'targets' lists and replace 'plugin' with '_plugin'" # rubocop:disable Layout/LineLength
+          msg = "'target-lookups' are no longer a separate key. Merge 'target-lookups' and 'targets' lists and replace 'plugin' with '_plugin'"
           raise ValidationError.new(msg, @name)
         end
 
