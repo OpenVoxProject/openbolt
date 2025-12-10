@@ -12,11 +12,11 @@ component "openbolt" do |pkg, settings, platform|
   end
 
   pkg.build do
-    ["#{settings[:host_gem]} build bolt.gemspec"]
+    ["#{settings[:host_gem]} build openbolt.gemspec"]
   end
 
   pkg.install do
-    ["#{settings[:gem_install]} bolt-*.gem"]
+    ["#{settings[:gem_install]} openbolt-*.gem"]
   end
 
   if platform.is_windows?

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 component 'gem-prune' do |pkg, settings, _platform|
-  pkg.build_requires 'bolt-runtime'
+  pkg.build_requires 'openbolt-runtime'
 
   pkg.add_source('file://resources/rubygems-prune')
 

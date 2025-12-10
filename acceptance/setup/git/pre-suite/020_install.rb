@@ -37,7 +37,7 @@ test_name "Install Bolt via git" do
   end
 
   step "Build gem" do
-    build_command = "cd bolt; gem build bolt.gemspec"
+    build_command = "cd bolt; gem build openbolt.gemspec"
     case bolt['platform']
     when /windows/
       execute_powershell_script_on(bolt, build_command)

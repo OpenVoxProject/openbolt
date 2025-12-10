@@ -61,7 +61,18 @@ project "openbolt" do |proj|
 
   proj.component "gem-prune"
 
+  # These come from puppet-runtime's settings output
   proj.directory proj.prefix
+  proj.directory proj.bindir
+  proj.directory proj.libdir
+  proj.directory proj.includedir
+  proj.directory proj.datadir
+  proj.directory proj.mandir
+  proj.directory proj.ruby_dir_base
+  proj.directory proj.ruby_dir_base_version
+  proj.directory proj.rubygems_dir
+  proj.directory proj.rubygems_ssl_dir
+
   proj.directory proj.link_bindir
 
   # rubocop:disable Style/RedundantStringEscape, Style/FormatStringToken
