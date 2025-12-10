@@ -19,6 +19,6 @@ rulesets:
 
           !feature
 
-          * **Added a new feature** ([#1000](https://github.com/puppetlabs/bolt/issues/1000))
+          * **Added a new feature** ([#1000](https://github.com/OpenVoxProject/openbolt/issues/1000))
 
             A brief summary of the new feature.
