@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="windows-1252"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi" xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
+
+  <!-- Puppet Bolt Specific Component Group File -->
+
+  <Fragment>
+    <ComponentGroup Id="MainComponentGroup">
+      <ComponentRef Id="BoltPathEnvVarible" />
+
+      <!-- We can add all components by referencing this one thing -->
+      <ComponentGroupRef Id="AppComponentGroup" />
+      <ComponentGroupRef Id="PowerShellModuleComponentGroup" />
+
+      <!-- All of these Include refs are expected to be present -->
+      <ComponentGroupRef Id="FragmentProperties" />
+      <ComponentGroupRef Id="RegistryComponentGroup" />
+      <ComponentGroupRef Id="FragmentSequences" />
+      <ComponentGroupRef Id="FragmentCustomActions" />
+      <ComponentGroupRef Id="FragmentIcon" />
+      <ComponentGroupRef Id="FragmentVariables" />
+      <ComponentGroupRef Id="ShortCutsComponentGroup" />
+    </ComponentGroup>
+
+    <UI>
+      <UIRef Id="WixUI_PuppetBoltInstallDir"/>
+    </UI>
+
+  </Fragment>
+</Wix>

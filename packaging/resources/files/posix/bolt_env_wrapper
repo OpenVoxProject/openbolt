@@ -1,0 +1,22 @@
+#!/bin/sh
+
+# avoid influences from already pre-configured other ruby environments
+env \
+  -u GEM_HOME \
+  -u GEM_PATH \
+  -u DLN_LIBRARY_PATH \
+  -u RUBYLIB \
+  -u RUBYLIB_PREFIX \
+  -u RUBYOPT \
+  -u RUBYPATH \
+  -u RUBYSHELL \
+  -u LD_LIBRARY_PATH \
+  -u LD_PRELOAD \
+  BOLT_ORIG_GEM_PATH="$GEM_PATH" \
+  BOLT_ORIG_GEM_HOME="$GEM_HOME" \
+  BOLT_ORIG_RUBYLIB="$RUBYLIB" \
+  BOLT_ORIG_RUBYLIB_PREFIX="$RUBYLIB_PREFIX" \
+  BOLT_ORIG_RUBYOPT="$RUBYOPT" \
+  BOLT_ORIG_RUBYPATH="$RUBYPATH" \
+  BOLT_ORIG_RUBYSHELL="$RUBYSHELL" \
+  /opt/puppetlabs/bolt/bin/bolt "$@"
