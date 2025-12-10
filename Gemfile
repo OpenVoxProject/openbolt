@@ -2,6 +2,16 @@
 
 source ENV['GEM_SOURCE'] || 'https://rubygems.org'
 
+def location_for(place)
+  if place =~ /^(git[:@][^#]*)#(.*)/
+    [{ :git => $1, :branch => $2, :require => false }]
+  elsif place =~ /^file:\/\/(.*)/
+    ['>= 0', { :path => File.expand_path($1), :require => false }]
+  elsif place =~ /(\d+\.\d+\.\d+)/
+    [ place, { :require => false }]
+  end
+end
+
 # Disable analytics when running in development
 ENV['BOLT_DISABLE_ANALYTICS'] = 'true'
 
@@ -26,7 +36,10 @@ group(:release, optional: true) do
 end
 
 group(:packaging) do
+  gem 'vanagon', *location_for(ENV['VANAGON_LOCATION'] || 'https://github.com/openvoxproject/vanagon#main')
   gem 'packaging', '~> 0.105'
+  gem 'json'
+  gem 'rake'
 end
 
 local_gemfile = File.join(__dir__, 'Gemfile.local')
