@@ -30,7 +30,7 @@ component 'openbolt-runtime' do |pkg, settings, platform|
                       # of these directories instead:
                       [
                         "tar -xzf #{tarball_name}",
-                        'rsync -ka opt/ /opt/'
+                        'sudo rsync -ka opt/ /opt/'
                       ]
                     else
                       ["gunzip -c #{tarball_name} | #{platform.tar} -k -C / -xf -"]
