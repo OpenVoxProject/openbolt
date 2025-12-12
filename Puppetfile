@@ -17,7 +17,7 @@ mod 'puppetlabs-powershell', '6.1.0'
 mod 'puppetlabs-pwshlib', '2.0.0'
 
 # Core types and providers for Puppet 6
-mod 'puppetlabs-augeas_core', '1.5.0'
+mod 'puppetlabs-augeas_core', '2.0.1'
 mod 'puppetlabs-host_core', '1.3.0'
 mod 'puppetlabs-scheduled_task', '4.0.3'
 mod 'puppetlabs-sshkeys_core', '3.0.1'
