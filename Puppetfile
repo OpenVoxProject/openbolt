@@ -26,7 +26,7 @@ mod 'puppetlabs-cron_core', '1.3.0'
 mod 'puppetlabs-mount_core', '2.0.1'
 mod 'puppetlabs-selinux_core', '2.0.1'
 mod 'puppetlabs-yumrepo_core', '3.0.1'
-mod 'puppetlabs-zone_core', '1.2.0'
+mod 'puppetlabs-zone_core', '2.0.1'
 
 # Useful additional modules
 mod 'puppetlabs-package', '3.1.0'
