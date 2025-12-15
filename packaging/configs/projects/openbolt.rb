@@ -87,4 +87,9 @@ project "openbolt" do |proj|
     # with system libgcc and libstdc++
     proj.package_override("# Disable build-id generation to avoid conflicts\n%global _build_id_links none")
   end
+
+  major = proj.get_version.split('.').first
+  proj.replaces 'puppet-bolt', "< #{major.to_i + 1}"
+  proj.conflicts 'puppet-bolt'
+  proj.provides 'puppet-bolt', "= #{major}"
 end
