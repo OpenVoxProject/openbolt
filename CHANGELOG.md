@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file.
 
+## [5.3.0](https://github.com/openvoxproject/openbolt/tree/5.3.0) (2025-12-16)
+
+[Full Changelog](https://github.com/openvoxproject/openbolt/compare/5.2.0...5.3.0)
+
+**Implemented enhancements:**
+
+- Add packaging metadata [\#166](https://github.com/OpenVoxProject/openbolt/pull/166) ([nmburgan](https://github.com/nmburgan))
+
+**Fixed bugs:**
+
+- Fix use of openvox\_bootstrap module/plugin [\#145](https://github.com/OpenVoxProject/openbolt/pull/145) ([nmburgan](https://github.com/nmburgan))
+
+**Merged pull requests:**
+
+- Promote puppet-runtime 2025.12.15.1 [\#165](https://github.com/OpenVoxProject/openbolt/pull/165) ([OpenVoxProjectBot](https://github.com/OpenVoxProjectBot))
+- Relax json gem requirement [\#164](https://github.com/OpenVoxProject/openbolt/pull/164) ([nmburgan](https://github.com/nmburgan))
+- Add sudo where needed for MacOS builds [\#158](https://github.com/OpenVoxProject/openbolt/pull/158) ([nmburgan](https://github.com/nmburgan))
+- Include openssl gem to avoid SSL errors on MacOS [\#157](https://github.com/OpenVoxProject/openbolt/pull/157) ([nmburgan](https://github.com/nmburgan))
+- Pull openbolt-vanagon repo into packaging directory [\#156](https://github.com/OpenVoxProject/openbolt/pull/156) ([nmburgan](https://github.com/nmburgan))
+- Change Puppet -\> OpenVox and Bolt -\> OpenBolt [\#155](https://github.com/OpenVoxProject/openbolt/pull/155) ([nmburgan](https://github.com/nmburgan))
+- Disable analytics code [\#144](https://github.com/OpenVoxProject/openbolt/pull/144) ([nmburgan](https://github.com/nmburgan))
+- Remove first run welcome message [\#139](https://github.com/OpenVoxProject/openbolt/pull/139) ([nmburgan](https://github.com/nmburgan))
+
 ## [5.2.0](https://github.com/openvoxproject/openbolt/tree/5.2.0) (2025-11-19)
 
 [Full Changelog](https://github.com/openvoxproject/openbolt/compare/5.1.0...5.2.0)
