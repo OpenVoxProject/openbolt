@@ -15,9 +15,6 @@ end
 # Disable analytics when running in development
 ENV['BOLT_DISABLE_ANALYTICS'] = 'true'
 
-# Disable warning that Bolt may be installed as a gem
-ENV['BOLT_GEM'] = 'true'
-
 gemspec
 
 # Need to update the openssl gem on MacOS to avoid SSL errors. Doesn't hurt to have the newest
