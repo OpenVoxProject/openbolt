@@ -57,3 +57,6 @@ end
 gem 'syslog', '~> 0.3' if RUBY_VERSION >= '3.4'
 
 gem 'puppet_metadata', '>= 5.3', '< 7'
+
+# test forge_ruby branch until it's released
+gem 'forge_ruby', github: 'puppetlabs/forge-ruby', branch: 'main'
