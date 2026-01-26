@@ -254,4 +254,25 @@ describe Bolt::PuppetDB::Config do
       Bolt::PuppetDB::Config.new(config: {}, load_defaults: true)
     end
   end
+
+  context 'when validating headers' do
+    let(:options) { { 'server_urls' => ['https://puppetdb:8081'], 'headers' => headers } }
+    let(:config) { Bolt::PuppetDB::Config.new(config: options) }
+
+    context 'with valid headers' do
+      let(:headers) { { 'Authorization' => 'Bearer token' } }
+
+      it 'returns the headers' do
+        expect(config.headers).to eq(headers)
+      end
+    end
+
+    context 'with invalid headers' do
+      let(:headers) { 'Authorization: Bearer token' }
+
+      it 'raises an error' do
+        expect { config.headers }.to raise_error(Bolt::PuppetDBError, "headers must be a Hash")
+      end
+    end
+  end
 end

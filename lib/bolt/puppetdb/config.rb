@@ -149,6 +149,14 @@ module Bolt
         @settings['key']
       end
 
+      def headers
+        if @settings['headers'] && !@settings['headers'].is_a?(Hash)
+          raise Bolt::PuppetDBError, "headers must be a Hash"
+        end
+
+        @settings['headers']
+      end
+
       def validate_cert_and_key
         if (@settings['cert'] && !@settings['key']) ||
            (!@settings['cert'] && @settings['key'])

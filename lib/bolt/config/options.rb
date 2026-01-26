@@ -76,6 +76,12 @@ module Bolt
           _example: 120,
           _plugin: true
         },
+        "headers" => {
+          description: "A map of HTTP headers to add to PuppetDB requests.",
+          type: Hash,
+          _example: { "Authorization" => "Bearer <token>" },
+          _plugin: true
+        },
         "key" => {
           description: "The private key for the certificate.",
           type: String,
