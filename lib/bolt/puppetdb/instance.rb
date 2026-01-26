@@ -139,6 +139,7 @@ module Bolt
 
       def headers
         headers = { 'Content-Type' => 'application/json' }
+        headers.merge!(@config.headers) if @config.headers
         headers['X-Authentication'] = @config.token if @config.token
         headers
       end

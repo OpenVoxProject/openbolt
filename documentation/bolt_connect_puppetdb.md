@@ -50,6 +50,7 @@ config](configuring_bolt.md) with the following values:
 | --- | --- | --- |
 | `cacert` | `String` | The path to the CA certificate for PuppetDB. |
 | `connect_timeout` | `Integer` | How long to wait in seconds when establishing connections with PuppetDB. |
+| `headers` | `Hash` | A map of HTTP headers to add to PuppetDB requests. |
 | `read_timeout` | `Integer` | How long to wait in seconds for a response from PuppetDB. |
 | `server_urls` | `Array` | An array of strings containing the PuppetDB host to connect to. Include the protocol `https` and the port, which is usually `8081`. For example, `https://my-puppetdb-server.example.com:8081`. The Bolt PuppetDB client attempts to connect to each host in the list until it makes a successful connection. |
 
@@ -92,6 +93,16 @@ puppetdb:
   server_urls: ["https://puppet.example.com:8081"]
   cacert: /etc/puppetlabs/puppet/ssl/certs/ca.pem
   token: ~/.puppetlabs/token
+```
+
+To use custom headers, such as for OAuth authentication:
+
+```
+puppetdb:
+  server_urls: ["https://puppet.example.com:8081"]
+  cacert: /etc/puppetlabs/puppet/ssl/certs/ca.pem
+  headers:
+    Authorization: "Bearer <token-content>"
 ```
 
 ## Configuring multiple PuppetDB instances
@@ -244,15 +255,15 @@ plan puppetdb_query_targets {
   # this returns an array of objects, each object containing a "certname" parameter:
   # [ {"certname": "node1"}, {"certname": "node2"} ]
   $query_results = puppetdb_query("nodes[certname] {}")
-  
+
   # since puppetdb_query() returns the JSON results from the API call, we need to transform this
   # data into Targets to use it in one of the run_*() functions.
   # extract the "certname" values, so now we have an array of hostnames
   $certnames = $query_results.map |$r| { $r['certname'] }
-  
+
   # transform the arary of certnames into an array of Targets
   $targets = get_targets($certnames)
-  
+
   # gather facts about all of the nodes
   run_task('facts', $targets)
 }
@@ -270,10 +281,10 @@ plan puppetdb_plugin_targets {
     'query'   => 'nodes[certname] {}',
   }
   $references = resolve_references($refs)
-  
+
   # maps the results into a list of Target objects
   $targets = $references.map |$r| { Target.new($r) }
-  
+
   # gather facts about all of the nodes
   run_task('facts', $targets)
 }
