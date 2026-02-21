@@ -42,8 +42,8 @@ group(:release, optional: true) do
 end
 
 group(:audit) do
-  gem 'bundler-audit', '~> 0.9', require: false
-  gem 'ruby_audit', '~> 2.3', require: false
+  gem 'bundler-audit', '~> 0.9.3', require: false
+  gem 'ruby_audit', '~> 3.1', require: false
 end
 
 group(:packaging) do
