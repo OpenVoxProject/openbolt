@@ -51,3 +51,5 @@ end
 gem 'syslog', '~> 0.3' if RUBY_VERSION >= '3.4'
 
 gem 'puppet_metadata', '>= 5.3', '< 7'
+
+gem 'net-ssh', github: 'bastelfreak/net-ssh', branch: 'logger'
