@@ -59,4 +59,5 @@ gem 'syslog', '~> 0.3' if RUBY_VERSION >= '3.4'
 gem 'puppet_metadata', '>= 5.3', '< 7'
 
 # test puppet_forge branch until it's released
+gem 'net-ssh', github: 'bastelfreak/net-ssh', branch: 'logger'
 gem 'puppet_forge', github: 'puppetlabs/forge-ruby', branch: 'main'
