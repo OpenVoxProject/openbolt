@@ -41,6 +41,11 @@ group(:release, optional: true) do
   gem 'github_changelog_generator', '~> 1.16.4', require: false
 end
 
+group(:audit) do
+  gem 'bundler-audit', '~> 0.9.3', require: false
+  gem 'ruby_audit', '~> 3.1', require: false
+end
+
 group(:packaging) do
   gem 'json'
   gem 'packaging', '~> 0.105'
