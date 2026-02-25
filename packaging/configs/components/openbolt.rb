@@ -4,6 +4,8 @@ require_relative '../../../lib/bolt/version'
 component "openbolt" do |pkg, settings, platform|
   pkg.url 'file://../'
   pkg.version Bolt::VERSION
+  pkg.build_requires 'rubygem-fiddle'
+  pkg.build_requires 'rubygem-locale'
   pkg.build_requires 'openbolt-runtime'
 
   # We need to run r10k before building the gem.
