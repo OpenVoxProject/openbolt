@@ -48,7 +48,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency "CFPropertyList", ">= 2.2"
   spec.add_dependency "concurrent-ruby", "~> 1.0"
   spec.add_dependency "ffi", ">= 1.9.25", "< 2.0.0"
-  spec.add_dependency "hiera-eyaml", ">= 3.0.0", "< 5.0.0"
+  spec.add_dependency "hiera-eyaml", ">= 3.0.0", "< 6.0.0"
   spec.add_dependency "json", "~> 2.6"
   spec.add_dependency "jwt", "~> 2.2"
   spec.add_dependency "logging", "~> 2.2"
@@ -57,7 +57,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency "net-ssh", ">= 4.0", "< 8.0"
   spec.add_dependency "net-ssh-krb", "~> 0.5"
   spec.add_dependency "openvox", "~> 8.0"
-  spec.add_dependency "openvox-strings", '>= 5.0', '< 7'
+  spec.add_dependency "openvox-strings", '>= 5.0', '< 8'
   spec.add_dependency "puppetfile-resolver", ">= 0.6.2", "< 1.0"
   spec.add_dependency "puppet-resource_api", ">= 1.8.1"
   spec.add_dependency "r10k", ">= 3.10", "< 6"
