@@ -56,4 +56,4 @@ end
 # https://github.com/OpenVoxProject/openvox/issues/90
 gem 'syslog', '~> 0.3' if RUBY_VERSION >= '3.4'
 
-gem 'puppet_metadata', '~> 5.3'
+gem 'puppet_metadata', '>= 5.3', '< 7'
