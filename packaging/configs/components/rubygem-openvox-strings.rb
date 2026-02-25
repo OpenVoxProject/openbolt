@@ -11,8 +11,6 @@ component 'rubygem-openvox-strings' do |pkg, _settings, _platform|
   pkg.build_requires 'rubygem-openvox'
   pkg.build_requires 'rubygem-rgen'
   pkg.build_requires 'rubygem-yard'
-  pkg.build_requires 'rubygem-fiddle'
-  pkg.build_requires 'rubygem-locale'
   ### End automated maintenance section ###
 
   instance_eval File.read('configs/components/_base-rubygem.rb')
