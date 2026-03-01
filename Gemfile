@@ -56,6 +56,12 @@ end
 # https://github.com/OpenVoxProject/openvox/issues/90
 gem 'syslog', '~> 0.3' if RUBY_VERSION >= '3.4'
 
+# openvox dep: openvox-8.25.0/lib/puppet/util/windows.rb:35
+# vendored until Ruby 4.0 and requires libs to compile dependencies
+if RUBY_VERSION >= '3.4' && Gem.win_platform?
+  gem 'win32ole'
+end
+
 gem 'puppet_metadata', '>= 5.3', '< 7'
 
 # test puppet_forge branch until it's released
