@@ -10,7 +10,7 @@ mod 'puppet-openvox_bootstrap', '1.3.0'
 mod 'puppetlabs-facts', '1.7.0'
 
 # Other core Puppet modules
-mod 'puppetlabs-inifile', '6.2.0'
+mod 'puppetlabs-inifile', '6.3.1'
 mod 'puppetlabs-apt', '11.2.0'
 mod 'puppetlabs-stdlib', '9.7.0'
 mod 'puppetlabs-powershell', '6.1.0'
