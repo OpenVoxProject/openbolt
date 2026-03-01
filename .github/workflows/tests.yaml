@@ -440,6 +440,25 @@ jobs:
       - name: Run tests
         run: bundle exec rake ci:linux:integration
 
+  modules_ci:
+    name: Test vendored Modules - ${{ matrix.runs-on }}
+    runs-on: ${{ matrix.runs-on }}
+    strategy:
+      matrix:
+        runs-on:
+          - ubuntu-24.04
+          - windows-2025
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.2
+          bundler-cache: true
+      - name: Run module tests
+        run: bundle exec rake ci:modules
+
   tests:
     if: always()
     needs:
@@ -458,6 +477,7 @@ jobs:
       - ssh_transport
       - docker_transport
       - integration_linux
+      - modules_ci
     runs-on: ubuntu-24.04
     name: Test suite
     steps:
