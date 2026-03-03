@@ -55,6 +55,10 @@ project "openbolt" do |proj|
     proj.setting(:main_bin, "/usr/local/bin")
   end
 
+  proj.component 'rubygem-systemu'
+  proj.component 'rubygem-nats-pure'
+  proj.component 'rubygem-choria-mcorpc-support'
+
   proj.component "openbolt-runtime"
   proj.component "openbolt"
   proj.component "openbolt-create-ruby-tarballs"
