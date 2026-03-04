@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file.
 
+## [5.4.0](https://github.com/openvoxproject/openbolt/tree/5.4.0) (2026-03-04)
+
+[Full Changelog](https://github.com/openvoxproject/openbolt/compare/5.3.0...5.4.0)
+
+**Implemented enhancements:**
+
+- Platform support ubuntu-26, sles-16, armhf, aarch64 [\#192](https://github.com/OpenVoxProject/openbolt/pull/192) ([marcusdots](https://github.com/marcusdots))
+- puppet\_metadata: Allow 6.x [\#184](https://github.com/OpenVoxProject/openbolt/pull/184) ([bastelfreak](https://github.com/bastelfreak))
+- hiera-eyaml: Allow 5.x [\#183](https://github.com/OpenVoxProject/openbolt/pull/183) ([bastelfreak](https://github.com/bastelfreak))
+
+**Fixed bugs:**
+
+- Upcoming issue with openssl 4.0.0 gem [\#169](https://github.com/OpenVoxProject/openbolt/issues/169)
+
+**Merged pull requests:**
+
+- Promote puppet-runtime 2026.03.04.1 [\#195](https://github.com/OpenVoxProject/openbolt/pull/195) ([OpenVoxProjectBot](https://github.com/OpenVoxProjectBot))
+
 ## [5.3.0](https://github.com/openvoxproject/openbolt/tree/5.3.0) (2025-12-16)
 
 [Full Changelog](https://github.com/openvoxproject/openbolt/compare/5.2.0...5.3.0)
