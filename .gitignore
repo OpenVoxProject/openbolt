@@ -55,7 +55,6 @@ acceptance/hosts.yaml
 modules/*
 !modules/aggregate
 !modules/canary
-!modules/puppet_connect
 !modules/puppetdb_fact
 
 .sass-cache/

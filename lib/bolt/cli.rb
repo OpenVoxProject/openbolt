@@ -750,7 +750,7 @@ module Bolt
     # built-in modules are installed.
     #
     private def incomplete_install?
-      builtin_module_list = %w[aggregate canary puppetdb_fact secure_env_vars puppet_connect]
+      builtin_module_list = %w[aggregate canary puppetdb_fact secure_env_vars]
       (Dir.children(Bolt::Config::Modulepath::MODULES_PATH) - builtin_module_list).empty?
     end
 

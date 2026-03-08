@@ -55,4 +55,3 @@ mod 'puppetlabs-yaml', '0.2.0'
 mod 'canary', local: true
 mod 'aggregate', local: true
 mod 'puppetdb_fact', local: true
-mod 'puppet_connect', local: true
