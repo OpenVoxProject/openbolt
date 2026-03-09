@@ -127,7 +127,7 @@ module Bolt
       end
     end
 
-    RUBY_PLUGINS = %w[task prompt env_var puppetdb puppet_connect_data].freeze
+    RUBY_PLUGINS = %w[task prompt env_var puppetdb].freeze
     BUILTIN_PLUGINS = %w[task terraform pkcs7 prompt vault aws_inventory puppetdb azure_inventory
                          yaml env_var gcloud_inventory].freeze
     DEFAULT_PLUGIN_HOOKS = { 'puppet_library' => { 'plugin' => 'openvox_bootstrap', 'stop_service' => true } }.freeze
@@ -255,9 +255,6 @@ module Bolt
       hooks = KNOWN_HOOKS.map { |hook| [hook, {}] }.to_h
 
       @plugins.sort.each do |name, plugin|
-        # Don't show the Puppet Connect plugin for now.
-        next if name == 'puppet_connect_data'
-
         case plugin
         when Bolt::Plugin::Module
           plugin.hook_map.each do |hook, spec|

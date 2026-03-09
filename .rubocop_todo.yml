@@ -527,7 +527,6 @@ RSpec/NamedSubject:
     - 'spec/unit/plan_creator_spec.rb'
     - 'spec/unit/plugin/env_var_spec.rb'
     - 'spec/unit/plugin/prompt_spec.rb'
-    - 'spec/unit/plugin/puppet_connect_data_spec.rb'
     - 'spec/unit/transport/local_spec.rb'
     - 'spec/unit/transport/ssh/connection_spec.rb'
     - 'spec/unit/transport/ssh/exec_connection_spec.rb'
@@ -648,7 +647,6 @@ RSpec/StubbedMock:
 # Offense count: 3
 RSpec/SubjectDeclaration:
   Exclude:
-    - 'spec/unit/plugin/puppet_connect_data_spec.rb'
     - 'spec/unit/transport/ssh/connection_spec.rb'
     - 'spec/unit/transport/ssh/exec_connection_spec.rb'
 
