@@ -429,6 +429,17 @@
                 }
               ]
             },
+            "headers": {
+              "description": "A map of HTTP headers to add to PuppetDB requests.",
+              "oneOf": [
+                {
+                  "type": "object"
+                },
+                {
+                  "$ref": "#/definitions/_plugin"
+                }
+              ]
+            },
             "key": {
               "description": "The private key for the certificate.",
               "oneOf": [
@@ -519,6 +530,17 @@
                       {
                         "type": "integer",
                         "minimum": 1
+                      },
+                      {
+                        "$ref": "#/definitions/_plugin"
+                      }
+                    ]
+                  },
+                  "headers": {
+                    "description": "A map of HTTP headers to add to PuppetDB requests.",
+                    "oneOf": [
+                      {
+                        "type": "object"
                       },
                       {
                         "$ref": "#/definitions/_plugin"
