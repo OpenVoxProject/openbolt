@@ -156,4 +156,11 @@ Set-WSManQuickConfig -Force
 Set-WinRMHostConfiguration
 Test-WinRMConfiguration @User | Out-Null
 Add-Content -Path $ENV:GITHUB_ENV -Value "BOLT_WINRM_PASSWORD=$pass"
+Set-Item WSMan:\localhost\Plugin\microsoft.powershell\Quotas\MaxShells -Value 100
+Set-Item WSMan:\localhost\Plugin\microsoft.powershell\Quotas\MaxShellsPerUser -Value 100
+Set-Item WSMan:\localhost\Plugin\microsoft.powershell\Quotas\MaxProcessesPerShell -Value 100
+Set-Item WSMan:\localhost\Plugin\microsoft.powershell\Quotas\MaxConcurrentUsers -Value 100
+Set-Item WSMan:\localhost\Shell\MaxShellsPerUser -Value 100
+Set-Item WSMan:\localhost\Shell\MaxProcessesPerShell -Value 100
+Set-Item WSMan:\localhost\Shell\MaxConcurrentUsers -Value 100
 Restart-Service WinRm
