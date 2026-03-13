@@ -11,8 +11,6 @@ require 'bolt/target'
 require 'bolt/task'
 
 describe 'apply_prep' do
-  include PuppetlabsSpec::Fixtures
-
   let(:applicator)    { mock('Bolt::Applicator') }
   let(:config)        { Bolt::Config.default }
   let(:executor)      { Bolt::Executor.new }
@@ -32,9 +30,8 @@ describe 'apply_prep' do
   end
 
   context 'with targets' do
-    let(:hostnames)         { %w[a.b.com winrm://x.y.com pcp://foo] }
+    let(:hostnames)         { %w[a.b.com winrm://x.y.com remote://foo] }
     let(:targets)           { hostnames.map { |h| inventory.get_target(h) } }
-    let(:unknown_targets)   { targets.reject { |target| target.protocol == 'pcp' } }
     let(:fact)              { { 'osfamily' => 'none' } }
     let(:custom_facts_task) { Bolt::Task.new('custom_facts_task') }
     let(:version_task)      { Bolt::Task.new('openvox_bootstrap::check') }
@@ -74,7 +71,7 @@ describe 'apply_prep' do
 
       is_expected.to run.with_params(hostnames.join(','))
       targets.each do |target|
-        expect(inventory.features(target)).to include('puppet-agent') unless target.transport == 'pcp'
+        expect(inventory.features(target)).to include('puppet-agent') unless target.transport == 'remote'
         expect(inventory.facts(target)).to eq(fact)
       end
     end
@@ -92,7 +89,7 @@ describe 'apply_prep' do
 
       is_expected.to run.with_params(hostnames, '_run_as' => 'root')
       targets.each do |target|
-        expect(inventory.features(target)).to include('puppet-agent') unless target.transport == 'pcp'
+        expect(inventory.features(target)).to include('puppet-agent') unless target.transport == 'remote'
         expect(inventory.facts(target)).to eq(fact)
       end
     end
@@ -110,7 +107,7 @@ describe 'apply_prep' do
 
       is_expected.to run.with_params(hostnames, '_noop' => true)
       targets.each do |target|
-        expect(inventory.features(target)).to include('puppet-agent') unless target.transport == 'pcp'
+        expect(inventory.features(target)).to include('puppet-agent') unless target.transport == 'remote'
         expect(inventory.facts(target)).to eq(fact)
       end
     end
@@ -194,31 +191,6 @@ describe 'apply_prep' do
 
         is_expected.to run.with_params(hostname)
         expect(inventory.features(target)).to include('puppet-agent')
-        expect(inventory.facts(target)).to eq(fact)
-      end
-    end
-  end
-
-  context 'with only pcp targets' do
-    let(:hostnames)         { %w[pcp://foo pcp://bar] }
-    let(:targets)           { hostnames.map { |h| inventory.get_target(h) } }
-    let(:fact)              { { 'osfamily' => 'none' } }
-    let(:custom_facts_task) { Bolt::Task.new('custom_facts_task') }
-
-    before(:each) do
-      applicator.stubs(:build_plugin_tarball).returns(:tarball)
-      applicator.stubs(:custom_facts_task).returns(custom_facts_task)
-    end
-
-    it 'sets feature and gathers facts' do
-      facts = Bolt::ResultSet.new(targets.map { |t| Bolt::Result.new(t, value: fact) })
-      executor.expects(:run_task)
-              .with(targets, custom_facts_task, includes('plugins'), {})
-              .returns(facts)
-
-      is_expected.to run.with_params(hostnames.join(','))
-      targets.each do |target|
-        expect(inventory.features(target)).to include('puppet-agent') unless target.transport == 'pcp'
         expect(inventory.facts(target)).to eq(fact)
       end
     end
