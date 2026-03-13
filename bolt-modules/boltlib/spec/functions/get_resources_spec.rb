@@ -9,8 +9,6 @@ require 'bolt/target'
 require 'bolt/task'
 
 describe 'get_resources' do
-  include PuppetlabsSpec::Fixtures
-
   let(:applicator) { mock('Bolt::Applicator') }
   let(:executor) { Bolt::Executor.new }
   let(:inventory) { Bolt::Inventory.empty }
@@ -26,7 +24,7 @@ describe 'get_resources' do
   end
 
   context 'with targets' do
-    let(:hostnames) { %w[a.b.com winrm://x.y.com pcp://foo] }
+    let(:hostnames) { %w[a.b.com winrm://x.y.com] }
     let(:targets) { hostnames.map { |h| inventory.get_target(h) } }
     let(:query_resources_task) { Bolt::Task.new('query_resources_task') }
 

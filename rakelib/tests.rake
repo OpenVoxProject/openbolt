@@ -140,13 +140,14 @@ begin
 
     desc "Run RSpec tests for Bolt's bundled content"
     task :modules do
+      require 'parallel'
+
       success = true
       # Test core modules
-      Pathname.new("#{__dir__}/../bolt-modules").each_child do |mod|
-        Dir.chdir(mod) do
-          sh 'rake spec' do |ok, _|
-            success = false unless ok
-          end
+      module_dirs = Pathname.new("bolt-modules").each_child.filter {|f| File.directory?(f)}
+      success = Parallel.all?(module_dirs) do |dir|
+        sh "rake -C '#{dir}' spec" do |ok, _|
+          ok
         end
       end
       # Test modules
