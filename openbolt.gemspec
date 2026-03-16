@@ -48,7 +48,6 @@ Gem::Specification.new do |spec|
   spec.add_dependency "CFPropertyList", ">= 2.2"
   spec.add_dependency "concurrent-ruby", "~> 1.0"
   spec.add_dependency "ffi", ">= 1.9.25", "< 2.0.0"
-  spec.add_dependency "fiddle", ">= 1.0", "< 2.0"
   spec.add_dependency "hiera-eyaml", ">= 3.0.0", "< 6.0.0"
   spec.add_dependency "json", "~> 2.6"
   spec.add_dependency "jwt", "~> 2.2"
