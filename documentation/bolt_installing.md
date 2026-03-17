@@ -21,42 +21,22 @@ Excerpt from [voxpupuli-artifacts](https://artifacts.voxpupuli.org/openbolt/5.4.
 
 **Install Bolt**
 
-To install Bolt, run the appropriate command for the version of Debian you
-have installed:
-
-- _Debian 10_
-
+- _Debian_
   ```shell
-  wget https://apt.puppet.com/puppet-tools-release-buster.deb
-  sudo dpkg -i puppet-tools-release-buster.deb
-  sudo apt-get update
-  sudo apt-get install puppet-bolt
+  # https://artifacts.voxpupuli.org/openbolt/5.4.0/openbolt_5.4.0-1%2Bdebian11_amd64.deb
+  arch=$(dpkg-architecture --list |grep DEB_HOST_ARCH= |cut -d= -f2)
+  source /etc/os-release
+  packagename="openbolt_5.4.0-1+debian${VERSION_ID}_${arch}.deb"
+  wget "https://artifacts.voxpupuli.org/openbolt/5.4.0/$packagename"
+  sudo dpkg -i "$packagename"
   ```
-
-- _Debian 11_
-
-  ```shell
-  wget https://apt.puppet.com/puppet-tools-release-bullseye.deb
-  sudo dpkg -i puppet-tools-release-bullseye.deb
-  sudo apt-get update
-  sudo apt-get install puppet-bolt
-  ```
-
-**Upgrade Bolt**
-
-To upgrade Bolt to the latest version, run the following command:
-
-```shell
-sudo apt-get update
-sudo apt install puppet-bolt
-```
 
 **Uninstall Bolt**
 
 To uninstall Bolt, run the following command:
 
 ```shell
-sudo apt remove puppet-bolt
+sudo apt remove openbolt
 ```
 
 ## Install Bolt on Fedora
@@ -66,11 +46,10 @@ sudo apt remove puppet-bolt
 To install Bolt, run the appropriate command for the version of Fedora you
 have installed:
 
-- _Fedora 36_
+- _Fedora 43_
 
   ```shell
-  sudo rpm -Uvh https://yum.puppet.com/puppet-tools-release-fedora-36.noarch.rpm
-  sudo dnf install puppet-bolt
+  sudo rpm -Uvh https://artifacts.voxpupuli.org/openbolt/5.4.0/openbolt-5.4.0-1.fc43.x86_64.rpm
   ```
 
 **Upgrade Bolt**
@@ -137,8 +116,10 @@ Use the Apple Disk Image (DMG) to install Bolt on macOS:
 
 1. Download the Bolt installer package for your macOS version.
 
-   - [11 (Big Sur)](https://downloads.puppet.com/mac/puppet-tools/11/x86_64/puppet-bolt-latest.dmg)
-   - [12 (Monterey)](https://downloads.puppet.com/mac/puppet-tools/12/x86_64/puppet-bolt-latest.dmg)
+   - [26 Tahoe x86](https://artifacts.voxpupuli.org/openbolt/5.4.0/openbolt-5.4.0-1.macos.all.x86_64.dmg)
+   - [26 Tahoe arm64](https://artifacts.voxpupuli.org/openbolt/5.4.0/openbolt-5.4.0-1.macos.all.arm64.dmg)
+   - [any x86](https://artifacts.voxpupuli.org/openbolt/5.4.0/openbolt-5.4.0-1.macos.all.x86_64.dmg)
+   - [any arm64](https://artifacts.voxpupuli.org/openbolt/5.4.0/openbolt-5.4.0-1.macos.all.arm64.dmg)
 
 1. Double-click the `puppet-bolt-latest.dmg` file to mount the installer and
    then double-click `puppet-bolt-[version]-installer.pkg` to run the installer.
@@ -162,120 +143,6 @@ To uninstall Bolt, remove Bolt's files and executable:
 sudo rm -rf /opt/puppetlabs/bolt /opt/puppetlabs/bin/bolt
 ```
 
-## Install Bolt on Microsoft Windows
-
-Use one of the supported Windows installation methods to install Bolt.
-
-### Chocolatey
-
-**Install Bolt**
-
-To install Bolt with Chocolatey, you must have the [Chocolatey package
-manager](https://chocolatey.org/docs/installation) installed.
-
-1.  Download and install the bolt package:
-
-    ```powershell
-    choco install puppet-bolt
-    ```
-
-1.  Refresh the environment:
-
-    ```powershell
-    refreshenv
-    ```
-
-1. Install the [PuppetBolt PowerShell module](#puppetbolt-powershell-module).
-
-1. Run a [Bolt cmdlet](bolt_cmdlet_reference.md). If you see an error message
-   instead of the expected output, you might need to [add the Bolt module to
-   PowerShell](troubleshooting.md#powershell-does-not-recognize-bolt-cmdlets) or
-   [change execution policy
-   restrictions](troubleshooting.md#powershell-could-not-load-the-bolt-powershell-module).
-
-**Upgrade Bolt**
-
-To upgrade Bolt to the latest version, run the following command:
-
-```powershell
-choco upgrade puppet-bolt
-```
-
-**Uninstall Bolt**
-
-To uninstall Bolt, run the following command:
-
-```powershell
-choco uninstall puppet-bolt
-```
-
-### Windows installer (MSI)
-
-**Install Bolt**
-
-Use the Windows installer (MSI) package to install Bolt on Windows:
-
-1.  Download the [Bolt installer
-    package](https://downloads.puppet.com/windows/puppet-tools/puppet-bolt-x64-latest.msi).
-
-1.  Double-click the MSI file and run the installer.
-
-1. Install the [PuppetBolt PowerShell module](#puppetbolt-powershell-module).
-
-1.  Open a new PowerShell window and run a [Bolt cmdlet](bolt_cmdlet_reference.md).
-    If you see an error message instead of the expected output, you might need to
-    [add the Bolt module to
-    PowerShell](troubleshooting.md#powershell-does-not-recognize-bolt-cmdlets) or [change
-    execution policy
-    restrictions](troubleshooting.md#powershell-could-not-load-the-bolt-powershell-module).
-
-**Upgrade Bolt**
-
-To upgrade Bolt to the latest version, download the MSI again and repeat the
-installation steps.
-
-**Uninstall Bolt**
-
-You can uninstall Bolt from Windows **Apps & Features**:
-
-1. Press **Windows** + **X** + **F** to open **Apps & Features**.
-
-1. Search for **Puppet Bolt**, select it, and click **Uninstall**.
-
-### PuppetBolt PowerShell module
-
-The PuppetBolt PowerShell module is available on the [PowerShell
-Gallery](https://www.powershellgallery.com/packages/PuppetBolt) and includes
-help documents and [PowerShell cmdlets](bolt_cmdlet_reference.md) for running
-each of Bolt's commands. New versions of the PuppetBolt module are shipped at the
-same time as a new Bolt release.
-
-**Install PuppetBolt**
-
-To install the PuppetBolt PowerShell module, run the following command in
-PowerShell:
-
-```powershell
-Install-Module PuppetBolt
-```
-
-**Update PuppetBolt**
-
-To update the PuppetBolt PowerShell module, run the following command in
-PowerShell:
-
-```powershell
-Update-Module PuppetBolt
-```
-
-**Uninstall PuppetBolt**
-
-To uninstall the PuppetBolt PowerShell module, run the following command in
-PowerShell:
-
-```powershell
-Remove-Module PuppetBolt
-```
 
 ## Install Bolt on RHEL
 
@@ -284,48 +151,29 @@ Remove-Module PuppetBolt
 To install Bolt, run the appropriate command for the version of RHEL you
 have installed:
 
-- _RHEL 6_
+- _RHEL 10_
 
   ```shell
-  sudo rpm -Uvh https://yum.puppet.com/puppet-tools-release-el-6.noarch.rpm
-  sudo yum install puppet-bolt 
-  ```
-
-- _RHEL 7_
-
-  ```shell
-  sudo rpm -Uvh https://yum.puppet.com/puppet-tools-release-el-7.noarch.rpm
-  sudo yum install puppet-bolt
-  ```
-
-- _RHEL 8_
-
-  ```shell
-  sudo rpm -Uvh https://yum.puppet.com/puppet-tools-release-el-8.noarch.rpm
-  sudo yum install puppet-bolt
+  sudo rpm -Uvh https://artifacts.voxpupuli.org/openbolt/5.4.0/openbolt-5.4.0-1.el10.x86_64.rpm
   ```
 
 - _RHEL 9_
 
   ```shell
-  sudo rpm -Uvh https://yum.puppet.com/puppet-tools-release-el-9.noarch.rpm
-  sudo yum install puppet-bolt
+  sudo rpm -Uvh https://artifacts.voxpupuli.org/openbolt/5.4.0/openbolt-5.4.0-1.el9.x86_64.rpm
   ```
+- _RHEL 8_
 
-**Upgrade Bolt**
-
-To upgrade Bolt to the latest version, run the following command:
-
-```shell
-sudo yum update puppet-bolt
-```
+  ```shell
+  sudo rpm -Uvh https://artifacts.voxpupuli.org/openbolt/5.4.0/openbolt-5.4.0-1.el8.x86_64.rpm
+  ```
 
 **Uninstall Bolt**
 
 To uninstall Bolt, run the following command:
 
 ```shell
-sudo yum remove puppet-bolt
+sudo yum remove openbolt
 ```
 
 ## Install Bolt on SLES
@@ -335,34 +183,24 @@ sudo yum remove puppet-bolt
 To install Bolt, run the appropriate command for the version of SLES you
 have installed:
 
-- _SLES 12_
+- _SLES 16_
 
   ```shell
-  sudo rpm -Uvh https://yum.puppet.com/puppet-tools-release-sles-12.noarch.rpm
-  sudo zypper install puppet-bolt
+  sudo rpm -Uvh https://artifacts.voxpupuli.org/openbolt/5.4.0/openbolt-5.4.0-1.sles16.x86_64.rpm
   ```
-
 - _SLES 15_
 
   ```shell
-  sudo rpm -Uvh https://yum.puppet.com/puppet-tools-release-sles-15.noarch.rpm
+  sudo rpm -Uvh https://artifacts.voxpupuli.org/openbolt/5.4.0/openbolt-5.4.0-1.sles15.x86_64.rpm
   sudo zypper install puppet-bolt
   ```
-
-**Upgrade Bolt**
-
-To upgrade Bolt to the latest version, run the following command:
-
-```shell
-sudo zypper update puppet-bolt
-```
 
 **Uninstall Bolt**
 
 To uninstall Bolt, run the following command:
 
 ```shell
-sudo zypper remove puppet-bolt
+sudo zypper remove openbolt
 ```
 
 ## Install Bolt on Ubuntu
@@ -372,48 +210,23 @@ sudo zypper remove puppet-bolt
 To install Bolt, run the appropriate command for the version of Ubuntu you
 have installed:
 
-- _Ubuntu 18.04_
+- _Ubuntu 26.04_ _Ubuntu 25.04_ _Ubuntu 14.04_ _Ubuntu 22.04_ 
 
   ```shell
-  wget https://apt.puppet.com/puppet-tools-release-bionic.deb
-  sudo dpkg -i puppet-tools-release-bionic.deb
-  sudo apt-get update 
-  sudo apt-get install puppet-bolt
+  # https://artifacts.voxpupuli.org/openbolt/5.4.0/openbolt_5.4.0-1%2Bubuntu26.04_amd64.deb
+  arch=$(dpkg-architecture --list |grep DEB_HOST_ARCH= |cut -d= -f2)
+  source /etc/os-release
+  packagename="openbolt_5.4.0-1+ubuntu${VERSION_ID}_${arch}.deb"
+  wget "https://artifacts.voxpupuli.org/openbolt/5.4.0/$packagename"
+  sudo dpkg -i "$packagename"
   ```
-
-- _Ubuntu 20.04_
-
-  ```shell
-  wget https://apt.puppet.com/puppet-tools-release-focal.deb
-  sudo dpkg -i puppet-tools-release-focal.deb
-  sudo apt-get update 
-  sudo apt-get install puppet-bolt
-  ```
-
-- _Ubuntu 22.04_
-
-  ```shell
-  wget https://apt.puppet.com/puppet-tools-release-jammy.deb
-  sudo dpkg -i puppet-tools-release-jammy.deb
-  sudo apt-get update 
-  sudo apt-get install puppet-bolt
-  ```
-
-**Upgrade Bolt**
-
-To upgrade Bolt to the latest version, run the following command:
-
-```shell
-sudo apt-get update
-sudo apt install puppet-bolt
-```
 
 **Uninstall Bolt**
 
 To uninstall Bolt, run the following command:
 
 ```shell
-sudo apt remove puppet-bolt
+sudo apt remove openbolt
 ```
 
 ## Install Bolt as a gem
