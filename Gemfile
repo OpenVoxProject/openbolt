@@ -44,7 +44,6 @@ end
 group(:packaging) do
   gem 'json'
   gem 'packaging', '~> 0.105'
-  gem 'rake'
   gem 'vanagon', *location_for(ENV['VANAGON_LOCATION'] || 'https://github.com/openvoxproject/vanagon#main')
 end
 
