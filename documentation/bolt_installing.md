@@ -1,6 +1,6 @@
 # Installing Bolt
 
-Packaged versions of Bolt are available for several Linux distributions and macOS. Windows is currently (year 2026) supported as client.
+Packaged versions of Bolt are available for several Linux distributions and macOS. Windows is currently (year 2026) supported as target.
 
 An up to date list of supported platforms can be retrieved on [voxpupuli-artifacts](https://artifacts.voxpupuli.org/openbolt/5.4.0/)
 
@@ -24,9 +24,9 @@ Excerpt from [voxpupuli-artifacts](https://artifacts.voxpupuli.org/openbolt/5.4.
 - _Debian_
   ```shell
   # https://artifacts.voxpupuli.org/openbolt/5.4.0/openbolt_5.4.0-1%2Bdebian11_amd64.deb
-  arch=$(dpkg-architecture --list |grep DEB_HOST_ARCH= |cut -d= -f2)
   source /etc/os-release
-  packagename="openbolt_5.4.0-1+debian${VERSION_ID}_${arch}.deb"
+  source <( dpkg-architecture --list)
+  packagename="openbolt_5.4.0-1+debian${VERSION_ID}_${DEB_HOST_ARCH}.deb"
   wget "https://artifacts.voxpupuli.org/openbolt/5.4.0/$packagename"
   sudo dpkg -i "$packagename"
   ```
@@ -214,9 +214,9 @@ have installed:
 
   ```shell
   # https://artifacts.voxpupuli.org/openbolt/5.4.0/openbolt_5.4.0-1%2Bubuntu26.04_amd64.deb
-  arch=$(dpkg-architecture --list |grep DEB_HOST_ARCH= |cut -d= -f2)
   source /etc/os-release
-  packagename="openbolt_5.4.0-1+ubuntu${VERSION_ID}_${arch}.deb"
+  source <( dpkg-architecture --list)
+  packagename="openbolt_5.4.0-1+ubuntu${VERSION_ID}_${DEB_HOST_ARCH}.deb"
   wget "https://artifacts.voxpupuli.org/openbolt/5.4.0/$packagename"
   sudo dpkg -i "$packagename"
   ```
