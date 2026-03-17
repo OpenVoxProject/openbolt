@@ -1,21 +1,21 @@
 # Installing Bolt
 
-Packaged versions of Bolt are available for several Linux distributions, macOS,
-and Microsoft Windows.
+Packaged versions of Bolt are available for several Linux distributions and macOS. Windows is currently (year 2026) supported as client.
+
+An up to date list of supported platforms can be retrieved on [voxpupuli-artifacts](https://artifacts.voxpupuli.org/openbolt/5.4.0/)
+
+Excerpt from [voxpupuli-artifacts](https://artifacts.voxpupuli.org/openbolt/5.4.0/) (2026)
 
 | Operating system          | Versions            |
 | ------------------------- | ------------------- |
-| Debian                    | 10, 11              |
-| Fedora                    | 36                  |
-| macOS                     | 11, 12              |
-| Microsoft Windows*        | 10 Enterprise       |
-| Microsoft Windows Server* | 2012R2, 2019        |
-| RHEL                      | 6, 7, 8, 9          |
-| SLES                      | 12, 15              |
-| Ubuntu                    | 18.04, 20.04, 22.04 |
+| Debian                    | 11, 12, 13          |
+| Fedora                    | 42, 43              |
+| macOS                     | *                   |
+| RHEL                      | 8, 9, 10            |
+| SLES                      | 15, 16              |
+| Ubuntu                    | 22, 24, 25, 26      |
+| Amazon-Linux              | 2, 2023             |
 
-> **Note:** Windows packages are automatically tested on the versions listed
-> above, but might be installable on other versions.
 
 ## Install Bolt on Debian
 
