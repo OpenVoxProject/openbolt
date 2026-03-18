@@ -26,7 +26,7 @@
     <!-- This text is placed as a literal string in the GUI -->
     <Property
       Id="WIXUI_EXITDIALOGOPTIONALTEXT"
-      Value="Puppet Bolt has been installed." />
+      Value="OpenBolt has been installed." />
 
     <!--
       Remembered Property Pattern
@@ -37,7 +37,7 @@
       <RegistrySearch
         Id="RecallInstallDir"
         Root="HKLM"
-        Key="SOFTWARE\<%= settings[:pl_company_name] %>\<%= settings[:product_id] %>"
+        Key="SOFTWARE\<%= settings[:pl_company_name] %>\<%= settings[:pl_product_id] %>"
         Name="RememberedInstallDir"
         Type="raw"
         Win64="yes" />

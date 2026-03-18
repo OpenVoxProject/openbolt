@@ -44,7 +44,7 @@ project "openbolt" do |proj|
                    ManualLink: "https://puppet.com/docs/bolt/",
                  })
     proj.setting(:LicenseRTF, "wix/license/LICENSE.rtf")
-    proj.setting(:install_root, File.join("C:", proj.base_dir, proj.pl_company_id, proj.product_id))
+    proj.setting(:install_root, File.join("C:", proj.base_dir, proj.pl_company_id, proj.pl_product_id))
     proj.setting(:link_bindir, File.join(proj.install_root, "bin"))
 
     File.join(proj.datadir.sub(%r{^.*:/}, ''), 'PowerShell', 'Modules')
