@@ -4,8 +4,6 @@ require 'spec_helper'
 require 'bolt/executor'
 
 describe 'puppetdb_command' do
-  include PuppetlabsSpec::Fixtures
-
   let(:executor)   { Bolt::Executor.new }
   let(:pdb_client) { mock('pdb_client') }
   let(:tasks)      { true }

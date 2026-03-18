@@ -5,8 +5,6 @@ require 'bolt/executor'
 require 'bolt/inventory'
 
 describe 'facts' do
-  include PuppetlabsSpec::Fixtures
-
   let(:executor) { Bolt::Executor.new }
   let(:inventory) { Bolt::Inventory.empty }
   let(:hostname) { 'example' }
