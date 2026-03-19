@@ -53,7 +53,6 @@ Gem::Specification.new do |spec|
   spec.add_dependency "jwt", "~> 2.2"
   spec.add_dependency "logging", "~> 2.2"
   spec.add_dependency "minitar", ">= 0.6", "< 2.0"
-  spec.add_dependency "net-ftp", ">= 0.3", "< 0.4"
   spec.add_dependency "net-scp", ">= 1.2", "< 5.0"
   spec.add_dependency "net-ssh", ">= 4.0", "< 8.0"
   spec.add_dependency "net-ssh-krb", "~> 0.5"
@@ -63,13 +62,9 @@ Gem::Specification.new do |spec|
   spec.add_dependency "puppet-resource_api", ">= 1.8.1"
   spec.add_dependency "r10k", ">= 3.10", "< 6"
   spec.add_dependency "ruby_smb", "~> 1.0"
-  spec.add_dependency "syslog", "~> 0.1"
   spec.add_dependency "terminal-table", "~> 4.0"
   spec.add_dependency "winrm", "~> 2.0"
   spec.add_dependency "winrm-fs", "~> 1.3"
-  if Gem.win_platform?
-    spec.add_dependency "win32ole", ">= 1.9"
-  end
 
   spec.add_development_dependency "bundler", ">= 1.14"
   spec.add_development_dependency "octokit", ">= 4.0", "< 9"
