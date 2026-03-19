@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='windows-1252'?>
 <Wix xmlns='http://schemas.microsoft.com/wix/2006/wi' xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
   <!--
-    Puppet Bolt Specific Registry Entries
+    OpenBolt Specific Registry Entries
     This overrides the generic file in the vanagon directory
   -->
   <Fragment>
@@ -13,7 +13,7 @@
 
         <RegistryKey
           Root="HKLM"
-          Key="SOFTWARE\<%= settings[:pl_company_name] %>\<%= settings[:product_id] %>">
+          Key="SOFTWARE\<%= settings[:pl_company_name] %>\<%= settings[:pl_product_id] %>">
           <!-- This is the default (aka 'unnamed') key value of this path -->
           <RegistryValue
             Type="integer"
@@ -36,7 +36,7 @@
 
         <RegistryKey
           Root="HKLM"
-          Key="SOFTWARE\<%= settings[:pl_company_name] %>\<%= settings[:product_id] %>"
+          Key="SOFTWARE\<%= settings[:pl_company_name] %>\<%= settings[:pl_product_id] %>"
           ForceCreateOnInstall="yes" >
 
           <RegistryValue

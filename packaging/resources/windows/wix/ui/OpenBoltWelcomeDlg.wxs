@@ -41,7 +41,7 @@
       </Dialog>
 
       <InstallUISequence>
-        <Show Dialog="PuppetBoltWelcomeDlg" Before="ProgressDlg" Overridable="yes">NOT Installed OR PATCH</Show>
+        <Show Dialog="OpenBoltWelcomeDlg" Before="ProgressDlg" Overridable="yes">NOT Installed OR PATCH</Show>
       </InstallUISequence>
     </UI>
   </Fragment>
