@@ -168,7 +168,7 @@ module Bolt
       when 'task'
         case action
         when 'run'
-          { flags: ACTION_OPTS + %w[params tmpdir noop],
+          { flags: ACTION_OPTS + %w[params tmpdir noop choria-agent],
             banner: TASK_RUN_HELP }
         when 'show'
           { flags: OPTIONS[:global] + OPTIONS[:global_config_setters] + %w[filter format],
@@ -1094,6 +1094,11 @@ module Bolt
       end
       define('--tmpdir DIR', 'The directory to upload and execute temporary files on the target.') do |tmpdir|
         @options[:tmpdir] = tmpdir
+      end
+      define('--choria-agent AGENT', %w[bolt_tasks shell],
+             "Which Choria agent to use for task execution (bolt_tasks, shell).",
+             "Defaults to 'bolt_tasks'. Set to 'shell' for tasks not on the Puppet Server.") do |agent|
+        @options[:'choria-agent'] = agent
       end
 
       separator "\n#{self.class.colorize(:cyan, 'Module options')}"

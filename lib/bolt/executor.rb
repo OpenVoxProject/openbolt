@@ -13,6 +13,7 @@ require_relative '../bolt/puppetdb'
 require_relative '../bolt/result'
 require_relative '../bolt/result_set'
 # Load transports
+require_relative '../bolt/transport/choria'
 require_relative '../bolt/transport/docker'
 require_relative '../bolt/transport/jail'
 require_relative '../bolt/transport/local'
@@ -24,6 +25,7 @@ require_relative '../bolt/transport/winrm'
 
 module Bolt
   TRANSPORTS = {
+    choria: Bolt::Transport::Choria,
     docker: Bolt::Transport::Docker,
     jail: Bolt::Transport::Jail,
     local: Bolt::Transport::Local,
