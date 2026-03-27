@@ -13,6 +13,10 @@ module Bolt
                 run_context: %w[concurrency inventoryfile save-rerun cleanup puppetdb],
                 global_config_setters: PROJECT_PATHS + %w[modulepath],
                 transports: %w[transport connect-timeout tty native-ssh ssh-command copy-command],
+                choria: %w[choria-config-file choria-ssl-ca choria-ssl-cert choria-ssl-key
+                           choria-collective choria-puppet-environment choria-rpc-timeout
+                           choria-task-timeout choria-command-timeout nats-servers
+                           nats-connection-timeout],
                 display: %w[format color verbose trace stream],
                 global: %w[help version log-level clear-cache] }.freeze
 
@@ -168,7 +172,7 @@ module Bolt
       when 'task'
         case action
         when 'run'
-          { flags: ACTION_OPTS + %w[params tmpdir noop],
+          { flags: ACTION_OPTS + %w[params tmpdir noop choria-task-agent],
             banner: TASK_RUN_HELP }
         when 'show'
           { flags: OPTIONS[:global] + OPTIONS[:global_config_setters] + %w[filter format],
@@ -1094,6 +1098,55 @@ module Bolt
       end
       define('--tmpdir DIR', 'The directory to upload and execute temporary files on the target.') do |tmpdir|
         @options[:tmpdir] = tmpdir
+      end
+      define('--choria-task-agent AGENT', %w[bolt_tasks shell],
+             "Which Choria agent to use for task execution (bolt_tasks, shell).",
+             "Defaults to 'bolt_tasks'. Set to 'shell' for tasks not on the Puppet Server.") do |agent|
+        @options[:'task-agent'] = agent
+      end
+      define('--choria-config-file PATH',
+             'Path to a Choria/MCollective client configuration file.') do |path|
+        @options[:'config-file'] = path
+      end
+      define('--choria-ssl-ca PATH',
+             'CA certificate path for Choria TLS authentication.') do |path|
+        @options[:'ssl-ca'] = path
+      end
+      define('--choria-ssl-cert PATH',
+             'Client certificate path for Choria TLS authentication.') do |path|
+        @options[:'ssl-cert'] = path
+      end
+      define('--choria-ssl-key PATH',
+             'Client private key path for Choria TLS authentication.') do |path|
+        @options[:'ssl-key'] = path
+      end
+      define('--choria-collective NAME',
+             'Choria collective to route messages through.') do |name|
+        @options[:collective] = name
+      end
+      define('--choria-puppet-environment ENV',
+             "Puppet environment for bolt_tasks file downloads (default: 'production').") do |env|
+        @options[:'puppet-environment'] = env
+      end
+      define('--choria-rpc-timeout SECONDS', Integer,
+             'Seconds to wait for replies to individual Choria RPC calls (default: 30).') do |timeout|
+        @options[:'rpc-timeout'] = timeout
+      end
+      define('--choria-task-timeout SECONDS', Integer,
+             'Seconds to wait for task execution to complete (default: 300).') do |timeout|
+        @options[:'task-timeout'] = timeout
+      end
+      define('--choria-command-timeout SECONDS', Integer,
+             'Seconds to wait for commands and scripts to complete (default: 60).') do |timeout|
+        @options[:'command-timeout'] = timeout
+      end
+      define('--nats-servers SERVERS',
+             'NATS broker addresses in nats://host:port format (comma-separated for multiple).') do |servers|
+        @options[:'nats-servers'] = servers
+      end
+      define('--nats-connection-timeout SECONDS', Integer,
+             'Seconds to wait for the TCP connection to the NATS broker (default: 30).') do |timeout|
+        @options[:'nats-connection-timeout'] = timeout
       end
 
       separator "\n#{self.class.colorize(:cyan, 'Module options')}"

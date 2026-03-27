@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require_relative '../../bolt/config/transport/choria'
 require_relative '../../bolt/config/transport/docker'
 require_relative '../../bolt/config/transport/jail'
 require_relative '../../bolt/config/transport/local'
@@ -15,6 +16,7 @@ module Bolt
       # Transport config classes. Used to load default transport config which
       # gets passed along to the inventory.
       TRANSPORT_CONFIG = {
+        'choria' => Bolt::Config::Transport::Choria,
         'docker' => Bolt::Config::Transport::Docker,
         'jail'   => Bolt::Config::Transport::Jail,
         'local'  => Bolt::Config::Transport::Local,
@@ -550,6 +552,12 @@ module Bolt
           _plugin: true,
           _example: "winrm",
           _default: "ssh"
+        },
+        "choria" => {
+          description: "A map of configuration options for the choria transport.",
+          type: Hash,
+          _plugin: true,
+          _example: { "config-file" => "/etc/choria/client.conf" }
         },
         "docker" => {
           description: "A map of configuration options for the docker transport.",
