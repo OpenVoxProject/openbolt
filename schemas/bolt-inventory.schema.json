@@ -41,6 +41,7 @@
                 {
                   "type": "string",
                   "enum": [
+                    "choria",
                     "docker",
                     "jail",
                     "local",
@@ -50,6 +51,221 @@
                     "ssh",
                     "winrm"
                   ]
+                },
+                {
+                  "$ref": "#/definitions/_plugin"
+                }
+              ]
+            },
+            "choria": {
+              "description": "A map of configuration options for the choria transport.",
+              "oneOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "choria-agent": {
+                      "description": "Which Choria agent to use for task execution. Defaults to 'bolt_tasks' (downloads task files from a Puppet Server). Set to 'shell' for tasks not available on the Puppet Server.",
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "$ref": "#/definitions/_plugin"
+                        }
+                      ]
+                    },
+                    "cleanup": {
+                      "description": "Whether to clean up temporary files created on targets. When running commands on a target, Bolt might create temporary files. After completing the command, these files are automatically deleted. This value can be set to 'false' if you wish to leave these temporary files on the target.",
+                      "oneOf": [
+                        {
+                          "type": "boolean"
+                        },
+                        {
+                          "$ref": "#/definitions/_plugin"
+                        }
+                      ]
+                    },
+                    "collective": {
+                      "description": "The Choria collective to target. Overrides the main_collective from the Choria client configuration file.",
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "$ref": "#/definitions/_plugin"
+                        }
+                      ]
+                    },
+                    "command-timeout": {
+                      "description": "How long to wait in seconds for commands and scripts to complete when using the Choria transport.",
+                      "oneOf": [
+                        {
+                          "type": "integer",
+                          "minimum": 1
+                        },
+                        {
+                          "$ref": "#/definitions/_plugin"
+                        }
+                      ]
+                    },
+                    "config-file": {
+                      "description": "The path to the Choria or MCollective client configuration file.",
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "$ref": "#/definitions/_plugin"
+                        }
+                      ]
+                    },
+                    "host": {
+                      "description": "The target's hostname.",
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "$ref": "#/definitions/_plugin"
+                        }
+                      ]
+                    },
+                    "interpreters": {
+                      "description": "A map of an extension name to the absolute path of an executable,  enabling you to override the shebang defined in a task executable. The extension can optionally be specified with the `.` character (`.py` and `py` both map to a task executable `task.py`) and the extension is case sensitive. When a target's name is `localhost`, Ruby tasks run with the Bolt Ruby interpreter by default.",
+                      "oneOf": [
+                        {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": [
+                              "string",
+                              "array"
+                            ]
+                          },
+                          "propertyNames": {
+                            "pattern": "^.?[a-zA-Z0-9]+$"
+                          }
+                        },
+                        {
+                          "$ref": "#/definitions/_plugin"
+                        }
+                      ]
+                    },
+                    "nats-connection-timeout": {
+                      "description": "How long to wait in seconds for the initial TCP connection to the NATS broker. If the connection cannot be made within this time, the operation fails.",
+                      "oneOf": [
+                        {
+                          "type": "integer",
+                          "minimum": 1
+                        },
+                        {
+                          "$ref": "#/definitions/_plugin"
+                        }
+                      ]
+                    },
+                    "nats-servers": {
+                      "description": "One or more NATS server addresses for the Choria transport. Overrides the middleware hosts from the Choria client configuration file. Can be a single string or an array.",
+                      "oneOf": [
+                        {
+                          "type": [
+                            "string",
+                            "array"
+                          ],
+                          "items": {
+                            "oneOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "$ref": "#/definitions/_plugin"
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "$ref": "#/definitions/_plugin"
+                        }
+                      ]
+                    },
+                    "puppet-environment": {
+                      "description": "The Puppet environment to use when constructing task file URIs for the Choria bolt_tasks agent.",
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "$ref": "#/definitions/_plugin"
+                        }
+                      ]
+                    },
+                    "rpc-timeout": {
+                      "description": "How long to wait in seconds for nodes to respond to an RPC request. Used for lightweight operations like agent discovery, shell.start, and shell.list polling. Distinct from command-timeout and task-timeout which govern the overall duration of commands and tasks.",
+                      "oneOf": [
+                        {
+                          "type": "integer",
+                          "minimum": 1
+                        },
+                        {
+                          "$ref": "#/definitions/_plugin"
+                        }
+                      ]
+                    },
+                    "ssl-ca": {
+                      "description": "The path to the CA certificate for Choria TLS connections. Overrides the CA from the Choria client configuration file.",
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "$ref": "#/definitions/_plugin"
+                        }
+                      ]
+                    },
+                    "ssl-cert": {
+                      "description": "The path to the client certificate for Choria TLS connections. Overrides the certificate from the Choria client configuration file.",
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "$ref": "#/definitions/_plugin"
+                        }
+                      ]
+                    },
+                    "ssl-key": {
+                      "description": "The path to the client private key for Choria TLS connections. Overrides the key from the Choria client configuration file.",
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "$ref": "#/definitions/_plugin"
+                        }
+                      ]
+                    },
+                    "task-timeout": {
+                      "description": "How long to wait in seconds for tasks to complete when using the Choria transport.",
+                      "oneOf": [
+                        {
+                          "type": "integer",
+                          "minimum": 1
+                        },
+                        {
+                          "$ref": "#/definitions/_plugin"
+                        }
+                      ]
+                    },
+                    "tmpdir": {
+                      "description": "The directory to upload and execute temporary files on the target.",
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "$ref": "#/definitions/_plugin"
+                        }
+                      ]
+                    }
+                  }
                 },
                 {
                   "$ref": "#/definitions/_plugin"
