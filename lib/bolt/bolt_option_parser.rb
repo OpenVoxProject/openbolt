@@ -13,9 +13,10 @@ module Bolt
                 run_context: %w[concurrency inventoryfile save-rerun cleanup puppetdb],
                 global_config_setters: PROJECT_PATHS + %w[modulepath],
                 transports: %w[transport connect-timeout tty native-ssh ssh-command copy-command],
-                choria: %w[config-file ssl-ca ssl-cert ssl-key collective
-                           puppet-environment rpc-timeout task-timeout command-timeout
-                           nats-servers nats-connection-timeout],
+                choria: %w[choria-config-file choria-ssl-ca choria-ssl-cert choria-ssl-key
+                           choria-collective choria-puppet-environment choria-rpc-timeout
+                           choria-task-timeout choria-command-timeout nats-servers
+                           nats-connection-timeout],
                 display: %w[format color verbose trace stream],
                 global: %w[help version log-level clear-cache] }.freeze
 
@@ -171,7 +172,7 @@ module Bolt
       when 'task'
         case action
         when 'run'
-          { flags: ACTION_OPTS + %w[params tmpdir noop task-agent],
+          { flags: ACTION_OPTS + %w[params tmpdir noop choria-task-agent],
             banner: TASK_RUN_HELP }
         when 'show'
           { flags: OPTIONS[:global] + OPTIONS[:global_config_setters] + %w[filter format],
