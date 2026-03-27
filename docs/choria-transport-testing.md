@@ -163,7 +163,7 @@ bolt_tasks agent to download. The server-side module paths are listed first
 so that OpenBolt reads the same module versions that the bolt_tasks agent will
 actually download from the server. The local `modules` directory comes last
 as a fallback for Puppetfile-installed dependencies. When using
-`--choria-agent shell`, OpenBolt uploads files directly, so local modules should
+`--choria-task-agent shell`, OpenBolt uploads files directly, so local modules should
 take precedence instead — put `modules` first or omit the server paths.
 
 Task helper dependencies like `puppetlabs-ruby_task_helper` must also be
@@ -483,10 +483,10 @@ Expected: Still fails with the shell agent error.
 
 ```bash
 # Force bolt_tasks (should work, same as default)
-bolt task run facts --targets nodeA.example.com --choria-agent bolt_tasks
+bolt task run facts --targets nodeA.example.com --choria-task-agent bolt_tasks
 
 # Force shell (should fail: not installed)
-bolt task run facts --targets nodeA.example.com --choria-agent shell
+bolt task run facts --targets nodeA.example.com --choria-task-agent shell
 ```
 
 Expected: First succeeds (or fails at download, not at agent detection).
@@ -553,7 +553,7 @@ default and both nodes have it.
 **run_task with local task (not on OpenVox/Puppet Server)**
 
 Test with a task that's NOT on the OpenVox/Puppet Server (a local custom task).
-Without `--choria-agent shell`, this will fail because bolt_tasks can't find
+Without `--choria-task-agent shell`, this will fail because bolt_tasks can't find
 the task on the OpenVox/Puppet Server:
 
 ```bash
@@ -570,12 +570,12 @@ bolt task run choria_test::hello --targets nodeA.example.com
 ```
 
 Expected: Fails with `bolt/choria-task-download-failed` and a message
-suggesting `--choria-agent shell`.
+suggesting `--choria-task-agent shell`.
 
-Now retry with `--choria-agent shell` (Node A has the shell agent):
+Now retry with `--choria-task-agent shell` (Node A has the shell agent):
 
 ```bash
-bolt task run choria_test::hello --targets nodeA.example.com --choria-agent shell
+bolt task run choria_test::hello --targets nodeA.example.com --choria-task-agent shell
 ```
 
 Expected: Succeeds via the shell agent.
@@ -584,10 +584,10 @@ Expected: Succeeds via the shell agent.
 
 ```bash
 # Use shell agent (Node A has it)
-bolt task run choria_test::hello --targets nodeA.example.com --choria-agent shell
+bolt task run choria_test::hello --targets nodeA.example.com --choria-task-agent shell
 
 # Use shell agent (Node B doesn't have it)
-bolt task run choria_test::hello --targets nodeB.example.com --choria-agent shell
+bolt task run choria_test::hello --targets nodeB.example.com --choria-task-agent shell
 ```
 
 Expected:
@@ -605,7 +605,7 @@ have both agents installed.
 bolt command run 'whoami' --targets nodeA.example.com,nodeB.example.com
 bolt script run /tmp/test_script.sh --targets nodeA.example.com,nodeB.example.com
 bolt task run facts --targets nodeA.example.com,nodeB.example.com
-bolt task run choria_test::hello --targets nodeA.example.com,nodeB.example.com --choria-agent shell
+bolt task run choria_test::hello --targets nodeA.example.com,nodeB.example.com --choria-task-agent shell
 ```
 
 All should succeed on both nodes.
@@ -728,7 +728,7 @@ OpenBolt caches agent lists per target for the transport's lifetime. Start a fre
 |-------------|----------------|-----------------|---------------------------|--------------------------------------|
 | run_command | agent error    | agent error     | works                     | works (shell)                        |
 | run_script  | agent error    | agent error     | works                     | works (shell)                        |
-| run_task    | no-agent error | works (bt)      | works (--choria-agent sh) | works (bt default, sh if configured) |
+| run_task    | no-agent error | works (bt)      | works (--choria-task-agent sh) | works (bt default, sh if configured) |
 | upload      | unsupported    | unsupported     | unsupported               | unsupported                          |
 | download    | unsupported    | unsupported     | unsupported               | unsupported                          |
 | connected?  | works          | works           | works                     | works                                |

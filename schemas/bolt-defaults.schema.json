@@ -518,16 +518,6 @@
         {
           "type": "object",
           "properties": {
-            "choria-agent": {
-              "oneOf": [
-                {
-                  "$ref": "#/transport_definitions/choria-agent"
-                },
-                {
-                  "$ref": "#/definitions/_plugin"
-                }
-              ]
-            },
             "cleanup": {
               "oneOf": [
                 {
@@ -652,6 +642,16 @@
               "oneOf": [
                 {
                   "$ref": "#/transport_definitions/ssl-key"
+                },
+                {
+                  "$ref": "#/definitions/_plugin"
+                }
+              ]
+            },
+            "task-agent": {
+              "oneOf": [
+                {
+                  "$ref": "#/transport_definitions/task-agent"
                 },
                 {
                   "$ref": "#/definitions/_plugin"
@@ -1807,7 +1807,7 @@
         }
       ]
     },
-    "choria-agent": {
+    "task-agent": {
       "description": "Which Choria agent to use for task execution. Defaults to 'bolt_tasks' (downloads task files from a Puppet Server). Set to 'shell' for tasks not available on the Puppet Server.",
       "oneOf": [
         {

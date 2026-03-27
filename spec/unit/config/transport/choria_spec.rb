@@ -22,7 +22,7 @@ describe Bolt::Config::Transport::Choria do
   context 'validating' do
     include_examples 'interpreters'
 
-    %w[choria-agent config-file collective host puppet-environment ssl-ca ssl-cert ssl-key tmpdir].each do |opt|
+    %w[task-agent config-file collective host puppet-environment ssl-ca ssl-cert ssl-key tmpdir].each do |opt|
       it "#{opt} rejects non-string value" do
         data[opt] = 100
         expect { transport.new(data) }.to raise_error(Bolt::ValidationError)
@@ -56,14 +56,14 @@ describe Bolt::Config::Transport::Choria do
       expect { transport.new(data) }.to raise_error(Bolt::ValidationError)
     end
 
-    it 'choria-agent rejects invalid values' do
-      data['choria-agent'] = 'not-an-agent'
-      expect { transport.new(data) }.to raise_error(Bolt::ValidationError, /choria-agent must be one of/)
+    it 'task-agent rejects invalid values' do
+      data['task-agent'] = 'not-an-agent'
+      expect { transport.new(data) }.to raise_error(Bolt::ValidationError, /task-agent must be one of/)
     end
 
     %w[bolt_tasks shell].each do |agent|
-      it "choria-agent accepts '#{agent}'" do
-        data['choria-agent'] = agent
+      it "task-agent accepts '#{agent}'" do
+        data['task-agent'] = agent
         expect { transport.new(data) }.not_to raise_error
       end
     end

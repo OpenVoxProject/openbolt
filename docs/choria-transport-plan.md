@@ -123,7 +123,7 @@ What shipped:
   cleanup
 - `run_task` via shell agent with support for all input methods (environment,
   stdin, both)
-- Deterministic agent selection via `choria-agent` config and `--choria-agent`
+- Deterministic agent selection via `task-agent` config and `--choria-task-agent`
   CLI flag (no automatic fallback between agents)
 - Batched shell polling via `shell.list` + `shell.statuses` for scalability
 - Platform-aware command builders for POSIX and Windows (PowerShell)

@@ -51,7 +51,7 @@ module Bolt
             _default: true,
             _example: false
           },
-          "choria-agent" => {
+          "task-agent" => {
             type: String,
             description: "Which Choria agent to use for task execution. Defaults to 'bolt_tasks' " \
                          "(downloads task files from a Puppet Server). Set to 'shell' for tasks " \

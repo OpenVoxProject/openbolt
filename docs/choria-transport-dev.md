@@ -359,7 +359,7 @@ One second provides reasonable responsiveness without excessive polling.
 
 ### Deterministic agent selection
 
-Agent selection for `run_task` is explicit via the `choria-agent` config
+Agent selection for `run_task` is explicit via the `task-agent` config
 option (default `bolt_tasks`). There is no automatic fallback between agents.
 If the selected agent is not available on a target, that target gets a clear
 error. This is simpler and more predictable than a try-and-fallback approach.

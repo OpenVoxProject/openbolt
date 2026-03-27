@@ -26,8 +26,8 @@ module Bolt
     #
     #   shell agent installed (>= 1.2.0): run_command, run_script, and
     #     run_task work. run_task uses the bolt_tasks agent by default.
-    #     To run local tasks via the shell agent, set choria-agent to 'shell'
-    #     in project config or specify --choria-agent shell.
+    #     To run local tasks via the shell agent, set task-agent to 'shell'
+    #     in project config or specify --choria-task-agent shell.
     #
     #   Upload, download, and plans are not yet supported.
     class Choria < Base
@@ -97,7 +97,7 @@ module Bolt
       # @param callback [Proc] Called with :node_start and :node_result events
       # @return [Array<Bolt::Result>] Results for all targets (successes and failures)
       def batch_task(targets, task, arguments, _options = {}, position = [], &callback)
-        chosen_agent = targets.first.options['choria-agent'] || 'bolt_tasks'
+        chosen_agent = targets.first.options['task-agent'] || 'bolt_tasks'
         result_opts = { action: 'task', name: task.name, position: position }
 
         # The results var here is the error results for incapable targets, to which we'll add in
@@ -117,7 +117,7 @@ module Bolt
                        run_task_via_shell(capable, task, arguments, result_opts, &callback)
                      else
                        raise Bolt::Error.new(
-                         "Unsupported choria-agent '#{chosen_agent}'",
+                         "Unsupported task-agent '#{chosen_agent}'",
                          'bolt/choria-unsupported-agent'
                        )
                      end

@@ -86,24 +86,37 @@ targets:
 
 ### Config option reference
 
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `choria-agent` | String | `bolt_tasks` | Agent for task execution: `bolt_tasks` or `shell`. Also available as `--choria-agent` CLI flag. |
-| `cleanup` | Boolean | `true` | Clean up temp directories after operations. Set to `false` for debugging. |
-| `collective` | String | (from Choria config file) | Choria collective to route messages through. Per-target. |
-| `command-timeout` | Integer | `60` | Seconds to wait for commands and scripts to complete. |
-| `config-file` | String | (auto-detected) | Path to a Choria/MCollective client config file. |
-| `host` | String | (from URI) | Target's Choria identity (FQDN). Overrides the hostname from the URI. |
-| `interpreters` | Hash | (none) | File extension to interpreter mapping (e.g., `{".rb": "/usr/bin/ruby"}`). |
-| `nats-connection-timeout` | Integer | `30` | Seconds to wait for the TCP connection to the NATS broker. |
-| `nats-servers` | String or Array | (from Choria config file) | NATS broker addresses. Overrides the config file. |
-| `puppet-environment` | String | `production` | Puppet environment for bolt_tasks file URIs. |
-| `rpc-timeout` | Integer | `30` | Seconds to wait for replies to individual RPC calls. |
-| `ssl-ca` | String | (from Choria config file) | CA certificate path for TLS. |
-| `ssl-cert` | String | (from Choria config file) | Client certificate path for TLS. |
-| `ssl-key` | String | (from Choria config file) | Client private key path for TLS. |
-| `task-timeout` | Integer | `300` | Seconds to wait for task execution to complete. |
-| `tmpdir` | String | `/tmp` or `C:\Windows\Temp` | Base path for temp directories on remote nodes. Must be absolute. |
+| Option | CLI Flag | Type | Default | Description |
+|--------|----------|------|---------|-------------|
+| `task-agent` | `--choria-task-agent` | String | `bolt_tasks` | Agent for task execution: `bolt_tasks` or `shell`. |
+| `cleanup` | `--cleanup` | Boolean | `true` | Clean up temp directories after operations. Set to `false` for debugging. |
+| `collective` | `--choria-collective` | String | (from config file) | Choria collective to route messages through. Per-target. |
+| `command-timeout` | `--choria-command-timeout` | Integer | `60` | Seconds to wait for commands and scripts to complete. |
+| `config-file` | `--choria-config-file` | String | (auto-detected) | Path to a Choria/MCollective client config file. |
+| `host` | | String | (from URI) | Target's Choria identity (FQDN). Overrides the hostname from the URI. |
+| `interpreters` | | Hash | (none) | File extension to interpreter mapping (e.g., `{".rb": "/usr/bin/ruby"}`). |
+| `nats-connection-timeout` | `--nats-connection-timeout` | Integer | `30` | Seconds to wait for the TCP connection to the NATS broker. |
+| `nats-servers` | `--nats-servers` | String or Array | (from config file) | NATS broker addresses in `nats://host:port` format (comma-separated for multiple). Multiple servers provide failover if a broker is unavailable. Overrides the config file. |
+| `puppet-environment` | `--choria-puppet-environment` | String | `production` | Puppet environment for bolt_tasks file URIs. |
+| `rpc-timeout` | `--choria-rpc-timeout` | Integer | `30` | Seconds to wait for replies to individual RPC calls. |
+| `ssl-ca` | `--choria-ssl-ca` | String | (from config file) | CA certificate path for TLS. |
+| `ssl-cert` | `--choria-ssl-cert` | String | (from config file) | Client certificate path for TLS. |
+| `ssl-key` | `--choria-ssl-key` | String | (from config file) | Client private key path for TLS. |
+| `task-timeout` | `--choria-task-timeout` | Integer | `300` | Seconds to wait for task execution to complete. |
+| `tmpdir` | `--tmpdir` | String | `/tmp` or `C:\Windows\Temp` | Base path for temp directories on remote nodes. Must be absolute. |
+
+**CLI flag precedence:** CLI flags provide default values that can be
+overridden by inventory-level config (per-group or per-target). For example,
+if a target has `collective: staging` in its inventory entry and
+`--choria-collective production` is passed on the CLI, the inventory value
+wins. For ad-hoc targets specified via `--targets` that aren't defined in an
+inventory file, CLI flags take full effect.
+
+For options that have corresponding values in the Choria config file
+(`nats-servers`, `ssl-ca`/`ssl-cert`/`ssl-key`, and `collective`), the full
+precedence from lowest to highest is: Choria config file < CLI flags <
+inventory. All other options use OpenBolt-level defaults and are not affected by
+the Choria config file.
 
 **Timeout hierarchy:** Three levels of timeout control different things:
 - `nats-connection-timeout` (30s): How long to wait for the initial TCP
@@ -160,7 +173,7 @@ Works with either the **bolt_tasks** or **shell** agent.
 bolt task run facts --targets node1.example.com
 
 # Use shell agent for local tasks not on the OpenVox/Puppet Server
-bolt task run my_project::check --targets node1.example.com --choria-agent shell
+bolt task run my_project::check --targets node1.example.com --choria-task-agent shell
 ```
 
 Agent selection is deterministic with no automatic fallback. If the selected
@@ -198,7 +211,7 @@ installed on target nodes.
 With the shell agent:
 - `run_command` and `run_script` work
 - `run_task` can use either agent (bolt_tasks by default, or shell with
-  `--choria-agent shell`)
+  `--choria-task-agent shell`)
 
 The shell agent DDL (required by the client library) is bundled with OpenBolt
 and loaded automatically. No client-side setup is needed.
@@ -270,8 +283,8 @@ modulepath:
 
 Server-side paths are listed first so that OpenBolt reads the same module versions
 that the bolt_tasks agent will download from the server. When using
-`--choria-agent shell`, OpenBolt uploads task files directly, so local modules
-should take precedence instead — put `modules` first or omit the server paths.
+`--choria-task-agent shell`, OpenBolt uploads task files directly, so local modules
+should take precedence instead -- put `modules` first or omit the server paths.
 
 OpenBolt also auto-injects its own internal paths (visible in `--log-level debug`
 output): `bolt-modules` is prepended, and `.modules` plus the gem's built-in
@@ -308,22 +321,22 @@ bolt/choria-task-download-failed: ... ruby_task_helper/files/task_helper.rb: 404
 ### Using the shell agent for tasks
 
 If a task is not available on the OpenVox/Puppet Server (e.g., it's a local project
-task), set `choria-agent` to `shell` to upload and execute it directly via
+task), set `task-agent` to `shell` to upload and execute it directly via
 the shell agent, bypassing the OpenVox/Puppet Server entirely:
 
 ```yaml
 # bolt-project.yaml
 choria:
-  choria-agent: shell
+  task-agent: shell
 ```
 
 Or per-invocation:
 
 ```bash
-bolt task run my_project::check --targets node1 --choria-agent shell
+bolt task run my_project::check --targets node1 --choria-task-agent shell
 ```
 
-When using `--choria-agent shell`, the OpenVox/Puppet Server requirement is bypassed
+When using `--choria-task-agent shell`, the OpenVox/Puppet Server requirement is bypassed
 entirely. OpenBolt uploads task files directly via the shell agent, so only the
 local modulepath matters.
 
@@ -338,7 +351,7 @@ local modulepath matters.
 
 3. **bolt_tasks requires an OpenVox/Puppet Server.** The bolt_tasks agent downloads
    task files from the OpenVox/Puppet Server. Tasks not served by the OpenVox/Puppet Server
-   will fail with an error suggesting `--choria-agent shell`.
+   will fail with an error suggesting `--choria-task-agent shell`.
 
 4. **No streaming output.** All output is returned on completion, not streamed
    incrementally.
@@ -354,7 +367,7 @@ local modulepath matters.
    after OpenBolt reports a timeout (bolt_tasks has no kill mechanism).
 
 8. **File size limit for shell agent uploads.** When using the shell agent
-   (`run_script`, `run_task` with `--choria-agent shell`), files are
+   (`run_script`, `run_task` with `--choria-task-agent shell`), files are
    base64-encoded and sent as RPC messages. The maximum file size is limited
    by the NATS max message size (default 1MB, roughly 750KB effective after
    base64 overhead). Increase `plugin.choria.network.client_max_payload` in

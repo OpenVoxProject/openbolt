@@ -192,10 +192,10 @@ describe Bolt::Transport::Choria do
         end
       end
 
-      context 'with forced choria-agent' do
+      context 'with forced task-agent' do
         it 'uses only bolt_tasks when forced' do
           stub_agents(target, %w[rpcutil bolt_tasks shell])
-          inventory.set_config(target, %w[choria choria-agent], 'bolt_tasks')
+          inventory.set_config(target, %w[choria task-agent], 'bolt_tasks')
 
           expect(transport).to receive(:run_task_via_bolt_tasks).and_return(
             [Bolt::Result.for_task(target, '{}', '', 0, task_name, [])]
@@ -207,7 +207,7 @@ describe Bolt::Transport::Choria do
 
         it 'uses only shell when forced' do
           stub_agents(target, %w[rpcutil bolt_tasks shell])
-          inventory.set_config(target, %w[choria choria-agent], 'shell')
+          inventory.set_config(target, %w[choria task-agent], 'shell')
 
           expect(transport).not_to receive(:run_task_via_bolt_tasks)
           expect(transport).to receive(:run_task_via_shell).and_return(
@@ -219,7 +219,7 @@ describe Bolt::Transport::Choria do
 
         it 'returns error when forced agent is not available on target' do
           stub_agents(target, %w[rpcutil bolt_tasks])
-          inventory.set_config(target, %w[choria choria-agent], 'shell')
+          inventory.set_config(target, %w[choria task-agent], 'shell')
 
           result = transport.batch_task([target], task, {}).first
           expect(result.ok?).to be false
@@ -228,11 +228,11 @@ describe Bolt::Transport::Choria do
 
         it 'raises for invalid forced agent value' do
           stub_agents(target, %w[rpcutil bolt_tasks shell invalid_agent])
-          inventory.set_config(target, %w[choria choria-agent], 'invalid_agent')
+          inventory.set_config(target, %w[choria task-agent], 'invalid_agent')
 
           expect {
             transport.batch_task([target], task, {})
-          }.to raise_error(Bolt::ValidationError, /choria-agent must be/)
+          }.to raise_error(Bolt::ValidationError, /task-agent must be/)
         end
       end
     end
@@ -287,9 +287,9 @@ describe Bolt::Transport::Choria do
         expect(error_results.first.error_hash['msg']).to match(/No agent information.*did not respond to discovery/)
       end
 
-      it 'uses shell agent for all targets when choria-agent is shell' do
-        inventory.set_config(target, %w[choria choria-agent], 'shell')
-        inventory.set_config(target2, %w[choria choria-agent], 'shell')
+      it 'uses shell agent for all targets when task-agent is shell' do
+        inventory.set_config(target, %w[choria task-agent], 'shell')
+        inventory.set_config(target2, %w[choria task-agent], 'shell')
         stub_agents([target, target2], %w[rpcutil shell])
 
         allow(mock_rpc_client).to receive_messages(

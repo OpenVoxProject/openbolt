@@ -8,7 +8,6 @@ module Bolt
     module Transport
       class Choria < Base
         OPTIONS = %w[
-          choria-agent
           cleanup
           collective
           command-timeout
@@ -22,6 +21,7 @@ module Bolt
           ssl-ca
           ssl-cert
           ssl-key
+          task-agent
           task-timeout
           tmpdir
         ].sort.freeze
@@ -41,9 +41,9 @@ module Bolt
         private def validate
           super
 
-          if @config['choria-agent'] && !VALID_AGENTS.include?(@config['choria-agent'])
+          if @config['task-agent'] && !VALID_AGENTS.include?(@config['task-agent'])
             raise Bolt::ValidationError,
-                  "choria-agent must be one of #{VALID_AGENTS.join(', ')}, got '#{@config['choria-agent']}'"
+                  "task-agent must be one of #{VALID_AGENTS.join(', ')}, got '#{@config['task-agent']}'"
           end
 
           if @config['tmpdir'] && !absolute_path?(@config['tmpdir'])

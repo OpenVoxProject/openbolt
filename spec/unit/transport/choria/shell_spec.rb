@@ -328,7 +328,7 @@ describe Bolt::Transport::Choria do
 
   describe '#run_task_via_shell' do
     before(:each) do
-      inventory.set_config(target, %w[choria choria-agent], 'shell')
+      inventory.set_config(target, %w[choria task-agent], 'shell')
       stub_agents(target, %w[rpcutil shell])
       stub_shell_run
       stub_shell_start
