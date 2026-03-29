@@ -7,8 +7,6 @@ require 'bolt/plugin'
 require 'puppet/pops/types/p_sensitive_type'
 
 describe 'run_plan' do
-  include PuppetlabsSpec::Fixtures
-
   let(:executor) { Bolt::Executor.new }
   let(:tasks_enabled) { true }
   let(:inventory) { Bolt::Inventory.empty }

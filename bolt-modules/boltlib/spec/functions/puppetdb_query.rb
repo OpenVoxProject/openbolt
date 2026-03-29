@@ -3,8 +3,6 @@
 require 'spec_helper'
 
 describe 'puppetdb_query' do
-  include PuppetlabsSpec::Fixtures
-
   let(:pdb_client) { mock('pdb_client') }
 
   around(:each) do |example|
