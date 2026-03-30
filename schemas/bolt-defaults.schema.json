@@ -98,6 +98,9 @@
         "transport": {
           "$ref": "#/definitions/transport"
         },
+        "choria": {
+          "$ref": "#/definitions/choria"
+        },
         "docker": {
           "$ref": "#/definitions/docker"
         },
@@ -493,6 +496,7 @@
         {
           "type": "string",
           "enum": [
+            "choria",
             "docker",
             "jail",
             "local",
@@ -502,6 +506,179 @@
             "ssh",
             "winrm"
           ]
+        },
+        {
+          "$ref": "#/definitions/_plugin"
+        }
+      ]
+    },
+    "choria": {
+      "description": "A map of configuration options for the choria transport.",
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "cleanup": {
+              "oneOf": [
+                {
+                  "$ref": "#/transport_definitions/cleanup"
+                },
+                {
+                  "$ref": "#/definitions/_plugin"
+                }
+              ]
+            },
+            "collective": {
+              "oneOf": [
+                {
+                  "$ref": "#/transport_definitions/collective"
+                },
+                {
+                  "$ref": "#/definitions/_plugin"
+                }
+              ]
+            },
+            "command-timeout": {
+              "oneOf": [
+                {
+                  "$ref": "#/transport_definitions/command-timeout"
+                },
+                {
+                  "$ref": "#/definitions/_plugin"
+                }
+              ]
+            },
+            "config-file": {
+              "oneOf": [
+                {
+                  "$ref": "#/transport_definitions/config-file"
+                },
+                {
+                  "$ref": "#/definitions/_plugin"
+                }
+              ]
+            },
+            "host": {
+              "oneOf": [
+                {
+                  "$ref": "#/transport_definitions/host"
+                },
+                {
+                  "$ref": "#/definitions/_plugin"
+                }
+              ]
+            },
+            "interpreters": {
+              "oneOf": [
+                {
+                  "$ref": "#/transport_definitions/interpreters"
+                },
+                {
+                  "$ref": "#/definitions/_plugin"
+                }
+              ]
+            },
+            "nats-connection-timeout": {
+              "oneOf": [
+                {
+                  "$ref": "#/transport_definitions/nats-connection-timeout"
+                },
+                {
+                  "$ref": "#/definitions/_plugin"
+                }
+              ]
+            },
+            "nats-servers": {
+              "oneOf": [
+                {
+                  "$ref": "#/transport_definitions/nats-servers"
+                },
+                {
+                  "$ref": "#/definitions/_plugin"
+                }
+              ]
+            },
+            "puppet-environment": {
+              "oneOf": [
+                {
+                  "$ref": "#/transport_definitions/puppet-environment"
+                },
+                {
+                  "$ref": "#/definitions/_plugin"
+                }
+              ]
+            },
+            "rpc-timeout": {
+              "oneOf": [
+                {
+                  "$ref": "#/transport_definitions/rpc-timeout"
+                },
+                {
+                  "$ref": "#/definitions/_plugin"
+                }
+              ]
+            },
+            "ssl-ca": {
+              "oneOf": [
+                {
+                  "$ref": "#/transport_definitions/ssl-ca"
+                },
+                {
+                  "$ref": "#/definitions/_plugin"
+                }
+              ]
+            },
+            "ssl-cert": {
+              "oneOf": [
+                {
+                  "$ref": "#/transport_definitions/ssl-cert"
+                },
+                {
+                  "$ref": "#/definitions/_plugin"
+                }
+              ]
+            },
+            "ssl-key": {
+              "oneOf": [
+                {
+                  "$ref": "#/transport_definitions/ssl-key"
+                },
+                {
+                  "$ref": "#/definitions/_plugin"
+                }
+              ]
+            },
+            "task-agent": {
+              "oneOf": [
+                {
+                  "$ref": "#/transport_definitions/task-agent"
+                },
+                {
+                  "$ref": "#/definitions/_plugin"
+                }
+              ]
+            },
+            "task-timeout": {
+              "oneOf": [
+                {
+                  "$ref": "#/transport_definitions/task-timeout"
+                },
+                {
+                  "$ref": "#/definitions/_plugin"
+                }
+              ]
+            },
+            "tmpdir": {
+              "oneOf": [
+                {
+                  "$ref": "#/transport_definitions/tmpdir"
+                },
+                {
+                  "$ref": "#/definitions/_plugin"
+                }
+              ]
+            }
+          }
         },
         {
           "$ref": "#/definitions/_plugin"
@@ -1630,6 +1807,75 @@
         }
       ]
     },
+    "task-agent": {
+      "description": "Which Choria agent to use for task execution. Defaults to 'bolt_tasks' (downloads task files from a Puppet Server). Set to 'shell' for tasks not available on the Puppet Server.",
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "$ref": "#/definitions/_plugin"
+        }
+      ]
+    },
+    "collective": {
+      "description": "The Choria collective to target. Overrides the main_collective from the Choria client configuration file.",
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "$ref": "#/definitions/_plugin"
+        }
+      ]
+    },
+    "command-timeout": {
+      "description": "How long to wait in seconds for commands and scripts to complete when using the Choria transport.",
+      "oneOf": [
+        {
+          "type": "integer",
+          "minimum": 1
+        },
+        {
+          "$ref": "#/definitions/_plugin"
+        }
+      ]
+    },
+    "config-file": {
+      "description": "The path to the Choria or MCollective client configuration file.",
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "$ref": "#/definitions/_plugin"
+        }
+      ]
+    },
+    "nats-connection-timeout": {
+      "description": "How long to wait in seconds for the initial TCP connection to the NATS broker. If the connection cannot be made within this time, the operation fails.",
+      "oneOf": [
+        {
+          "type": "integer",
+          "minimum": 1
+        },
+        {
+          "$ref": "#/definitions/_plugin"
+        }
+      ]
+    },
+    "rpc-timeout": {
+      "description": "How long to wait in seconds for nodes to respond to an RPC request. Used for lightweight operations like agent discovery, shell.start, and shell.list polling. Distinct from command-timeout and task-timeout which govern the overall duration of commands and tasks.",
+      "oneOf": [
+        {
+          "type": "integer",
+          "minimum": 1
+        },
+        {
+          "$ref": "#/definitions/_plugin"
+        }
+      ]
+    },
     "connect-timeout": {
       "description": "How long to wait in seconds when establishing connections. Set this value higher if you frequently encounter connection timeout errors when running Bolt.",
       "oneOf": [
@@ -1899,6 +2145,30 @@
         }
       ]
     },
+    "nats-servers": {
+      "description": "One or more NATS server addresses for the Choria transport. Overrides the middleware hosts from the Choria client configuration file. Can be a single string or an array.",
+      "oneOf": [
+        {
+          "type": [
+            "string",
+            "array"
+          ],
+          "items": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "$ref": "#/definitions/_plugin"
+              }
+            ]
+          }
+        },
+        {
+          "$ref": "#/definitions/_plugin"
+        }
+      ]
+    },
     "native-ssh": {
       "type": "boolean",
       "description": "This enables the native SSH transport, which shells out to SSH instead of using the net-ssh Ruby library"
@@ -1962,6 +2232,17 @@
         {
           "type": "string",
           "format": "uri"
+        },
+        {
+          "$ref": "#/definitions/_plugin"
+        }
+      ]
+    },
+    "puppet-environment": {
+      "description": "The Puppet environment to use when constructing task file URIs for the Choria bolt_tasks agent.",
+      "oneOf": [
+        {
+          "type": "string"
         },
         {
           "$ref": "#/definitions/_plugin"
@@ -2085,6 +2366,39 @@
         }
       ]
     },
+    "ssl-ca": {
+      "description": "The path to the CA certificate for Choria TLS connections. Overrides the CA from the Choria client configuration file.",
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "$ref": "#/definitions/_plugin"
+        }
+      ]
+    },
+    "ssl-cert": {
+      "description": "The path to the client certificate for Choria TLS connections. Overrides the certificate from the Choria client configuration file.",
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "$ref": "#/definitions/_plugin"
+        }
+      ]
+    },
+    "ssl-key": {
+      "description": "The path to the client private key for Choria TLS connections. Overrides the key from the Choria client configuration file.",
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "$ref": "#/definitions/_plugin"
+        }
+      ]
+    },
     "ssh-command": {
       "description": "The command and options to use when SSHing. This option is used when you need support for features or algorithms that are not supported by the net-ssh Ruby library. **This option is experimental.** You can read more about this  option in [Native SSH transport](experimental_features.md#native-ssh-transport).",
       "oneOf": [
@@ -2158,6 +2472,18 @@
       "oneOf": [
         {
           "type": "string"
+        },
+        {
+          "$ref": "#/definitions/_plugin"
+        }
+      ]
+    },
+    "task-timeout": {
+      "description": "How long to wait in seconds for tasks to complete when using the Choria transport.",
+      "oneOf": [
+        {
+          "type": "integer",
+          "minimum": 1
         },
         {
           "$ref": "#/definitions/_plugin"
