@@ -40,7 +40,7 @@ module BoltSpec
     # variables are cleared between `it` blocks.
     #
     # Accepts Bolt::Target objects or host strings, single or as an array.
-    # Agents can be strings (version defaults to '1.2.0') or [name, version]
+    # Agents can be strings (version defaults to '1.2.1') or [name, version]
     # pairs for version-specific scenarios.
     #
     #   stub_agents(target, %w[rpcutil shell])
@@ -51,7 +51,7 @@ module BoltSpec
       targets = [targets].flatten
 
       agent_data = agents.map do |agent|
-        name, version = agent.is_a?(Array) ? agent : [agent, '1.2.0']
+        name, version = agent.is_a?(Array) ? agent : [agent, '1.2.1']
         { 'agent' => name, 'name' => name, 'version' => version }
       end
 

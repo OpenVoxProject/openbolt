@@ -3,7 +3,7 @@
 module Bolt
   module Transport
     class Choria
-      SHELL_MIN_VERSION = '1.2.0'
+      SHELL_MIN_VERSION = '1.2.1'
 
       AGENT_MIN_VERSIONS = {
         'shell' => SHELL_MIN_VERSION

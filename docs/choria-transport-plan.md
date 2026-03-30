@@ -23,7 +23,7 @@ which Choria agents are available on the remote nodes:
 | Phase | Agents Required | Capabilities Added |
 |-------|----------------|-------------------|
 | Phase 1 | bolt_tasks (ships with Choria+Puppet) | `run_task` (OpenVox/Puppet Server tasks only) |
-| Phase 2 | shell >= 1.2.0 (separate install) | `run_command`, `run_script`, `run_task` (local tasks) |
+| Phase 2 | shell >= 1.2.1 (separate install) | `run_command`, `run_script`, `run_task` (local tasks) |
 | Phase 3 | bolt_tasks | [foreman_openbolt](https://github.com/overlookinfra/foreman_openbolt) and [smart_proxy_openbolt](https://github.com/overlookinfra/smart_proxy_openbolt) Choria transport support (bolt_tasks only) |
 | Phase 4 | file-transfer (new, to be written) | `upload`, `download` (any size, chunked) |
 | Phase 5 | (all above) | Full plan support including apply blocks |

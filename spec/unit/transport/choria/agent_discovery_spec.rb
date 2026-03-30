@@ -16,7 +16,7 @@ describe Bolt::Transport::Choria do
                              agents: [{ 'agent' => 'rpcutil' }, { 'agent' => 'bolt_tasks' }]
                            })
       r2 = make_rpc_result(sender: target2, data: {
-                             agents: [{ 'agent' => 'rpcutil' }, { 'agent' => 'shell', 'version' => '1.2.0' }]
+                             agents: [{ 'agent' => 'rpcutil' }, { 'agent' => 'shell', 'version' => '1.2.1' }]
                            })
 
       f1 = make_rpc_result(sender: target, data: { value: 'RedHat' })
@@ -80,7 +80,7 @@ describe Bolt::Transport::Choria do
     it 'discards responses from unexpected senders' do
       legit = make_rpc_result(sender: target, data: {
                                 agents: [{ 'agent' => 'rpcutil', 'version' => '1.0.0' },
-                                         { 'agent' => 'shell', 'version' => '1.2.0' }]
+                                         { 'agent' => 'shell', 'version' => '1.2.1' }]
                               })
       rogue = make_rpc_result(sender: 'evil.example.com', data: {
                                 agents: [{ 'agent' => 'rpcutil' }, { 'agent' => 'bolt_tasks' }]
@@ -198,7 +198,7 @@ describe Bolt::Transport::Choria do
     it 'defaults to POSIX when OS detection fails' do
       result = make_rpc_result(sender: target, data: {
                                  agents: [{ 'agent' => 'rpcutil', 'version' => '1.0.0' },
-                                          { 'agent' => 'shell', 'version' => '1.2.0' }]
+                                          { 'agent' => 'shell', 'version' => '1.2.1' }]
                                })
       allow(mock_rpc_client).to receive(:agent_inventory).and_return([result])
 
@@ -212,7 +212,7 @@ describe Bolt::Transport::Choria do
     it 'defaults to POSIX when os.family fact is an empty string' do
       result = make_rpc_result(sender: target, data: {
                                  agents: [{ 'agent' => 'rpcutil', 'version' => '1.0.0' },
-                                          { 'agent' => 'shell', 'version' => '1.2.0' }]
+                                          { 'agent' => 'shell', 'version' => '1.2.1' }]
                                })
 
       fact_result = make_rpc_result(sender: target, data: { value: '' })
@@ -226,7 +226,7 @@ describe Bolt::Transport::Choria do
     it 're-raises Bolt::Error from OS detection instead of swallowing it' do
       result = make_rpc_result(sender: target, data: {
                                  agents: [{ 'agent' => 'rpcutil', 'version' => '1.0.0' },
-                                          { 'agent' => 'shell', 'version' => '1.2.0' }]
+                                          { 'agent' => 'shell', 'version' => '1.2.1' }]
                                })
       allow(mock_rpc_client).to receive(:agent_inventory).and_return([result])
 

@@ -221,10 +221,10 @@ mod 'choria-mcollective', :latest
 mod 'choria-mcollective_choria', :latest
 mod 'mcollective_agent_shell',
   git: 'https://github.com/choria-plugins/shell-agent',
-  ref: '1.2.0'
+  ref: '1.2.1'
 ```
 
-The shell agent requires version 1.2.0 or later (for the batched `statuses`
+The shell agent requires version 1.2.1 or later (for the batched `statuses`
 action). The `bolt_tasks` agent is included in a standard Choria install and
 does not need a separate Puppetfile entry.
 

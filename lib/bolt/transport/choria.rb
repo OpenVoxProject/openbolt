@@ -24,7 +24,7 @@ module Bolt
     #     them via task_wrapper. All other operations fail with an actionable
     #     error directing the user to install the shell agent.
     #
-    #   shell agent installed (>= 1.2.0): run_command, run_script, and
+    #   shell agent installed (>= 1.2.1): run_command, run_script, and
     #     run_task work. run_task uses the bolt_tasks agent by default.
     #     To run local tasks via the shell agent, set task-agent to 'shell'
     #     in project config or specify --choria-task-agent shell.

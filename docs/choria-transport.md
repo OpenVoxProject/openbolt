@@ -24,7 +24,7 @@ For test environment setup, see [choria-transport-testing.md](choria-transport-t
 - A Choria client config file on the OpenBolt controller
 - At least one of the supported agents installed on target nodes:
   - **bolt_tasks** (ships with Puppet-enabled Choria setups)
-  - **shell** (separate install, version 1.2.0 or later)
+  - **shell** (separate install, version 1.2.1 or later)
 
 ## Configuration
 
@@ -134,7 +134,7 @@ validation.
 
 ### run_command
 
-Requires the **shell agent** (>= 1.2.0) on target nodes.
+Requires the **shell agent** (>= 1.2.1) on target nodes.
 
 ```bash
 bolt command run 'hostname -f' --targets node1.example.com,node2.example.com
@@ -146,7 +146,7 @@ process is killed on the target node.
 
 ### run_script
 
-Requires the **shell agent** (>= 1.2.0) on target nodes.
+Requires the **shell agent** (>= 1.2.1) on target nodes.
 
 ```bash
 bolt script run ./check_disk.sh --targets node1.example.com
@@ -205,7 +205,7 @@ task files from an OpenVox/Puppet Server and executes them. This means:
 ### shell (separate install)
 
 The [shell agent](https://github.com/choria-plugins/shell-agent) is a
-separate Choria plugin. Version 1.2.0 or later is required. It must be
+separate Choria plugin. Version 1.2.1 or later is required. It must be
 installed on target nodes.
 
 With the shell agent:
@@ -220,7 +220,7 @@ and loaded automatically. No client-side setup is needed.
 
 On first contact with a target, the transport automatically discovers which
 agents are installed and what OS the target is running. This happens
-transparently. Agents below the required minimum version (e.g., shell < 1.2.0)
+transparently. Agents below the required minimum version (e.g., shell < 1.2.1)
 are excluded and treated as unavailable.
 
 If a target is missing the required agent, it gets a clear error result with
@@ -235,7 +235,7 @@ Install via Puppet by referencing the GitHub repository in your Puppetfile:
 ```ruby
 mod 'mcollective_agent_shell',
   git: 'https://github.com/choria-plugins/shell-agent',
-  ref: 'v1.2.0'
+  ref: 'v1.2.1'
 ```
 
 Deploy with r10k or Code Manager, then apply via Hiera:
@@ -347,7 +347,7 @@ local modulepath matters.
 
 2. **Shell agent not installed by default.** Without it, only `run_task`
    (via bolt_tasks + OpenVox/Puppet Server) works. All other operations fail with a
-   clear error message. Version 1.2.0 or later is required.
+   clear error message. Version 1.2.1 or later is required.
 
 3. **bolt_tasks requires an OpenVox/Puppet Server.** The bolt_tasks agent downloads
    task files from the OpenVox/Puppet Server. Tasks not served by the OpenVox/Puppet Server

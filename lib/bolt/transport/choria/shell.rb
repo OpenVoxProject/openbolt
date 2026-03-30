@@ -466,7 +466,7 @@ module Bolt
       end
 
       # Fetch stdout/stderr/exitcode from completed targets via the
-      # shell.statuses RPC action. Requires shell agent >= 1.2.0.
+      # shell.statuses RPC action. Requires shell agent >= 1.2.1.
       #
       # @param targets [Hash{Bolt::Target => Hash}] Completed targets mapped to { handle: uuid_string }
       # @return [Hash{Bolt::Target => Hash}] Output hash for each target

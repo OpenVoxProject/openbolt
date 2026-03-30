@@ -60,7 +60,7 @@ gem, which provides `MCollective::RPC::Client`. Despite the MCollective name
 - **shell**: A separate plugin
   ([choria-plugins/shell-agent](https://github.com/choria-plugins/shell-agent)).
   Provides synchronous (`run`) and asynchronous (`start`/`list`/`statuses`/`kill`)
-  command execution. Version 1.2.0+ required for the batched `statuses` action.
+  command execution. Version 1.2.1+ required for the batched `statuses` action.
 
 ## File Layout
 
@@ -93,7 +93,7 @@ identity. Each entry stores `{ agents: [...], os: 'redhat'|'windows'|... }`.
 The cache lives for the transport instance's lifetime. Non-responding targets
 are not cached (intentional, to allow retry on transient failures).
 
-Agent versions are checked against `AGENT_MIN_VERSIONS` (e.g., shell >= 1.2.0).
+Agent versions are checked against `AGENT_MIN_VERSIONS` (e.g., shell >= 1.2.1).
 Agents below the minimum are excluded from the cache and logged as warnings.
 
 ### RPC Request Pipeline
@@ -368,7 +368,7 @@ error. This is simpler and more predictable than a try-and-fallback approach.
 
 Shell polling uses `shell.list` + `shell.statuses` instead of per-handle
 `shell.status` calls. This reduces RPC overhead from O(N) per round to O(1)
-per target node, making it feasible at scale. This is why version 1.2.0
+per target node, making it feasible at scale. This is why version 1.2.1
 of the shell agent is required, since this is the version version to include
 `shell.statuses`.
 
