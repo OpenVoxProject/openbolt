@@ -34,7 +34,7 @@ Reach out to the [Documentation Special Interest Group](https://github.com/voxpu
 
 ## Supported platforms
 
-OpenBolt can be installed on Linux, Windows, and macOS. For complete installation details, see the [installation docs](./documentation/bolt_installing.md).
+OpenBolt can be installed on Linux and macOS. Windows is supported as client. For complete installation details, see the [installation docs](./documentation/bolt_installing.md).
 
 For alternate installation methods and running from source code, see our [contributing guidelines](https://github.com/OpenVoxProject/openbolt/blob/main/CONTRIBUTING.md).
 
