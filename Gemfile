@@ -47,11 +47,6 @@ group(:packaging) do
   gem 'vanagon', *location_for(ENV['VANAGON_LOCATION'] || 'https://github.com/openvoxproject/vanagon#main')
 end
 
-local_gemfile = File.join(__dir__, 'Gemfile.local')
-if File.exist? local_gemfile
-  eval_gemfile local_gemfile
-end
-
 # https://github.com/OpenVoxProject/openvox/issues/90
 gem 'syslog', '~> 0.3' if RUBY_VERSION >= '3.4'
 
