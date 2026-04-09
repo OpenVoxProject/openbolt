@@ -27,7 +27,7 @@ module Bolt
 
     def iterator
       if Object.const_defined?(:Puppet) && Puppet.const_defined?(:Pops) &&
-         self.class.included_modules.include?(Puppet::Pops::Types::Iterable)
+         self.class.include?(Puppet::Pops::Types::Iterable)
         Puppet::Pops::Types::Iterable.on(@results, Bolt::Result)
       else
         raise NotImplementedError, "iterator requires puppet code to be loaded."
