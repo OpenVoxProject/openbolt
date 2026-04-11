@@ -23,3 +23,15 @@ Layout/LineLength:
 
 Style/FetchEnvVar:
   Enabled: false
+
+Naming/BlockForwarding:
+  Enabled: false
+
+Naming/PredicatePrefix:
+  Enabled: false
+
+Lint/NoReturnInBeginEndBlocks:
+  Enabled: false
+
+Style/MultilineTernaryOperator:
+  Enabled: false
