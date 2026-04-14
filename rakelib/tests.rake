@@ -151,6 +151,7 @@ begin
       each_module_dir = lambda do |base|
         Pathname.new(base).each_child do |child|
           next unless child.directory? && child.join('spec').directory?
+
           run_specs.call(child)
         end
       end
