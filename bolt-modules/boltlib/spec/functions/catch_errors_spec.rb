@@ -7,15 +7,17 @@ describe 'catch_errors' do
   let(:executor) { Bolt::Executor.new }
   let(:tasks_enabled) { true }
 
-  around(:each) do |example|
+  before(:each) do
     Puppet[:tasks] = tasks_enabled
-    Puppet.override(bolt_executor: executor) do
-      example.run
-    end
+    Puppet.push_context(bolt_executor: executor)
+  end
+
+  after(:each) do
+    Puppet.pop_context
   end
 
   it 'reports the call to analytics' do
-    executor.expects(:report_function_call).with('catch_errors')
+    expect(executor).to receive(:report_function_call).with('catch_errors')
     is_expected.to(run
       .with_lambda { 'abcd' })
   end

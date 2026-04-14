@@ -7,7 +7,7 @@ require 'bolt/inventory'
 require 'bolt/plan_result'
 
 describe 'parallelize' do
-  include PuppetlabsSpec::Fixtures
+  include SpecFixtures
 
   let(:array) { %w[a b c d a b a] }
   let(:future) { Bolt::PlanFuture.new(nil, 1, name: 'name', plan_id: 1234) }
@@ -15,22 +15,24 @@ describe 'parallelize' do
   let(:result_array) { %w[ea eb ec ed ea eb ea] }
   let(:tasks_enabled) { true }
 
-  around(:each) do |example|
+  before(:each) do
     Puppet[:tasks] = tasks_enabled
-    Puppet.override(bolt_executor: executor, plan_stack: []) do
-      example.run
-    end
+    Puppet.push_context(bolt_executor: executor, plan_stack: [])
+  end
+
+  after(:each) do
+    Puppet.pop_context
   end
 
   before :each do
     array.each do
-      executor.expects(:create_future).returns(future)
+      expect(executor).to receive(:create_future).and_return(future)
     end
-    executor.expects(:wait).returns(result_array)
+    expect(executor).to receive(:wait).and_return(result_array)
   end
 
   it 'reports the function call to analytics' do
-    executor.expects(:report_function_call).with('parallelize')
+    expect(executor).to receive(:report_function_call).with('parallelize')
 
     is_expected.to(run
       .with_params(array)

@@ -5,7 +5,7 @@ require 'bolt/executor'
 require 'bolt/inventory'
 
 describe 'set_feature' do
-  include PuppetlabsSpec::Fixtures
+  include SpecFixtures
 
   let(:executor) { Bolt::Executor.new }
   let(:inventory) { Bolt::Inventory.empty }
@@ -13,11 +13,13 @@ describe 'set_feature' do
   let(:tasks_enabled) { true }
   let(:feature) { 'feature' }
 
-  around(:each) do |example|
+  before(:each) do
     Puppet[:tasks] = tasks_enabled
-    Puppet.override(bolt_executor: executor, bolt_inventory: inventory) do
-      example.run
-    end
+    Puppet.push_context(bolt_executor: executor, bolt_inventory: inventory)
+  end
+
+  after(:each) do
+    Puppet.pop_context
   end
 
   it 'should set a variable on a target' do
@@ -32,7 +34,7 @@ describe 'set_feature' do
   end
 
   it 'reports the call to analytics' do
-    executor.expects(:report_function_call).with('set_feature')
+    expect(executor).to receive(:report_function_call).with('set_feature')
     is_expected.to run.with_params(target, feature, true).and_return(target)
   end
 

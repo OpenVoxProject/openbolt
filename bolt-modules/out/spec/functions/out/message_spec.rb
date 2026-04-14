@@ -3,19 +3,21 @@
 require 'spec_helper'
 
 describe 'out::message' do
-  let(:executor)      { stub('executor', report_function_call: nil, publish_event: nil) }
+  let(:executor)      { double('executor', report_function_call: nil, publish_event: nil) }
   let(:tasks_enabled) { true }
 
-  around(:each) do |example|
+  before(:each) do
     Puppet[:tasks] = tasks_enabled
 
-    Puppet.override(bolt_executor: executor) do
-      example.run
-    end
+    Puppet.push_context(bolt_executor: executor)
+  end
+
+  after(:each) do
+    Puppet.pop_context
   end
 
   it 'sends a message event to the executor' do
-    executor.expects(:publish_event).with(
+    expect(executor).to receive(:publish_event).with(
       type:    :message,
       message: 'This is a message',
       level:   :info
@@ -25,7 +27,7 @@ describe 'out::message' do
   end
 
   it 'reports function call to analytics' do
-    executor.expects(:report_function_call).with('out::message')
+    expect(executor).to receive(:report_function_call).with('out::message')
     is_expected.to run.with_params('This is a message')
   end
 

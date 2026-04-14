@@ -12,11 +12,13 @@ describe 'resource' do
   let(:hash) { { 'target' => target, 'type' => 'Package', 'title' => 'openssl' } }
   let(:resource) { Bolt::ResourceInstance.new(hash) }
 
-  around(:each) do |example|
+  before(:each) do
     Puppet[:tasks] = true
-    Puppet.override(bolt_executor: executor, bolt_inventory: inventory) do
-      example.run
-    end
+    Puppet.push_context(bolt_executor: executor, bolt_inventory: inventory)
+  end
+
+  after(:each) do
+    Puppet.pop_context
   end
 
   it 'should return nil if the resource is not found' do
@@ -30,7 +32,7 @@ describe 'resource' do
   end
 
   it 'reports the call to analytics' do
-    executor.expects(:report_function_call).with('resource')
+    expect(executor).to receive(:report_function_call).with('resource')
     is_expected.to run.with_params(target, 'Foo', 'bar')
   end
 end

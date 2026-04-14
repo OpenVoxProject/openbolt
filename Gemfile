@@ -31,9 +31,10 @@ gem "paint", "~> 2.2"
 
 group(:test) do
   gem "beaker-hostgenerator"
-  gem "mocha", '>= 1.4.0', '< 4'
   gem "rack-test", '>= 1', '< 3'
   gem 'rspec-github', require: false
+  gem 'rspec-puppet', '>= 5', require: false
+  gem 'puppet_fixtures', '>= 0.1', '< 3', require: false
 end
 
 group(:release, optional: true) do

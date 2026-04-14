@@ -5,16 +5,18 @@ require 'bolt/executor'
 require 'bolt/error'
 
 describe 'fail_plan' do
-  include PuppetlabsSpec::Fixtures
+  include SpecFixtures
 
   let(:tasks_enabled) { true }
   let(:executor) { Bolt::Executor.new }
 
-  around(:each) do |example|
+  before(:each) do
     Puppet[:tasks] = tasks_enabled
-    Puppet.override(bolt_executor: executor) do
-      example.run
-    end
+    Puppet.push_context(bolt_executor: executor)
+  end
+
+  after(:each) do
+    Puppet.pop_context
   end
 
   it 'raises an error from arguments' do
@@ -28,7 +30,7 @@ describe 'fail_plan' do
 
   it 'reports the call to analytics' do
     executor = Bolt::Executor.new
-    executor.expects(:report_function_call).with('fail_plan')
+    expect(executor).to receive(:report_function_call).with('fail_plan')
 
     Puppet.override(bolt_executor: executor) do
       is_expected.to run.with_params('foo').and_raise_error(Bolt::PlanFailure)

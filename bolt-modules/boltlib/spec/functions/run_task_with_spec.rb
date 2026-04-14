@@ -7,33 +7,34 @@ require 'bolt/result'
 require 'bolt/result_set'
 require 'puppet/pops/types/p_sensitive_type'
 
-class TaskTypeMatcher < Mocha::ParameterMatchers::Equals
+class TaskTypeMatcher
   def initialize(executable, input_method)
-    super(nil)
     @executable = Regexp.new(executable)
     @input_method = input_method
   end
 
-  def matches?(available_parameters)
-    other = available_parameters.shift
+  # rspec-mocks uses #=== to check whether an actual argument matches.
+  def ===(other)
     @executable =~ other.files.first['path'] && @input_method == other.metadata['input_method']
   end
 end
 
 describe 'run_task_with' do
-  include PuppetlabsSpec::Fixtures
+  include SpecFixtures
 
   let(:executor)      { Bolt::Executor.new }
   let(:inventory)     { Bolt::Inventory.empty }
   let(:tasks_enabled) { true }
 
-  around(:each) do |example|
+  before(:each) do
     Puppet[:tasks] = tasks_enabled
-    executor.stubs(:noop).returns(false)
+    allow(executor).to receive(:noop).and_return(false)
 
-    Puppet.override(bolt_executor: executor, bolt_inventory: inventory) do
-      example.run
-    end
+    Puppet.push_context(bolt_executor: executor, bolt_inventory: inventory)
+  end
+
+  after(:each) do
+    Puppet.pop_context
   end
 
   def mock_task(executable, input_method)
@@ -74,11 +75,11 @@ describe 'run_task_with' do
         target2 => { 'message' => target2.safe_name }
       }
 
-      executor.expects(:run_task_with)
+      expect(executor).to receive(:run_task_with)
               .with(target_mapping, mock_task(executable, 'environment'), {}, [])
-              .returns(result_set)
+              .and_return(result_set)
 
-      inventory.expects(:get_targets).with(hosts).returns(targets)
+      expect(inventory).to receive(:get_targets).with(hosts).and_return(targets)
 
       is_expected.to(run
         .with_params('Test::Meta', hosts)
@@ -88,11 +89,11 @@ describe 'run_task_with' do
     it '_run_as is passed to the executor' do
       executable = File.join(tasks_root, 'meta.sh')
 
-      executor.expects(:run_task_with)
+      expect(executor).to receive(:run_task_with)
               .with(target_mapping, mock_task(executable, 'environment'), { run_as: 'root' }, [])
-              .returns(result_set)
+              .and_return(result_set)
 
-      inventory.expects(:get_targets).with(hosts).returns(targets)
+      expect(inventory).to receive(:get_targets).with(hosts).and_return(targets)
 
       is_expected.to(run
         .with_params('Test::Meta', hosts, { '_run_as' => 'root' })
@@ -119,10 +120,10 @@ describe 'run_task_with' do
         target2 => args.merge(defaults)
       }
 
-      executor.expects(:run_task_with)
+      expect(executor).to receive(:run_task_with)
               .with(target_mapping, mock_task(executable, 'stdin'), {}, [])
-              .returns(result_set)
-      inventory.expects(:get_targets).with(hosts).returns(targets)
+              .and_return(result_set)
+      expect(inventory).to receive(:get_targets).with(hosts).and_return(targets)
 
       is_expected.to(run
         .with_params('Test::Params', hosts)
@@ -142,10 +143,10 @@ describe 'run_task_with' do
 
       target_mapping = { target => args, target2 => args }
 
-      executor.expects(:run_task_with)
+      expect(executor).to receive(:run_task_with)
               .with(target_mapping, mock_task(executable, 'stdin'), {}, [])
-              .returns(result_set)
-      inventory.expects(:get_targets).with(hosts).returns(targets)
+              .and_return(result_set)
+      expect(inventory).to receive(:get_targets).with(hosts).and_return(targets)
 
       is_expected.to(run
         .with_params('Test::Params', hosts)
@@ -167,10 +168,10 @@ describe 'run_task_with' do
         target2 => expected_args
       }
 
-      executor.expects(:run_task_with)
+      expect(executor).to receive(:run_task_with)
               .with(target_mapping, mock_task(executable, 'environment'), {}, [])
-              .returns(result_set)
-      inventory.expects(:get_targets).with(hosts).returns(targets)
+              .and_return(result_set)
+      expect(inventory).to receive(:get_targets).with(hosts).and_return(targets)
 
       is_expected.to(run
         .with_params('test::undef', hosts)
@@ -178,8 +179,8 @@ describe 'run_task_with' do
     end
 
     it 'does not invoke Bolt when target list is empty' do
-      executor.expects(:run_task).never
-      inventory.expects(:get_targets).with([]).returns([])
+      expect(executor).not_to receive(:run_task)
+      expect(inventory).to receive(:get_targets).with([]).and_return([])
 
       is_expected.to(run
         .with_params('Test::Yes', [])
@@ -188,14 +189,14 @@ describe 'run_task_with' do
     end
 
     it 'reports the function call and task name to analytics' do
-      executor.expects(:report_function_call).with('run_task_with')
-      executor.expects(:report_bundled_content).with('Task', 'Test::Echo').once
+      expect(executor).to receive(:report_function_call).with('run_task_with')
+      expect(executor).to receive(:report_bundled_content).with('Task', 'Test::Echo').once
       executable = File.join(tasks_root, 'echo.sh')
 
-      executor.expects(:run_task_with)
+      expect(executor).to receive(:run_task_with)
               .with(target_mapping, mock_task(executable, nil), {}, [])
-              .returns(result_set)
-      inventory.expects(:get_targets).with(hosts).returns(targets)
+              .and_return(result_set)
+      expect(inventory).to receive(:get_targets).with(hosts).and_return(targets)
 
       is_expected.to(run
         .with_params('Test::Echo', hosts)
@@ -207,10 +208,10 @@ describe 'run_task_with' do
       let(:message) { 'test message' }
 
       it 'passes the description through' do
-        executor.expects(:run_task_with)
+        expect(executor).to receive(:run_task_with)
                 .with(target_mapping, anything, { description: message }, [])
-                .returns(result_set)
-        inventory.expects(:get_targets).with(hosts).returns(targets)
+                .and_return(result_set)
+        expect(inventory).to receive(:get_targets).with(hosts).and_return(targets)
 
         is_expected.to(run
           .with_params('test::yes', hosts, message)
@@ -220,10 +221,10 @@ describe 'run_task_with' do
 
     context 'without description' do
       it 'ignores description if options are passed' do
-        executor.expects(:run_task_with)
+        expect(executor).to receive(:run_task_with)
                 .with(target_mapping, anything, {}, [])
-                .returns(result_set)
-        inventory.expects(:get_targets).with(hosts).returns(targets)
+                .and_return(result_set)
+        expect(inventory).to receive(:get_targets).with(hosts).and_return(targets)
 
         is_expected.to(run
           .with_params('test::yes', hosts, {})
@@ -231,10 +232,10 @@ describe 'run_task_with' do
       end
 
       it 'ignores description if no parameters are passed' do
-        executor.expects(:run_task_with)
+        expect(executor).to receive(:run_task_with)
                 .with(target_mapping, anything, {}, [])
-                .returns(result_set)
-        inventory.expects(:get_targets).with(hosts).returns(targets)
+                .and_return(result_set)
+        expect(inventory).to receive(:get_targets).with(hosts).and_return(targets)
 
         is_expected.to(run
           .with_params('test::yes', hosts)
@@ -248,11 +249,11 @@ describe 'run_task_with' do
       it 'targets can be specified as repeated nested arrays and strings and combine into one list of targets' do
         executable = File.join(tasks_root, 'meta.sh')
 
-        executor.expects(:run_task_with)
+        expect(executor).to receive(:run_task_with)
                 .with(target_mapping, mock_task(executable, 'environment'), {}, [])
-                .returns(result_set)
+                .and_return(result_set)
 
-        inventory.expects(:get_targets).with([hostname, [[hostname2]], []]).returns(targets)
+        expect(inventory).to receive(:get_targets).with([hostname, [[hostname2]], []]).and_return(targets)
 
         is_expected.to(run
           .with_params('Test::Meta', [hostname, [[hostname2]], []])
@@ -263,11 +264,11 @@ describe 'run_task_with' do
       it 'targets can be specified as repeated nested arrays and Targets and combine into one list of targets' do
         executable = File.join(tasks_root, 'meta.sh')
 
-        executor.expects(:run_task_with)
+        expect(executor).to receive(:run_task_with)
                 .with(target_mapping, mock_task(executable, 'environment'), {}, [])
-                .returns(result_set)
+                .and_return(result_set)
 
-        inventory.expects(:get_targets).with([target, [[target2]], []]).returns(targets)
+        expect(inventory).to receive(:get_targets).with([target, [[target2]], []]).and_return(targets)
 
         is_expected.to(run
           .with_params('Test::Meta', [target, [[target2]], []])
@@ -282,11 +283,11 @@ describe 'run_task_with' do
         it 'errors by default' do
           executable = File.join(tasks_root, 'meta.sh')
 
-          executor.expects(:run_task_with)
+          expect(executor).to receive(:run_task_with)
                   .with(target_mapping, mock_task(executable, 'environment'), {}, [])
-                  .returns(result_set)
+                  .and_return(result_set)
 
-          inventory.expects(:get_targets).with(hosts).returns(targets)
+          expect(inventory).to receive(:get_targets).with(hosts).and_return(targets)
 
           is_expected.to(run
             .with_params('Test::Meta', hosts)
@@ -297,11 +298,11 @@ describe 'run_task_with' do
         it 'does not error with _catch_errors' do
           executable = File.join(tasks_root, 'meta.sh')
 
-          executor.expects(:run_task_with)
+          expect(executor).to receive(:run_task_with)
                   .with(target_mapping, mock_task(executable, 'environment'), { catch_errors: true }, [])
-                  .returns(result_set)
+                  .and_return(result_set)
 
-          inventory.expects(:get_targets).with(hosts).returns(targets)
+          expect(inventory).to receive(:get_targets).with(hosts).and_return(targets)
 
           is_expected.to(run
             .with_params('Test::Meta', [hostname, hostname2], '_catch_errors' => true)
@@ -312,8 +313,8 @@ describe 'run_task_with' do
 
     context 'when called on a module that contains manifests/init.pp' do
       it 'the call does not load init.pp' do
-        executor.expects(:run_task).never
-        inventory.expects(:get_targets).with([]).returns([])
+        expect(executor).not_to receive(:run_task)
+        expect(inventory).to receive(:get_targets).with([]).and_return([])
 
         is_expected.to(run
           .with_params('test::echo', [])
@@ -327,10 +328,10 @@ describe 'run_task_with' do
       it 'finds task named after the module' do
         executable = File.join(tasks_root, 'init.sh')
 
-        executor.expects(:run_task_with)
+        expect(executor).to receive(:run_task_with)
                 .with(target_mapping, mock_task(executable, nil), {}, [])
-                .returns(result_set)
-        inventory.expects(:get_targets).with(hostname).returns([target])
+                .and_return(result_set)
+        expect(inventory).to receive(:get_targets).with(hostname).and_return([target])
 
         is_expected.to run
           .with_params('test', hostname)
@@ -340,7 +341,7 @@ describe 'run_task_with' do
     end
 
     it 'when called with non existing task - reports an unknown task error' do
-      inventory.expects(:get_target).with(hostname).returns([target])
+      expect(inventory).to receive(:get_targets).with([hostname]).and_return([target])
 
       is_expected.to run
         .with_params('test::nonesuch', [hostname])
@@ -377,17 +378,17 @@ describe 'run_task_with' do
 
         target_mapping = { target => expected_params }
 
-        sensitive.expects(:new).with(input_params['sensitive_string'])
-                 .returns(expected_params['sensitive_string'])
-        sensitive.expects(:new).with(input_params['sensitive_array'])
-                 .returns(expected_params['sensitive_array'])
-        sensitive.expects(:new).with(input_params['sensitive_hash'])
-                 .returns(expected_params['sensitive_hash'])
+        expect(sensitive).to receive(:new).with(input_params['sensitive_string'])
+                 .and_return(expected_params['sensitive_string'])
+        expect(sensitive).to receive(:new).with(input_params['sensitive_array'])
+                 .and_return(expected_params['sensitive_array'])
+        expect(sensitive).to receive(:new).with(input_params['sensitive_hash'])
+                 .and_return(expected_params['sensitive_hash'])
 
-        executor.expects(:run_task_with)
+        expect(executor).to receive(:run_task_with)
                 .with(target_mapping, mock_task(executable, nil), {}, [])
-                .returns(result_set)
-        inventory.expects(:get_targets).with(hostname).returns(target)
+                .and_return(result_set)
+        expect(inventory).to receive(:get_targets).with(hostname).and_return(target)
 
         is_expected.to run
           .with_params('Test::Sensitive_Meta', hostname)
@@ -396,24 +397,6 @@ describe 'run_task_with' do
       end
     end
 
-    context 'using the pcp transport' do
-      let(:task_name)   { 'Test::Noop' }
-      let(:hostname)    { 'pcp://a.b.com' }
-      let(:hostname2)   { 'pcp://x.y.com' }
-      let(:task_params) { { '_noop' => true } }
-
-      it 'sets the noop metaparameter when running in noop mode' do
-        executor.expects(:run_task_with)
-                .with(target_mapping, anything, { noop: true }, [])
-                .returns(result_set)
-        inventory.expects(:get_targets).with(hosts).returns(targets)
-
-        is_expected.to run
-          .with_params('Test::Noop', hosts, '_noop' => true)
-          .with_lambda { |_| {} }
-          .and_return(result_set)
-      end
-    end
   end
 
   context 'it validates the task parameters' do

@@ -7,9 +7,13 @@ describe 'prompt::menu' do
   let(:executor)      { Bolt::Executor.new }
   let(:tasks_enabled) { true }
 
-  around(:each) do |example|
+  before(:each) do
     Puppet[:tasks] = tasks_enabled
-    Puppet.override(bolt_executor: executor) { example.run }
+    Puppet.push_context(bolt_executor: executor)
+  end
+
+  after(:each) do
+    Puppet.pop_context
   end
 
   it 'displays a menu from an array of options' do
@@ -20,7 +24,7 @@ describe 'prompt::menu' do
       Select a fruit
     PROMPT
 
-    executor.expects(:prompt).with(prompt, {}).returns('1')
+    expect(executor).to receive(:prompt).with(prompt, {}).and_return('1')
 
     is_expected.to run
       .with_params('Select a fruit', %w[apple banana carrot])
@@ -35,7 +39,7 @@ describe 'prompt::menu' do
       Select a fruit
     PROMPT
 
-    executor.expects(:prompt).with(prompt, {}).returns('a')
+    expect(executor).to receive(:prompt).with(prompt, {}).and_return('a')
 
     is_expected.to run
       .with_params('Select a fruit', { 'a' => 'apple', 'b' => 'banana', 'c' => 'carrot' })
@@ -50,7 +54,7 @@ describe 'prompt::menu' do
       Select a fruit
     PROMPT
 
-    executor.expects(:prompt).with(prompt, {}).returns('a')
+    expect(executor).to receive(:prompt).with(prompt, {}).and_return('a')
 
     is_expected.to run
       .with_params('Select a fruit', { 'a' => 'apple', 'b' => 'banana', 'carrot' => 'carrot' })
@@ -58,9 +62,9 @@ describe 'prompt::menu' do
   end
 
   it 'returns a default value if no input is provided' do
-    $stdin.expects(:tty?).returns(true)
-    $stdin.expects(:gets).returns('')
-    $stderr.expects(:print)
+    expect($stdin).to receive(:tty?).and_return(true)
+    expect($stdin).to receive(:gets).and_return('')
+    expect($stderr).to receive(:print)
 
     is_expected.to run
       .with_params('Select a fruit', %w[apple banana carrot], 'default' => 'apple')
@@ -74,8 +78,8 @@ describe 'prompt::menu' do
   end
 
   it 'reports the call to analytics' do
-    executor.expects(:report_function_call).with('prompt::menu')
-    executor.expects(:prompt).with("(1) apple\nSelect a fruit", {}).returns('1')
+    expect(executor).to receive(:report_function_call).with('prompt::menu')
+    expect(executor).to receive(:prompt).with("(1) apple\nSelect a fruit", {}).and_return('1')
     is_expected.to run.with_params('Select a fruit', ['apple'])
   end
 

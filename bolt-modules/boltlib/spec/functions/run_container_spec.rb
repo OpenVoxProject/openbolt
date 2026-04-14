@@ -32,15 +32,17 @@ describe 'run_container' do
     end
   end
 
-  around(:each) do |example|
+  before(:each) do
     Puppet[:tasks] = tasks_enabled
-    Puppet.override(bolt_executor: executor) do
-      example.run
-    end
+    Puppet.push_context(bolt_executor: executor)
+  end
+
+  after(:each) do
+    Puppet.pop_context
   end
 
   context 'it runs the docker command' do
-    let(:mock_status) { mock('Process::Status') }
+    let(:mock_status) { double('Process::Status') }
     let(:value) do
       { 'stdout' => "#{user}\n",
         'stderr' => "",
@@ -49,9 +51,9 @@ describe 'run_container' do
     let(:result) { Bolt::ContainerResult.new(value, object: image) }
 
     before :each do
-      Puppet.features.stubs(:bolt?).returns(true)
-      mock_status.stubs(:exitstatus).returns(0)
-      mock_status.stubs(:success?).returns(true)
+      allow(Puppet.features).to receive(:bolt?).and_return(true)
+      allow(mock_status).to receive(:exitstatus).and_return(0)
+      allow(mock_status).to receive(:success?).and_return(true)
     end
 
     it 'with given image and command' do
@@ -64,8 +66,8 @@ describe 'run_container' do
 
     context 'with errors' do
       before :each do
-        mock_status.stubs(:exitstatus).returns(127)
-        mock_status.stubs(:success?).returns(false)
+        allow(mock_status).to receive(:exitstatus).and_return(127)
+        allow(mock_status).to receive(:success?).and_return(false)
       end
 
       let(:msg) {
@@ -88,9 +90,9 @@ describe 'run_container' do
       end
 
       it 'returns a ContainerResult with errors with _catch_errors' do
-        Bolt::Util.expects(:exec_docker)
+        expect(Bolt::Util).to receive(:exec_docker)
                   .with(%W[run --rm #{image} foo])
-                  .returns(["", msg, mock_status])
+                  .and_return(["", msg, mock_status])
 
         is_expected.to run
           .with_params(image, { 'cmd' => 'foo',
@@ -102,9 +104,9 @@ describe 'run_container' do
 
     context 'with options' do
       it 'with given image and specified port' do
-        Bolt::Util.expects(:exec_docker)
+        expect(Bolt::Util).to receive(:exec_docker)
                   .with(%W[run -p 80:80 --rm #{image} whoami])
-                  .returns(["#{user}\n", "", mock_status])
+                  .and_return(["#{user}\n", "", mock_status])
 
         is_expected.to run
           .with_params(image, { 'cmd' => 'whoami',
@@ -123,9 +125,9 @@ describe 'run_container' do
         let(:dest) { '/volume_mount' }
 
         it 'with given image and specified volumes' do
-          Bolt::Util.expects(:exec_docker)
+          expect(Bolt::Util).to receive(:exec_docker)
                     .with(%W[run -v #{src}:#{dest} --rm #{image} ls /volume_mount])
-                    .returns([value['stdout'], "", mock_status])
+                    .and_return([value['stdout'], "", mock_status])
 
           is_expected.to run
             .with_params(image, { 'cmd' => "ls #{dest}",
@@ -144,9 +146,9 @@ describe 'run_container' do
         end
 
         it 'transforms values to json' do
-          Bolt::Util.expects(:exec_docker)
+          expect(Bolt::Util).to receive(:exec_docker)
                     .with(%W[run --env FRUIT={"apple":"banana"} --rm #{image} echo $FRUIT])
-                    .returns([env_vars['FRUIT'], "", mock_status])
+                    .and_return([env_vars['FRUIT'], "", mock_status])
 
           is_expected.to run
             .with_params(image, { 'cmd' => 'echo $FRUIT',
@@ -164,7 +166,7 @@ describe 'run_container' do
     end
 
     it 'reports the call to analytics' do
-      executor.expects(:report_function_call).with('run_container')
+      expect(executor).to receive(:report_function_call).with('run_container')
 
       is_expected.to run
         .with_params(image, { 'cmd' => 'whoami', 'rm' => true })

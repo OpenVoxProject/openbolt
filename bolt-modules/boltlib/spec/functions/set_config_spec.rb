@@ -5,18 +5,20 @@ require 'bolt/executor'
 require 'bolt/inventory'
 
 describe 'set_config' do
-  include PuppetlabsSpec::Fixtures
+  include SpecFixtures
 
   let(:executor) { Bolt::Executor.new }
   let(:inventory) { Bolt::Inventory.empty }
   let(:target) { inventory.get_target('example') }
   let(:tasks_enabled) { true }
 
-  around(:each) do |example|
+  before(:each) do
     Puppet[:tasks] = tasks_enabled
-    Puppet.override(bolt_executor: executor, bolt_inventory: inventory) do
-      example.run
-    end
+    Puppet.push_context(bolt_executor: executor, bolt_inventory: inventory)
+  end
+
+  after(:each) do
+    Puppet.pop_context
   end
 
   context 'without tasks enabled' do
@@ -45,7 +47,7 @@ describe 'set_config' do
   end
 
   it 'reports the call to analytics' do
-    executor.expects(:report_function_call).with('set_config')
+    expect(executor).to receive(:report_function_call).with('set_config')
     is_expected.to run.with_params(target, 'a', 'b').and_return(target)
   end
 end

@@ -5,18 +5,20 @@ require 'bolt/executor'
 require 'bolt/inventory'
 
 describe 'facts' do
-  include PuppetlabsSpec::Fixtures
+  include SpecFixtures
 
   let(:executor) { Bolt::Executor.new }
   let(:inventory) { Bolt::Inventory.empty }
   let(:hostname) { 'example' }
   let(:target) { inventory.get_target(hostname) }
 
-  around(:each) do |example|
+  before(:each) do
     Puppet[:tasks] = true
-    Puppet.override(bolt_executor: executor, bolt_inventory: inventory) do
-      example.run
-    end
+    Puppet.push_context(bolt_executor: executor, bolt_inventory: inventory)
+  end
+
+  after(:each) do
+    Puppet.pop_context
   end
 
   it 'should return an empty hash if no facts are set' do
@@ -24,7 +26,7 @@ describe 'facts' do
   end
 
   it 'reports the call to analytics' do
-    executor.expects(:report_function_call).with('facts')
+    expect(executor).to receive(:report_function_call).with('facts')
     is_expected.to run.with_params(target)
   end
 end

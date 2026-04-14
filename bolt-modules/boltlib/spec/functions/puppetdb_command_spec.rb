@@ -4,10 +4,10 @@ require 'spec_helper'
 require 'bolt/executor'
 
 describe 'puppetdb_command' do
-  include PuppetlabsSpec::Fixtures
+  include SpecFixtures
 
   let(:executor)   { Bolt::Executor.new }
-  let(:pdb_client) { mock('pdb_client') }
+  let(:pdb_client) { double('pdb_client') }
   let(:tasks)      { true }
 
   let(:command)  { 'replace_facts' }
@@ -15,20 +15,22 @@ describe 'puppetdb_command' do
   let(:version)  { 5 }
   let(:instance) { 'instance' }
 
-  around(:each) do |example|
+  before(:each) do
     Puppet[:tasks] = tasks
-    Puppet.override(bolt_executor: executor, bolt_pdb_client: pdb_client) do
-      example.run
-    end
+    Puppet.push_context(bolt_executor: executor, bolt_pdb_client: pdb_client)
+  end
+
+  after(:each) do
+    Puppet.pop_context
   end
 
   it 'calls Bolt::PuppetDB::Client.send_command' do
-    pdb_client.expects(:send_command).with(command, version, payload, nil).returns('uuid')
+    expect(pdb_client).to receive(:send_command).with(command, version, payload, nil).and_return('uuid')
     is_expected.to run.with_params(command, version, payload)
   end
 
   it 'calls Bolt::PuppetDB::Client.send_command with a named instance' do
-    pdb_client.expects(:send_command).with(command, version, payload, instance).returns('uuid')
+    expect(pdb_client).to receive(:send_command).with(command, version, payload, instance).and_return('uuid')
     is_expected.to run.with_params(command, version, payload, instance)
   end
 
@@ -39,8 +41,8 @@ describe 'puppetdb_command' do
   end
 
   it 'reports the call to analytics' do
-    pdb_client.expects(:send_command).returns('uuid')
-    executor.expects(:report_function_call).with('puppetdb_command')
+    expect(pdb_client).to receive(:send_command).and_return('uuid')
+    expect(executor).to receive(:report_function_call).with('puppetdb_command')
     is_expected.to run.with_params(command, version, payload)
   end
 

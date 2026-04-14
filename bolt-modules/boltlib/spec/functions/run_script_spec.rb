@@ -7,21 +7,23 @@ require 'bolt/result'
 require 'bolt/result_set'
 
 describe 'run_script' do
-  include PuppetlabsSpec::Fixtures
+  include SpecFixtures
 
   let(:executor) { Bolt::Executor.new }
-  let(:inventory) { mock('inventory') }
+  let(:inventory) { double('inventory') }
   let(:tasks_enabled) { true }
   let(:module_root) { File.expand_path(fixtures('modules', 'test')) }
   let(:full_path) { File.join(module_root, 'files/uploads/hostname.sh') }
 
-  around(:each) do |example|
+  before(:each) do
     Puppet[:tasks] = tasks_enabled
-    Puppet.override(bolt_executor: executor, bolt_inventory: inventory) do
-      inventory.stubs(:version).returns(2)
-      inventory.stubs(:target_implementation_class).returns(Bolt::Target)
-      example.run
-    end
+    allow(inventory).to receive(:version).and_return(2)
+    allow(inventory).to receive(:target_implementation_class).and_return(Bolt::Target)
+    Puppet.push_context(bolt_executor: executor, bolt_inventory: inventory)
+  end
+
+  after(:each) do
+    Puppet.pop_context
   end
 
   context 'it calls bolt executor run_script' do
@@ -31,14 +33,14 @@ describe 'run_script' do
     let(:result_set) { Bolt::ResultSet.new([result]) }
 
     before(:each) do
-      Puppet.features.stubs(:bolt?).returns(true)
+      allow(Puppet.features).to receive(:bolt?).and_return(true)
     end
 
     it 'with fully resolved path of file' do
-      executor.expects(:run_script)
+      expect(executor).to receive(:run_script)
               .with([target], full_path, [], {}, [])
-              .returns(result_set)
-      inventory.expects(:get_targets).with(hostname).returns([target])
+              .and_return(result_set)
+      expect(inventory).to receive(:get_targets).with(hostname).and_return([target])
 
       is_expected.to run
         .with_params('test/uploads/hostname.sh', hostname)
@@ -49,7 +51,7 @@ describe 'run_script' do
       let(:module_root) { File.expand_path(fixtures('modules')) }
 
       before(:each) do
-        inventory.stubs(:get_targets).with(hostname).returns([target])
+        allow(inventory).to receive(:get_targets).with(hostname).and_return([target])
       end
 
       context 'with nonspecific module syntax' do
@@ -62,9 +64,9 @@ describe 'run_script' do
         it 'loads from files/' do
           full_path = File.join(module_root, 'with_files/files/hostname.sh')
 
-          executor.expects(:run_script)
+          expect(executor).to receive(:run_script)
                   .with([target], full_path, [], {}, [])
-                  .returns(result_set)
+                  .and_return(result_set)
 
           is_expected.to run
             .with_params('with_files/hostname.sh', hostname)
@@ -78,9 +80,9 @@ describe 'run_script' do
           # Path that should be loaded from
           full_path = File.join(module_root, 'with_both/files/scripts/hostname.sh')
 
-          executor.expects(:run_script)
+          expect(executor).to receive(:run_script)
                   .with([target], full_path, [], {}, [])
-                  .returns(result_set)
+                  .and_return(result_set)
 
           is_expected.to run
             .with_params('with_both/scripts/hostname.sh', hostname)
@@ -91,9 +93,9 @@ describe 'run_script' do
           # Path that should be loaded from
           full_path = File.join(module_root, 'with_scripts/scripts/hostname.sh')
 
-          executor.expects(:run_script)
+          expect(executor).to receive(:run_script)
                   .with([target], full_path, [], {}, [])
-                  .returns(result_set)
+                  .and_return(result_set)
 
           is_expected.to run
             .with_params('with_scripts/scripts/hostname.sh', hostname)
@@ -106,9 +108,9 @@ describe 'run_script' do
           # Path that should be loaded from
           full_path = File.join(module_root, 'with_files/files/files/hostname.sh')
 
-          executor.expects(:run_script)
+          expect(executor).to receive(:run_script)
                   .with([target], full_path, [], {}, [])
-                  .returns(result_set)
+                  .and_return(result_set)
 
           is_expected.to run
             .with_params('with_files/files/hostname.sh', hostname)
@@ -119,9 +121,9 @@ describe 'run_script' do
           # Path that should be loaded from
           full_path = File.join(module_root, 'with_files/files/toplevel.sh')
 
-          executor.expects(:run_script)
+          expect(executor).to receive(:run_script)
                   .with([target], full_path, [], {}, [])
-                  .returns(result_set)
+                  .and_return(result_set)
 
           is_expected.to run
             .with_params('with_files/files/toplevel.sh', hostname)
@@ -131,10 +133,10 @@ describe 'run_script' do
     end
 
     it 'with host given as Target' do
-      executor.expects(:run_script)
+      expect(executor).to receive(:run_script)
               .with([target], full_path, [], {}, [])
-              .returns(result_set)
-      inventory.expects(:get_targets).with(target).returns([target])
+              .and_return(result_set)
+      expect(inventory).to receive(:get_targets).with(target).and_return([target])
 
       is_expected.to run
         .with_params('test/uploads/hostname.sh', target)
@@ -142,10 +144,10 @@ describe 'run_script' do
     end
 
     it 'with given arguments as a hash of {arguments => [value]}' do
-      executor.expects(:run_script)
+      expect(executor).to receive(:run_script)
               .with([target], full_path, %w[hello world], {}, [])
-              .returns(result_set)
-      inventory.expects(:get_targets).with(hostname).returns([target])
+              .and_return(result_set)
+      expect(inventory).to receive(:get_targets).with(hostname).and_return([target])
 
       is_expected.to run
         .with_params('test/uploads/hostname.sh',
@@ -155,10 +157,10 @@ describe 'run_script' do
     end
 
     it 'with given arguments as a hash of {arguments => []}' do
-      executor.expects(:run_script)
+      expect(executor).to receive(:run_script)
               .with([target], full_path, [], {}, [])
-              .returns(result_set)
-      inventory.expects(:get_targets).with(target).returns([target])
+              .and_return(result_set)
+      expect(inventory).to receive(:get_targets).with(target).and_return([target])
 
       is_expected.to run
         .with_params('test/uploads/hostname.sh', target, 'arguments' => [])
@@ -166,10 +168,10 @@ describe 'run_script' do
     end
 
     it 'with pwsh_params' do
-      executor.expects(:run_script)
+      expect(executor).to receive(:run_script)
               .with([target], full_path, [], { pwsh_params: { 'Name' => 'BoltyMcBoltface' } }, [])
-              .returns(result_set)
-      inventory.expects(:get_targets).with(hostname).returns([target])
+              .and_return(result_set)
+      expect(inventory).to receive(:get_targets).with(hostname).and_return([target])
 
       is_expected.to run
         .with_params('test/uploads/hostname.sh',
@@ -179,10 +181,10 @@ describe 'run_script' do
     end
 
     it 'with _run_as' do
-      executor.expects(:run_script)
+      expect(executor).to receive(:run_script)
               .with([target], full_path, [], { run_as: 'root' }, [])
-              .returns(result_set)
-      inventory.expects(:get_targets).with(target).returns([target])
+              .and_return(result_set)
+      expect(inventory).to receive(:get_targets).with(target).and_return([target])
 
       is_expected.to run
         .with_params('test/uploads/hostname.sh', target, '_run_as' => 'root')
@@ -190,11 +192,11 @@ describe 'run_script' do
     end
 
     it 'reports the call to analytics' do
-      executor.expects(:report_function_call).with('run_script')
-      executor.expects(:run_script)
+      expect(executor).to receive(:report_function_call).with('run_script')
+      expect(executor).to receive(:run_script)
               .with([target], full_path, [], {}, [])
-              .returns(result_set)
-      inventory.expects(:get_targets).with(hostname).returns([target])
+              .and_return(result_set)
+      expect(inventory).to receive(:get_targets).with(hostname).and_return([target])
 
       is_expected.to run
         .with_params('test/uploads/hostname.sh', hostname)
@@ -205,20 +207,20 @@ describe 'run_script' do
       let(:message) { 'test message' }
 
       it 'passes the description through if parameters are passed' do
-        executor.expects(:run_script)
+        expect(executor).to receive(:run_script)
                 .with([target], full_path, [], { description: message }, [])
-                .returns(result_set)
-        inventory.expects(:get_targets).with(target).returns([target])
+                .and_return(result_set)
+        expect(inventory).to receive(:get_targets).with(target).and_return([target])
 
         is_expected.to run
           .with_params('test/uploads/hostname.sh', target, message, {})
       end
 
       it 'passes the description through if no parameters are passed' do
-        executor.expects(:run_script)
+        expect(executor).to receive(:run_script)
                 .with([target], full_path, [], { description: message }, [])
-                .returns(result_set)
-        inventory.expects(:get_targets).with(target).returns([target])
+                .and_return(result_set)
+        expect(inventory).to receive(:get_targets).with(target).and_return([target])
 
         is_expected.to run
           .with_params('test/uploads/hostname.sh', target, message)
@@ -227,20 +229,20 @@ describe 'run_script' do
 
     context 'without description' do
       it 'ignores description if parameters are passed' do
-        executor.expects(:run_script)
+        expect(executor).to receive(:run_script)
                 .with([target], full_path, [], {}, [])
-                .returns(result_set)
-        inventory.expects(:get_targets).with(target).returns([target])
+                .and_return(result_set)
+        expect(inventory).to receive(:get_targets).with(target).and_return([target])
 
         is_expected.to run
           .with_params('test/uploads/hostname.sh', target, {})
       end
 
       it 'ignores description if no parameters are passed' do
-        executor.expects(:run_script)
+        expect(executor).to receive(:run_script)
                 .with([target], full_path, [], {}, [])
-                .returns(result_set)
-        inventory.expects(:get_targets).with(target).returns([target])
+                .and_return(result_set)
+        expect(inventory).to receive(:get_targets).with(target).and_return([target])
 
         is_expected.to run
           .with_params('test/uploads/hostname.sh', target)
@@ -254,10 +256,10 @@ describe 'run_script' do
       let(:result_set) { Bolt::ResultSet.new([result, result2]) }
 
       it 'with propagated multiple hosts and returns multiple results' do
-        executor.expects(:run_script)
+        expect(executor).to receive(:run_script)
                 .with([target, target2], full_path, [], {}, [])
-                .returns(result_set)
-        inventory.expects(:get_targets).with([hostname, hostname2]).returns([target, target2])
+                .and_return(result_set)
+        expect(inventory).to receive(:get_targets).with([hostname, hostname2]).and_return([target, target2])
 
         is_expected.to run
           .with_params('test/uploads/hostname.sh', [hostname, hostname2])
@@ -268,10 +270,10 @@ describe 'run_script' do
         let(:result2) { Bolt::Result.new(target2, error: { 'message' => hostname2 }) }
 
         it 'errors by default' do
-          executor.expects(:run_script)
+          expect(executor).to receive(:run_script)
                   .with([target, target2], full_path, [], {}, [])
-                  .returns(result_set)
-          inventory.expects(:get_targets).with([hostname, hostname2]).returns([target, target2])
+                  .and_return(result_set)
+          expect(inventory).to receive(:get_targets).with([hostname, hostname2]).and_return([target, target2])
 
           is_expected.to run
             .with_params('test/uploads/hostname.sh', [hostname, hostname2])
@@ -279,10 +281,10 @@ describe 'run_script' do
         end
 
         it 'does not error with _catch_errors' do
-          executor.expects(:run_script)
+          expect(executor).to receive(:run_script)
                   .with([target, target2], full_path, [], { catch_errors: true }, [])
-                  .returns(result_set)
-          inventory.expects(:get_targets).with([hostname, hostname2]).returns([target, target2])
+                  .and_return(result_set)
+          expect(inventory).to receive(:get_targets).with([hostname, hostname2]).and_return([target, target2])
 
           is_expected.to run
             .with_params('test/uploads/hostname.sh', [hostname, hostname2], '_catch_errors' => true)
@@ -291,8 +293,8 @@ describe 'run_script' do
     end
 
     it 'without targets - does not invoke bolt' do
-      executor.expects(:run_script).never
-      inventory.expects(:get_targets).with([]).returns([])
+      expect(executor).not_to receive(:run_script)
+      expect(inventory).to receive(:get_targets).with([]).and_return([])
 
       is_expected.to run
         .with_params('test/uploads/hostname.sh', [])
@@ -300,7 +302,7 @@ describe 'run_script' do
     end
 
     it 'errors when script is not found' do
-      executor.expects(:run_script).never
+      expect(executor).not_to receive(:run_script)
 
       is_expected.to run
         .with_params('test/uploads/nonesuch.sh', [])
@@ -308,7 +310,7 @@ describe 'run_script' do
     end
 
     it 'errors when script appoints a directory' do
-      executor.expects(:run_script).never
+      expect(executor).not_to receive(:run_script)
 
       is_expected.to run
         .with_params('test/uploads', [])
@@ -317,17 +319,17 @@ describe 'run_script' do
   end
 
   context 'running in parallel' do
-    let(:future) { mock('future') }
+    let(:future) { double('future') }
     let(:hostname) { 'test.example.com' }
     let(:target) { Bolt::Target.new(hostname) }
     let(:result) { Bolt::Result.new(target, value: { 'stdout' => hostname }) }
     let(:result_set) { Bolt::ResultSet.new([result]) }
 
     it 'executes in a thread if the executor is in parallel mode' do
-      inventory.expects(:get_targets).with(hostname).returns([target])
+      expect(inventory).to receive(:get_targets).with(hostname).and_return([target])
 
-      executor.expects(:in_parallel?).returns(true)
-      executor.expects(:run_in_thread).returns(result_set)
+      expect(executor).to receive(:in_parallel?).and_return(true)
+      expect(executor).to receive(:run_in_thread).and_return(result_set)
 
       is_expected.to run
         .with_params('test/uploads/hostname.sh', hostname)
@@ -384,12 +386,12 @@ describe 'run_script' do
       env_vars = { 'FRUIT' => { 'apple' => 'banana' } }
       options  = { env_vars: env_vars.transform_values(&:to_json) }
 
-      executor.expects(:run_script)
+      expect(executor).to receive(:run_script)
               .with(targets, full_path, [], options, [])
-              .returns(Bolt::ResultSet.new([]))
-      inventory.expects(:get_targets)
+              .and_return(Bolt::ResultSet.new([]))
+      expect(inventory).to receive(:get_targets)
                .with(targets)
-               .returns(targets)
+               .and_return(targets)
 
       is_expected.to run
         .with_params(full_path, targets, { '_env_vars' => env_vars })

@@ -9,18 +9,22 @@ describe 'prompt' do
   let(:response)      { 'response' }
   let(:tasks_enabled) { true }
 
-  around(:each) do |example|
+  before(:each) do
     Puppet[:tasks] = tasks_enabled
-    Puppet.override(bolt_executor: executor) { example.run }
+    Puppet.push_context(bolt_executor: executor)
+  end
+
+  after(:each) do
+    Puppet.pop_context
   end
 
   it 'returns a String value' do
-    executor.expects(:prompt).with(prompt, {}).returns(response)
+    expect(executor).to receive(:prompt).with(prompt, {}).and_return(response)
     is_expected.to run.with_params(prompt).and_return(response)
   end
 
   it 'returns a Sensitive value' do
-    executor.expects(:prompt).with(prompt, sensitive: true).returns(response)
+    expect(executor).to receive(:prompt).with(prompt, { sensitive: true }).and_return(response)
 
     result = subject.execute(prompt, 'sensitive' => true)
 
@@ -29,9 +33,9 @@ describe 'prompt' do
   end
 
   it 'returns a default value if no input is provided' do
-    $stdin.expects(:tty?).returns(true)
-    $stdin.expects(:gets).returns('')
-    $stderr.expects(:print)
+    expect($stdin).to receive(:tty?).and_return(true)
+    expect($stdin).to receive(:gets).and_return('')
+    expect($stderr).to receive(:print)
 
     is_expected.to run.with_params(prompt, 'default' => response).and_return(response)
   end
@@ -49,8 +53,8 @@ describe 'prompt' do
   end
 
   it 'reports the call to analytics' do
-    executor.expects(:report_function_call).with('prompt')
-    executor.expects(:prompt).with(prompt, {}).returns(response)
+    expect(executor).to receive(:report_function_call).with('prompt')
+    expect(executor).to receive(:prompt).with(prompt, {}).and_return(response)
     is_expected.to run.with_params(prompt)
   end
 

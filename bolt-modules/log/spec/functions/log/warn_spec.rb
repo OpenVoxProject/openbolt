@@ -3,19 +3,21 @@
 require 'spec_helper'
 
 describe 'log::warn' do
-  let(:executor)      { stub('executor', report_function_call: nil, publish_event: nil) }
+  let(:executor)      { double('executor', report_function_call: nil, publish_event: nil) }
   let(:tasks_enabled) { true }
 
-  around(:each) do |example|
+  before(:each) do
     Puppet[:tasks] = tasks_enabled
 
-    Puppet.override(bolt_executor: executor) do
-      example.run
-    end
+    Puppet.push_context(bolt_executor: executor)
+  end
+
+  after(:each) do
+    Puppet.pop_context
   end
 
   it 'sends a log event to the executor' do
-    executor.expects(:publish_event).with(
+    expect(executor).to receive(:publish_event).with(
       type:    :log,
       level:   :warn,
       message: 'This is a warn message'
@@ -25,7 +27,7 @@ describe 'log::warn' do
   end
 
   it 'reports function call to analytics' do
-    executor.expects(:report_function_call).with('log::warn')
+    expect(executor).to receive(:report_function_call).with('log::warn')
     is_expected.to run.with_params('This is a warn message')
   end
 

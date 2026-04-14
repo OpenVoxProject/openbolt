@@ -4,7 +4,7 @@ require 'spec_helper'
 require 'bolt/inventory'
 
 describe 'add_to_group' do
-  include PuppetlabsSpec::Fixtures
+  include SpecFixtures
 
   let(:executor) { Bolt::Executor.new }
   let(:inventory) { Bolt::Inventory.empty }
@@ -12,11 +12,13 @@ describe 'add_to_group' do
   let(:group) { 'all' }
   let(:tasks_enabled) { true }
 
-  around(:each) do |example|
+  before(:each) do
     Puppet[:tasks] = tasks_enabled
-    Puppet.override(bolt_executor: executor, bolt_inventory: inventory) do
-      example.run
-    end
+    Puppet.push_context(bolt_executor: executor, bolt_inventory: inventory)
+  end
+
+  after(:each) do
+    Puppet.pop_context
   end
 
   it 'should add a target to group' do
@@ -31,7 +33,7 @@ describe 'add_to_group' do
   end
 
   it 'reports the call to analytics' do
-    executor.expects(:report_function_call).with('add_to_group')
+    expect(executor).to receive(:report_function_call).with('add_to_group')
     is_expected.to run.with_params(target, group)
   end
 

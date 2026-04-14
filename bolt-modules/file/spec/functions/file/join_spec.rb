@@ -6,9 +6,13 @@ require 'bolt/executor'
 describe 'file::join' do
   let(:executor) { Bolt::Executor.new }
 
-  around(:each) do |example|
+  before(:each) do
     Puppet[:tasks] = true
-    Puppet.override(bolt_executor: executor) { example.run }
+    Puppet.push_context(bolt_executor: executor)
+  end
+
+  after(:each) do
+    Puppet.pop_context
   end
 
   it 'joins file paths' do
@@ -16,7 +20,7 @@ describe 'file::join' do
   end
 
   it 'reports function call to analytics' do
-    executor.expects(:report_function_call).with('file::join')
+    expect(executor).to receive(:report_function_call).with('file::join')
     is_expected.to run.with_params('foo', 'bar', 'bak')
   end
 end

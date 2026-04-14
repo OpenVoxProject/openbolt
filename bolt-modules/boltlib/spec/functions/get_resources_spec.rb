@@ -9,39 +9,41 @@ require 'bolt/target'
 require 'bolt/task'
 
 describe 'get_resources' do
-  include PuppetlabsSpec::Fixtures
+  include SpecFixtures
 
-  let(:applicator) { mock('Bolt::Applicator') }
+  let(:applicator) { double('Bolt::Applicator') }
   let(:executor) { Bolt::Executor.new }
   let(:inventory) { Bolt::Inventory.empty }
   let(:tasks_enabled) { true }
 
-  around(:each) do |example|
+  before(:each) do
     Puppet[:tasks] = tasks_enabled
-    executor.stubs(:noop).returns(false)
+    allow(executor).to receive(:noop).and_return(false)
 
-    Puppet.override(bolt_executor: executor, bolt_inventory: inventory, apply_executor: applicator) do
-      example.run
-    end
+    Puppet.push_context(bolt_executor: executor, bolt_inventory: inventory, apply_executor: applicator)
+  end
+
+  after(:each) do
+    Puppet.pop_context
   end
 
   context 'with targets' do
-    let(:hostnames) { %w[a.b.com winrm://x.y.com pcp://foo] }
+    let(:hostnames) { %w[a.b.com winrm://x.y.com remote://foo] }
     let(:targets) { hostnames.map { |h| inventory.get_target(h) } }
     let(:query_resources_task) { Bolt::Task.new('query_resources_task') }
 
     before(:each) do
-      applicator.stubs(:build_plugin_tarball).returns(:tarball)
-      applicator.stubs(:query_resources_task).returns(query_resources_task)
+      allow(applicator).to receive(:build_plugin_tarball).and_return(:tarball)
+      allow(applicator).to receive(:query_resources_task).and_return(query_resources_task)
     end
 
     it 'queries a single resource' do
       results = Bolt::ResultSet.new(
         targets.map { |t| Bolt::Result.new(t, value: { 'some' => 'resources' }) }
       )
-      executor.expects(:run_task).with(targets,
+      expect(executor).to receive(:run_task).with(targets,
                                        query_resources_task,
-                                       has_entry('resources', ['file'])).returns(results)
+                                       hash_including('resources' => ['file'])).and_return(results)
 
       is_expected.to run.with_params(hostnames, 'file').and_return(results)
     end
@@ -51,9 +53,9 @@ describe 'get_resources' do
         targets.map { |t| Bolt::Result.new(t, value: { 'some' => 'resources' }) }
       )
       resources = ['User', 'File[/tmp]']
-      executor.expects(:run_task).with(targets,
+      expect(executor).to receive(:run_task).with(targets,
                                        query_resources_task,
-                                       has_entry('resources', resources)).returns(results)
+                                       hash_including('resources' => resources)).and_return(results)
 
       is_expected.to run.with_params(hostnames, resources).and_return(results)
     end
@@ -62,7 +64,7 @@ describe 'get_resources' do
       results = Bolt::ResultSet.new(
         targets.map { |t| Bolt::Result.new(t, error: { 'msg' => 'could not query resources' }) }
       )
-      executor.expects(:run_task).with(targets, query_resources_task, includes('plugins')).returns(results)
+      expect(executor).to receive(:run_task).with(targets, query_resources_task, hash_including('plugins')).and_return(results)
 
       is_expected.to run.with_params(hostnames, []).and_raise_error(
         Bolt::RunFailure, "run_task 'query_resources_task' failed on #{targets.count} targets"

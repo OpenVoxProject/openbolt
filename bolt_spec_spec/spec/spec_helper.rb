@@ -1,7 +1,14 @@
 # frozen_string_literal: true
 
-RSpec.configure do |c|
-  c.mock_with :mocha
-end
+require 'rspec-puppet'
+
 $LOAD_PATH.unshift File.join(__dir__, '..', '..', 'lib')
-require 'puppetlabs_spec_helper/module_spec_helper'
+
+RSpec.configure do |c|
+  repo_root = File.expand_path('../..', __dir__)
+  c.module_path = [
+    File.join(repo_root, 'bolt-modules'),
+    File.join(repo_root, 'modules'),
+    repo_root
+  ].join(File::PATH_SEPARATOR)
+end

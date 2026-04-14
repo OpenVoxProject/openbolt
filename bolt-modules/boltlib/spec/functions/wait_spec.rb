@@ -6,7 +6,7 @@ require 'bolt/executor'
 require 'bolt/plan_future'
 
 describe 'wait' do
-  include PuppetlabsSpec::Fixtures
+  include SpecFixtures
 
   let(:name)      { "Pluralize" }
   let(:future)    { Bolt::PlanFuture.new('foo', name, plan_id: 1234) }
@@ -16,16 +16,18 @@ describe 'wait' do
   let(:options)   { { '_catch_errors' => true } }
   let(:sym_opts)  { { catch_errors: true } }
 
-  around(:each) do |example|
+  before(:each) do
     Puppet[:tasks] = true
-    Puppet.override(bolt_executor: executor) do
-      example.run
-    end
+    Puppet.push_context(bolt_executor: executor)
+  end
+
+  after(:each) do
+    Puppet.pop_context
   end
 
   it 'reports the function call to analytics' do
-    executor.expects(:report_function_call).with('wait')
-    executor.expects(:wait).with([future]).returns(result)
+    expect(executor).to receive(:report_function_call).with('wait')
+    expect(executor).to receive(:wait).with([future]).and_return(result)
 
     is_expected.to(run
       .with_params(future))
@@ -33,15 +35,15 @@ describe 'wait' do
 
   context 'with no futures' do
     it "passes 'nil' to the executor" do
-      executor.expects(:wait).with(nil).returns(result)
+      expect(executor).to receive(:wait).with(nil).and_return(result)
 
       is_expected.to(run
         .and_return(result))
     end
 
     it 'accepts just a timeout' do
-      executor.expects(:wait)
-              .with(nil, timeout: 2).returns(result)
+      expect(executor).to receive(:wait)
+              .with(nil, timeout: 2).and_return(result)
 
       is_expected.to(run
         .with_params(2)
@@ -49,8 +51,8 @@ describe 'wait' do
     end
 
     it 'accepts just options' do
-      executor.expects(:wait)
-              .with(nil, catch_errors: true).returns(result)
+      expect(executor).to receive(:wait)
+              .with(nil, catch_errors: true).and_return(result)
 
       is_expected.to(run
         .with_params('_catch_errors' => true)
@@ -58,8 +60,8 @@ describe 'wait' do
     end
 
     it 'accepts a timeout and options' do
-      executor.expects(:wait)
-              .with(nil, timeout: 2, catch_errors: true).returns(result)
+      expect(executor).to receive(:wait)
+              .with(nil, timeout: 2, catch_errors: true).and_return(result)
 
       is_expected.to(run
         .with_params(2, '_catch_errors' => true)
@@ -68,7 +70,7 @@ describe 'wait' do
   end
 
   it 'turns a single object into an array' do
-    executor.expects(:wait).with([future]).returns(result)
+    expect(executor).to receive(:wait).with([future]).and_return(result)
 
     is_expected.to(run
       .with_params(future)
@@ -76,8 +78,8 @@ describe 'wait' do
   end
 
   it 'runs with a timeout specified' do
-    executor.expects(:wait)
-            .with([future], { timeout: timeout }).returns(result)
+    expect(executor).to receive(:wait)
+            .with([future], { timeout: timeout }).and_return(result)
 
     is_expected.to(run
       .with_params(future, timeout)
@@ -85,8 +87,8 @@ describe 'wait' do
   end
 
   it 'runs with only options specified' do
-    executor.expects(:wait)
-            .with([future], sym_opts).returns(result)
+    expect(executor).to receive(:wait)
+            .with([future], sym_opts).and_return(result)
 
     is_expected.to(run
       .with_params(future, options)
@@ -94,8 +96,8 @@ describe 'wait' do
   end
 
   it 'runs with timeout and options specified' do
-    executor.expects(:wait)
-            .with([future], sym_opts.merge({ timeout: timeout })).returns(result)
+    expect(executor).to receive(:wait)
+            .with([future], sym_opts.merge({ timeout: timeout })).and_return(result)
 
     is_expected.to(run
       .with_params(future, timeout, options)
@@ -103,8 +105,8 @@ describe 'wait' do
   end
 
   it 'filters out invalid options' do
-    executor.expects(:wait).with([future]).returns(result)
-    Bolt::Logger.expects(:warn)
+    expect(executor).to receive(:wait).with([future]).and_return(result)
+    expect(Bolt::Logger).to receive(:warn)
                 .with('plan_function_options', anything)
 
     is_expected.to(run
