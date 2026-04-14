@@ -51,6 +51,56 @@ module Bolt
             _default: true,
             _example: false
           },
+          "task-agent" => {
+            type: String,
+            description: "Which Choria agent to use for task execution. Defaults to 'bolt_tasks' " \
+                         "(downloads task files from a Puppet Server). Set to 'shell' for tasks " \
+                         "not available on the Puppet Server.",
+            _plugin: true,
+            _example: "shell"
+          },
+          "collective" => {
+            type: String,
+            description: "The Choria collective to target. Overrides the main_collective from the Choria " \
+                         "client configuration file.",
+            _plugin: true,
+            _example: "production"
+          },
+          "command-timeout" => {
+            type: Integer,
+            description: "How long to wait in seconds for commands and scripts to complete when using the " \
+                         "Choria transport.",
+            minimum: 1,
+            _plugin: true,
+            _default: 60,
+            _example: 120
+          },
+          "config-file" => {
+            type: String,
+            description: "The path to the Choria or MCollective client configuration file.",
+            _plugin: true,
+            _example: "/etc/choria/client.conf"
+          },
+          "nats-connection-timeout" => {
+            type: Integer,
+            description: "How long to wait in seconds for the initial TCP connection to the NATS broker. " \
+                         "If the connection cannot be made within this time, the operation fails.",
+            minimum: 1,
+            _plugin: true,
+            _default: 30,
+            _example: 60
+          },
+          "rpc-timeout" => {
+            type: Integer,
+            description: "How long to wait in seconds for nodes to respond to an RPC request. " \
+                         "Used for lightweight operations like agent discovery, shell.start, and " \
+                         "shell.list polling. Distinct from command-timeout and task-timeout which " \
+                         "govern the overall duration of commands and tasks.",
+            minimum: 1,
+            _plugin: true,
+            _default: 30,
+            _example: 60
+          },
           "connect-timeout" => {
             type: Integer,
             description: "How long to wait in seconds when establishing connections. Set this value higher if you " \
@@ -225,6 +275,16 @@ module Bolt
             _plugin: true,
             _example: %w[defaults hmac-md5]
           },
+          "nats-servers" => {
+            type: [String, Array],
+            description: "One or more NATS server addresses for the Choria transport. Overrides the middleware " \
+                         "hosts from the Choria client configuration file. Can be a single string or an array.",
+            items: {
+              type: String
+            },
+            _plugin: true,
+            _example: ["nats://broker1:4222", "nats://broker2:4222"]
+          },
           "native-ssh" => {
             type: [TrueClass, FalseClass],
             description: "This enables the native SSH transport, which shells out to SSH instead of using the " \
@@ -266,6 +326,14 @@ module Bolt
             format: "uri",
             _plugin: true,
             _example: "jump.example.com"
+          },
+          "puppet-environment" => {
+            type: String,
+            description: "The Puppet environment to use when constructing task file URIs for the Choria " \
+                         "bolt_tasks agent.",
+            _plugin: true,
+            _default: "production",
+            _example: "staging"
           },
           "read-timeout" => {
             type: Integer,
@@ -343,6 +411,27 @@ module Bolt
             _plugin: true,
             _example: 445
           },
+          "ssl-ca" => {
+            type: String,
+            description: "The path to the CA certificate for Choria TLS connections. Overrides the CA " \
+                         "from the Choria client configuration file.",
+            _plugin: true,
+            _example: "/etc/choria/ssl/ca.pem"
+          },
+          "ssl-cert" => {
+            type: String,
+            description: "The path to the client certificate for Choria TLS connections. Overrides the " \
+                         "certificate from the Choria client configuration file.",
+            _plugin: true,
+            _example: "/etc/choria/ssl/client.pem"
+          },
+          "ssl-key" => {
+            type: String,
+            description: "The path to the client private key for Choria TLS connections. Overrides the " \
+                         "key from the Choria client configuration file.",
+            _plugin: true,
+            _example: "/etc/choria/ssl/client-key.pem"
+          },
           "ssh-command" => {
             type: [Array, String],
             description: "The command and options to use when SSHing. This option is used when you need support for " \
@@ -392,6 +481,14 @@ module Bolt
             _plugin: true,
             _default: "production",
             _example: "development"
+          },
+          "task-timeout" => {
+            type: Integer,
+            description: "How long to wait in seconds for tasks to complete when using the Choria transport.",
+            minimum: 1,
+            _plugin: true,
+            _default: 300,
+            _example: 300
           },
           "tmpdir" => {
             type: String,
