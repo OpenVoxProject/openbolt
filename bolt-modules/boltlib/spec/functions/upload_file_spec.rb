@@ -7,16 +7,13 @@ require 'bolt/result_set'
 require 'bolt/target'
 
 describe 'upload_file' do
-  include SpecFixtures
-
   let(:executor) { Bolt::Executor.new }
   let(:inventory) { double('inventory') }
   let(:tasks_enabled) { true }
 
   before(:each) do
     Puppet[:tasks] = tasks_enabled
-    allow(inventory).to receive(:version).and_return(2)
-    allow(inventory).to receive(:target_implementation_class).and_return(Bolt::Target)
+    allow(inventory).to receive_messages(version: 2, target_implementation_class: Bolt::Target)
     Puppet.push_context(bolt_executor: executor, bolt_inventory: inventory)
   end
 
@@ -42,8 +39,8 @@ describe 'upload_file' do
 
     it 'with fully resolved path of file and destination' do
       expect(executor).to receive(:upload_file)
-              .with([target], full_path, destination, {}, [])
-              .and_return(result_set)
+        .with([target], full_path, destination, {}, [])
+        .and_return(result_set)
       allow(inventory).to receive(:get_targets).with(hostname).and_return([target])
 
       is_expected.to run
@@ -53,8 +50,8 @@ describe 'upload_file' do
 
     it 'with fully resolved path of directory and destination' do
       expect(executor).to receive(:upload_file)
-              .with([target], full_dir_path, destination, {}, [])
-              .and_return(result_set)
+        .with([target], full_dir_path, destination, {}, [])
+        .and_return(result_set)
       allow(inventory).to receive(:get_targets).with(hostname).and_return([target])
 
       is_expected.to run
@@ -80,8 +77,8 @@ describe 'upload_file' do
           full_path = File.join(module_root, 'with_files/files/hostname.sh')
 
           expect(executor).to receive(:upload_file)
-                  .with([target], full_path, destination, {}, [])
-                  .and_return(result_set)
+            .with([target], full_path, destination, {}, [])
+            .and_return(result_set)
 
           is_expected.to run
             .with_params('with_files/hostname.sh', destination, hostname)
@@ -96,8 +93,8 @@ describe 'upload_file' do
           full_path = File.join(module_root, 'with_both/files/scripts/hostname.sh')
 
           expect(executor).to receive(:upload_file)
-                  .with([target], full_path, destination, {}, [])
-                  .and_return(result_set)
+            .with([target], full_path, destination, {}, [])
+            .and_return(result_set)
 
           is_expected.to run
             .with_params('with_both/scripts/hostname.sh', destination, hostname)
@@ -109,8 +106,8 @@ describe 'upload_file' do
           full_path = File.join(module_root, 'with_scripts/scripts/hostname.sh')
 
           expect(executor).to receive(:upload_file)
-                  .with([target], full_path, destination, {}, [])
-                  .and_return(result_set)
+            .with([target], full_path, destination, {}, [])
+            .and_return(result_set)
 
           is_expected.to run
             .with_params('with_scripts/scripts/hostname.sh', destination, hostname)
@@ -124,8 +121,8 @@ describe 'upload_file' do
           full_path = File.join(module_root, 'with_files/files/files/hostname.sh')
 
           expect(executor).to receive(:upload_file)
-                  .with([target], full_path, destination, {}, [])
-                  .and_return(result_set)
+            .with([target], full_path, destination, {}, [])
+            .and_return(result_set)
 
           is_expected.to run
             .with_params('with_files/files/hostname.sh', destination, hostname)
@@ -137,8 +134,8 @@ describe 'upload_file' do
           full_path = File.join(module_root, 'with_files/files/toplevel.sh')
 
           expect(executor).to receive(:upload_file)
-                  .with([target], full_path, destination, {}, [])
-                  .and_return(result_set)
+            .with([target], full_path, destination, {}, [])
+            .and_return(result_set)
 
           is_expected.to run
             .with_params('with_files/files/toplevel.sh', destination, hostname)
@@ -149,8 +146,8 @@ describe 'upload_file' do
 
     it 'with target specified as a Target' do
       expect(executor).to receive(:upload_file)
-              .with([target], full_dir_path, destination, {}, [])
-              .and_return(result_set)
+        .with([target], full_dir_path, destination, {}, [])
+        .and_return(result_set)
       allow(inventory).to receive(:get_targets).with(target).and_return([target])
 
       is_expected.to run
@@ -160,8 +157,8 @@ describe 'upload_file' do
 
     it 'runs as another user' do
       expect(executor).to receive(:upload_file)
-              .with([target], full_dir_path, destination, { run_as: 'soandso' }, [])
-              .and_return(result_set)
+        .with([target], full_dir_path, destination, { run_as: 'soandso' }, [])
+        .and_return(result_set)
       allow(inventory).to receive(:get_targets).with(target).and_return([target])
 
       is_expected.to run
@@ -171,8 +168,8 @@ describe 'upload_file' do
 
     it 'reports the call to analytics' do
       expect(executor).to receive(:upload_file)
-              .with([target], full_path, destination, {}, [])
-              .and_return(result_set)
+        .with([target], full_path, destination, {}, [])
+        .and_return(result_set)
       allow(inventory).to receive(:get_targets).with(hostname).and_return([target])
       expect(executor).to receive(:report_function_call).with('upload_file')
 
@@ -186,8 +183,8 @@ describe 'upload_file' do
 
       it 'passes the description through if parameters are passed' do
         expect(executor).to receive(:upload_file)
-                .with([target], full_dir_path, destination, { description: message }, [])
-                .and_return(result_set)
+          .with([target], full_dir_path, destination, { description: message }, [])
+          .and_return(result_set)
         allow(inventory).to receive(:get_targets).with(target).and_return([target])
 
         is_expected.to run
@@ -197,8 +194,8 @@ describe 'upload_file' do
 
       it 'passes the description through if no parameters are passed' do
         expect(executor).to receive(:upload_file)
-                .with([target], full_dir_path, destination, { description: message }, [])
-                .and_return(result_set)
+          .with([target], full_dir_path, destination, { description: message }, [])
+          .and_return(result_set)
         allow(inventory).to receive(:get_targets).with(target).and_return([target])
 
         is_expected.to run
@@ -210,8 +207,8 @@ describe 'upload_file' do
     context 'without description' do
       it 'ignores description if parameters are passed' do
         expect(executor).to receive(:upload_file)
-                .with([target], full_dir_path, destination, {}, [])
-                .and_return(result_set)
+          .with([target], full_dir_path, destination, {}, [])
+          .and_return(result_set)
         allow(inventory).to receive(:get_targets).with(target).and_return([target])
 
         is_expected.to run
@@ -221,8 +218,8 @@ describe 'upload_file' do
 
       it 'ignores description if no parameters are passed' do
         expect(executor).to receive(:upload_file)
-                .with([target], full_dir_path, destination, {}, [])
-                .and_return(result_set)
+          .with([target], full_dir_path, destination, {}, [])
+          .and_return(result_set)
         allow(inventory).to receive(:get_targets).with(target).and_return([target])
 
         is_expected.to run
@@ -253,8 +250,8 @@ describe 'upload_file' do
 
         it 'errors by default' do
           expect(executor).to receive(:upload_file)
-                  .with([target, target2], full_path, destination, {}, [])
-                  .and_return(result_set)
+            .with([target, target2], full_path, destination, {}, [])
+            .and_return(result_set)
           expect(inventory).to receive(:get_targets).with([hostname, hostname2]).and_return([target, target2])
 
           is_expected.to run
@@ -264,8 +261,8 @@ describe 'upload_file' do
 
         it 'does not error with _catch_errors' do
           expect(executor).to receive(:upload_file)
-                  .with([target, target2], full_path, destination, { catch_errors: true }, [])
-                  .and_return(result_set)
+            .with([target, target2], full_path, destination, { catch_errors: true }, [])
+            .and_return(result_set)
           expect(inventory).to receive(:get_targets).with([hostname, hostname2]).and_return([target, target2])
 
           is_expected.to run

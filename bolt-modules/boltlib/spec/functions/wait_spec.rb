@@ -6,8 +6,6 @@ require 'bolt/executor'
 require 'bolt/plan_future'
 
 describe 'wait' do
-  include SpecFixtures
-
   let(:name)      { "Pluralize" }
   let(:future)    { Bolt::PlanFuture.new('foo', name, plan_id: 1234) }
   let(:executor)  { Bolt::Executor.new }
@@ -43,7 +41,7 @@ describe 'wait' do
 
     it 'accepts just a timeout' do
       expect(executor).to receive(:wait)
-              .with(nil, timeout: 2).and_return(result)
+        .with(nil, timeout: 2).and_return(result)
 
       is_expected.to(run
         .with_params(2)
@@ -52,7 +50,7 @@ describe 'wait' do
 
     it 'accepts just options' do
       expect(executor).to receive(:wait)
-              .with(nil, catch_errors: true).and_return(result)
+        .with(nil, catch_errors: true).and_return(result)
 
       is_expected.to(run
         .with_params('_catch_errors' => true)
@@ -61,7 +59,7 @@ describe 'wait' do
 
     it 'accepts a timeout and options' do
       expect(executor).to receive(:wait)
-              .with(nil, timeout: 2, catch_errors: true).and_return(result)
+        .with(nil, timeout: 2, catch_errors: true).and_return(result)
 
       is_expected.to(run
         .with_params(2, '_catch_errors' => true)
@@ -79,7 +77,7 @@ describe 'wait' do
 
   it 'runs with a timeout specified' do
     expect(executor).to receive(:wait)
-            .with([future], { timeout: timeout }).and_return(result)
+      .with([future], { timeout: timeout }).and_return(result)
 
     is_expected.to(run
       .with_params(future, timeout)
@@ -88,7 +86,7 @@ describe 'wait' do
 
   it 'runs with only options specified' do
     expect(executor).to receive(:wait)
-            .with([future], sym_opts).and_return(result)
+      .with([future], sym_opts).and_return(result)
 
     is_expected.to(run
       .with_params(future, options)
@@ -97,7 +95,7 @@ describe 'wait' do
 
   it 'runs with timeout and options specified' do
     expect(executor).to receive(:wait)
-            .with([future], sym_opts.merge({ timeout: timeout })).and_return(result)
+      .with([future], sym_opts.merge({ timeout: timeout })).and_return(result)
 
     is_expected.to(run
       .with_params(future, timeout, options)
@@ -107,7 +105,7 @@ describe 'wait' do
   it 'filters out invalid options' do
     expect(executor).to receive(:wait).with([future]).and_return(result)
     expect(Bolt::Logger).to receive(:warn)
-                .with('plan_function_options', anything)
+      .with('plan_function_options', anything)
 
     is_expected.to(run
       .with_params(future, { 'timeout' => 2 })

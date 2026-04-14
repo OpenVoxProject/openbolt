@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 
 describe 'remove_from_group' do
-  include SpecFixtures
-
   let(:executor)      { Bolt::Executor.new }
   let(:config)        { Bolt::Config.default }
   let(:pal)           { nil }

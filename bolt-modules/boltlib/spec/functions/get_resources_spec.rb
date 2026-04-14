@@ -9,8 +9,6 @@ require 'bolt/target'
 require 'bolt/task'
 
 describe 'get_resources' do
-  include SpecFixtures
-
   let(:applicator) { double('Bolt::Applicator') }
   let(:executor) { Bolt::Executor.new }
   let(:inventory) { Bolt::Inventory.empty }
@@ -33,8 +31,7 @@ describe 'get_resources' do
     let(:query_resources_task) { Bolt::Task.new('query_resources_task') }
 
     before(:each) do
-      allow(applicator).to receive(:build_plugin_tarball).and_return(:tarball)
-      allow(applicator).to receive(:query_resources_task).and_return(query_resources_task)
+      allow(applicator).to receive_messages(build_plugin_tarball: :tarball, query_resources_task: query_resources_task)
     end
 
     it 'queries a single resource' do
@@ -42,8 +39,8 @@ describe 'get_resources' do
         targets.map { |t| Bolt::Result.new(t, value: { 'some' => 'resources' }) }
       )
       expect(executor).to receive(:run_task).with(targets,
-                                       query_resources_task,
-                                       hash_including('resources' => ['file'])).and_return(results)
+                                                  query_resources_task,
+                                                  hash_including('resources' => ['file'])).and_return(results)
 
       is_expected.to run.with_params(hostnames, 'file').and_return(results)
     end
@@ -54,8 +51,8 @@ describe 'get_resources' do
       )
       resources = ['User', 'File[/tmp]']
       expect(executor).to receive(:run_task).with(targets,
-                                       query_resources_task,
-                                       hash_including('resources' => resources)).and_return(results)
+                                                  query_resources_task,
+                                                  hash_including('resources' => resources)).and_return(results)
 
       is_expected.to run.with_params(hostnames, resources).and_return(results)
     end

@@ -4,8 +4,6 @@ require 'spec_helper'
 require 'bolt/executor'
 
 describe 'puppetdb_command' do
-  include SpecFixtures
-
   let(:executor)   { Bolt::Executor.new }
   let(:pdb_client) { double('pdb_client') }
   let(:tasks)      { true }

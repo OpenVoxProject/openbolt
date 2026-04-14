@@ -11,8 +11,6 @@ require 'bolt/target'
 require 'bolt/task'
 
 describe 'apply_prep' do
-  include SpecFixtures
-
   let(:applicator)    { double('Bolt::Applicator') }
   let(:config)        { Bolt::Config.default }
   let(:executor)      { Bolt::Executor.new }
@@ -44,35 +42,31 @@ describe 'apply_prep' do
     let(:service_task)      { Bolt::Task.new('service') }
 
     before(:each) do
-      allow(applicator).to receive(:build_plugin_tarball).and_return(:tarball)
-      allow(applicator).to receive(:custom_facts_task).and_return(custom_facts_task)
+      allow(applicator).to receive_messages(build_plugin_tarball: :tarball, custom_facts_task: custom_facts_task)
       inventory.get_targets(targets)
       targets.each { |t| inventory.set_feature(t, 'puppet-agent', false) }
 
       task1 = double('version_task')
-      allow(task1).to receive(:task_hash).and_return('name' => 'openvox_bootstrap::check')
-      allow(task1).to receive(:runnable_with?).and_return(true)
+      allow(task1).to receive_messages(task_hash: { 'name' => 'openvox_bootstrap::check' }, runnable_with?: true)
       allow_any_instance_of(Puppet::Pal::ScriptCompiler).to receive(:task_signature).with('openvox_bootstrap::check').and_return(task1)
       task2 = double('install_task')
-      allow(task2).to receive(:task_hash).and_return('name' => 'openvox_bootstrap::install')
-      allow(task2).to receive(:runnable_with?).and_return(true)
+      allow(task2).to receive_messages(task_hash: { 'name' => 'openvox_bootstrap::install' }, runnable_with?: true)
       allow_any_instance_of(Puppet::Pal::ScriptCompiler).to receive(:task_signature).with('openvox_bootstrap::install').and_return(task2)
       task3 = double('service_task')
-      allow(task3).to receive(:task_hash).and_return('name' => 'service')
-      allow(task3).to receive(:runnable_with?).and_return(true)
+      allow(task3).to receive_messages(task_hash: { 'name' => 'service' }, runnable_with?: true)
       allow_any_instance_of(Puppet::Pal::ScriptCompiler).to receive(:task_signature).with('service').and_return(task3)
     end
 
     it 'sets puppet-agent feature and gathers facts' do
       facts = Bolt::ResultSet.new(targets.map { |t| Bolt::Result.new(t, value: fact) })
       expect(executor).to receive(:run_task)
-              .with(anything, custom_facts_task, hash_including('plugins'), {})
-              .and_return(facts)
+        .with(anything, custom_facts_task, hash_including('plugins'), {})
+        .and_return(facts)
 
       expect(plugins).to receive(:get_hook)
-             .twice
-             .with("openvox_bootstrap", :puppet_library)
-             .and_return(task_hook)
+        .twice
+        .with("openvox_bootstrap", :puppet_library)
+        .and_return(task_hook)
 
       is_expected.to run.with_params(hostnames.join(','))
       targets.each do |target|
@@ -84,13 +78,13 @@ describe 'apply_prep' do
     it 'escalates if provided _run_as' do
       facts = Bolt::ResultSet.new(targets.map { |t| Bolt::Result.new(t, value: fact) })
       expect(executor).to receive(:run_task)
-              .with(anything, custom_facts_task, hash_including('plugins'), { '_run_as' => 'root' })
-              .and_return(facts)
+        .with(anything, custom_facts_task, hash_including('plugins'), { '_run_as' => 'root' })
+        .and_return(facts)
 
       expect(plugins).to receive(:get_hook)
-             .twice
-             .with("openvox_bootstrap", :puppet_library)
-             .and_return(task_hook)
+        .twice
+        .with("openvox_bootstrap", :puppet_library)
+        .and_return(task_hook)
 
       is_expected.to run.with_params(hostnames, '_run_as' => 'root')
       targets.each do |target|
@@ -102,13 +96,13 @@ describe 'apply_prep' do
     it 'ignores unsupported metaparameters' do
       facts = Bolt::ResultSet.new(targets.map { |t| Bolt::Result.new(t, value: fact) })
       expect(executor).to receive(:run_task)
-              .with(anything, custom_facts_task, hash_including('plugins'), {})
-              .and_return(facts)
+        .with(anything, custom_facts_task, hash_including('plugins'), {})
+        .and_return(facts)
 
       expect(plugins).to receive(:get_hook)
-             .twice
-             .with("openvox_bootstrap", :puppet_library)
-             .and_return(task_hook)
+        .twice
+        .with("openvox_bootstrap", :puppet_library)
+        .and_return(task_hook)
 
       is_expected.to run.with_params(hostnames, '_noop' => true)
       targets.each do |target|
@@ -122,13 +116,13 @@ describe 'apply_prep' do
         targets.map { |t| Bolt::Result.new(t, error: { 'msg' => 'could not gather facts' }) }
       )
       expect(executor).to receive(:run_task)
-              .with(anything, custom_facts_task, hash_including('plugins'), {})
-              .and_return(results)
+        .with(anything, custom_facts_task, hash_including('plugins'), {})
+        .and_return(results)
 
       expect(plugins).to receive(:get_hook)
-             .twice
-             .with("openvox_bootstrap", :puppet_library)
-             .and_return(task_hook)
+        .twice
+        .with("openvox_bootstrap", :puppet_library)
+        .and_return(task_hook)
 
       is_expected.to run.with_params(hostnames).and_raise_error(
         Bolt::RunFailure, "run_task 'custom_facts_task' failed on #{targets.count} targets"
@@ -156,12 +150,12 @@ describe 'apply_prep' do
       it 'installs the agent if not present' do
         facts = Bolt::ResultSet.new([Bolt::Result.new(target, value: fact)])
         expect(executor).to receive(:run_task)
-                .with([target], custom_facts_task, hash_including('plugins'), {})
-                .and_return(facts)
+          .with([target], custom_facts_task, hash_including('plugins'), {})
+          .and_return(facts)
 
         expect(plugins).to receive(:get_hook)
-               .with("task", :puppet_library)
-               .and_return(task_hook)
+          .with("task", :puppet_library)
+          .and_return(task_hook)
 
         is_expected.to run.with_params(hostname)
         expect(inventory.features(target)).to include('puppet-agent')
@@ -187,12 +181,12 @@ describe 'apply_prep' do
       it 'installs the agent if not present' do
         facts = Bolt::ResultSet.new([Bolt::Result.new(target, value: fact)])
         expect(executor).to receive(:run_task)
-                .with([target], custom_facts_task, hash_including('plugins'), {})
-                .and_return(facts)
+          .with([target], custom_facts_task, hash_including('plugins'), {})
+          .and_return(facts)
 
         expect(plugins).to receive(:get_hook)
-               .with('openvox_bootstrap', :puppet_library)
-               .and_return(task_hook)
+          .with('openvox_bootstrap', :puppet_library)
+          .and_return(task_hook)
 
         is_expected.to run.with_params(hostname)
         expect(inventory.features(target)).to include('puppet-agent')
@@ -208,15 +202,14 @@ describe 'apply_prep' do
     let(:custom_facts_task) { Bolt::Task.new('custom_facts_task') }
 
     before(:each) do
-      allow(applicator).to receive(:build_plugin_tarball).and_return(:tarball)
-      allow(applicator).to receive(:custom_facts_task).and_return(custom_facts_task)
+      allow(applicator).to receive_messages(build_plugin_tarball: :tarball, custom_facts_task: custom_facts_task)
     end
 
     it 'sets feature and gathers facts' do
       facts = Bolt::ResultSet.new(targets.map { |t| Bolt::Result.new(t, value: fact) })
       expect(executor).to receive(:run_task)
-              .with(targets, custom_facts_task, hash_including('plugins'), {})
-              .and_return(facts)
+        .with(targets, custom_facts_task, hash_including('plugins'), {})
+        .and_return(facts)
 
       is_expected.to run.with_params(hostnames.join(','))
       targets.each do |target|
@@ -233,16 +226,15 @@ describe 'apply_prep' do
     let(:custom_facts_task) { Bolt::Task.new('custom_facts_task') }
 
     before(:each) do
-      allow(applicator).to receive(:build_plugin_tarball).and_return(:tarball)
-      allow(applicator).to receive(:custom_facts_task).and_return(custom_facts_task)
+      allow(applicator).to receive_messages(build_plugin_tarball: :tarball, custom_facts_task: custom_facts_task)
       targets.each { |target| inventory.set_feature(target, 'puppet-agent') }
     end
 
     it 'sets feature and gathers facts' do
       facts = Bolt::ResultSet.new(targets.map { |t| Bolt::Result.new(t, value: fact) })
       expect(executor).to receive(:run_task)
-              .with(targets, custom_facts_task, hash_including('plugins'), {})
-              .and_return(facts)
+        .with(targets, custom_facts_task, hash_including('plugins'), {})
+        .and_return(facts)
 
       is_expected.to run.with_params(hostnames.join(','))
       targets.each do |target|
@@ -259,16 +251,15 @@ describe 'apply_prep' do
     let(:custom_facts_task) { Bolt::Task.new('custom_facts_task') }
 
     before(:each) do
-      allow(applicator).to receive(:build_plugin_tarball).and_return(:tarball)
-      allow(applicator).to receive(:custom_facts_task).and_return(custom_facts_task)
+      allow(applicator).to receive_messages(build_plugin_tarball: :tarball, custom_facts_task: custom_facts_task)
       targets.each { |target| inventory.set_feature(target, 'puppet-agent') }
     end
 
     it 'only uses required plugins' do
       facts = Bolt::ResultSet.new(targets.map { |t| Bolt::Result.new(t, value: fact) })
       expect(executor).to receive(:run_task)
-              .with(anything, custom_facts_task, hash_including('plugins'), {})
-              .and_return(facts)
+        .with(anything, custom_facts_task, hash_including('plugins'), {})
+        .and_return(facts)
 
       allow(Puppet).to receive(:debug)
       expect(Puppet).to receive(:debug).with("Syncing only required modules: non-existing-module.")
@@ -285,12 +276,11 @@ describe 'apply_prep' do
     let(:resultset)         { Bolt::ResultSet.new([result]) }
 
     before(:each) do
-      allow(applicator).to receive(:build_plugin_tarball).and_return(:tarball)
-      allow(applicator).to receive(:custom_facts_task).and_return(custom_facts_task)
+      allow(applicator).to receive_messages(build_plugin_tarball: :tarball, custom_facts_task: custom_facts_task)
 
       expect(plugins).to receive(:get_hook)
-             .with("openvox_bootstrap", :puppet_library)
-             .and_return(task_hook)
+        .with("openvox_bootstrap", :puppet_library)
+        .and_return(task_hook)
     end
 
     context 'with failing hook' do
@@ -307,8 +297,8 @@ describe 'apply_prep' do
 
       it 'continues executing' do
         expect(executor).to receive(:run_task)
-                .with(targets, custom_facts_task, hash_including('plugins'), { '_catch_errors' => true })
-                .and_return(resultset)
+          .with(targets, custom_facts_task, hash_including('plugins'), { '_catch_errors' => true })
+          .and_return(resultset)
 
         is_expected.to run.with_params(host, '_catch_errors' => true)
       end

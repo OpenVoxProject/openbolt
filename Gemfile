@@ -33,8 +33,7 @@ group(:test) do
   gem "beaker-hostgenerator"
   gem "rack-test", '>= 1', '< 3'
   gem 'rspec-github', require: false
-  gem 'rspec-puppet', '>= 5', require: false
-  gem 'puppet_fixtures', '>= 0.1', '< 3', require: false
+  gem 'voxpupuli-test', '~> 14.0', require: false
 end
 
 group(:release, optional: true) do

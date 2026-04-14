@@ -6,8 +6,6 @@ require 'bolt/executor'
 require 'bolt/plan_future'
 
 describe 'background' do
-  include SpecFixtures
-
   let(:name)      { "Pluralize" }
   let(:object)    { "noodle" }
   let(:future)    { Bolt::PlanFuture.new('foo', name, plan_id: 1234) }
@@ -33,8 +31,8 @@ describe 'background' do
 
   it 'returns the PlanFuture the executor creates' do
     expect(executor).to receive(:create_future)
-            .with(hash_including(scope: anything, name: name))
-            .and_return(future)
+      .with(hash_including(scope: anything, name: name))
+      .and_return(future)
 
     is_expected.to(run
       .with_params(name)

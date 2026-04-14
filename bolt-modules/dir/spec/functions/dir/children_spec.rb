@@ -4,8 +4,6 @@ require 'spec_helper'
 require 'fileutils'
 
 describe 'dir::children' do
-  include SpecFixtures
-
   let(:path) { fixtures('modules', 'test') }
 
   before(:each) do

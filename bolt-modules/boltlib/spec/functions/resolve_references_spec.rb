@@ -4,8 +4,6 @@ require 'spec_helper'
 require 'bolt/plugin'
 
 describe 'resolve_references' do
-  include SpecFixtures
-
   let(:project)       { Bolt::Project.create_project('./spec/fixtures') }
   let(:config)        { Bolt::Config.new(project, {}) }
   let(:pal)           {

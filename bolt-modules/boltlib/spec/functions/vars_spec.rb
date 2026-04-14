@@ -5,8 +5,6 @@ require 'bolt/executor'
 require 'bolt/inventory'
 
 describe 'vars' do
-  include SpecFixtures
-
   let(:executor) { Bolt::Executor.new }
   let(:inventory) { Bolt::Inventory.empty }
   let(:hostname) { 'example' }

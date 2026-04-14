@@ -13,8 +13,7 @@ describe 'wait_until_available' do
 
   before(:each) do
     Puppet[:tasks] = tasks_enabled
-    allow(inventory).to receive(:version).and_return(2)
-    allow(inventory).to receive(:target_implementation_class).and_return(Bolt::Target)
+    allow(inventory).to receive_messages(version: 2, target_implementation_class: Bolt::Target)
     Puppet.push_context(bolt_executor: executor, bolt_inventory: inventory)
   end
 
@@ -36,8 +35,8 @@ describe 'wait_until_available' do
 
     it 'passes extra parameters' do
       expect(executor).to receive(:wait_until_available)
-              .with([target], description: 'desc', wait_time: 5, retry_interval: 0)
-              .and_return(result_set)
+        .with([target], description: 'desc', wait_time: 5, retry_interval: 0)
+        .and_return(result_set)
       expect(inventory).to receive(:get_targets).with(target).and_return([target])
 
       is_expected.to run.with_params(target, 'description' => 'desc', 'wait_time' => 5, 'retry_interval' => 0)

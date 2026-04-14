@@ -148,11 +148,14 @@ begin
           end
         end
       end
-      # Test core modules
-      Pathname.new("#{__dir__}/../bolt-modules").each_child(&run_specs)
-      # Test bundled content modules
-      Pathname.new("#{__dir__}/../modules").each_child(&run_specs)
-      # Test BoltSpec
+      each_module_dir = lambda do |base|
+        Pathname.new(base).each_child do |child|
+          next unless child.directory? && child.join('spec').directory?
+          run_specs.call(child)
+        end
+      end
+      each_module_dir.call("#{__dir__}/../bolt-modules")
+      each_module_dir.call("#{__dir__}/../modules")
       run_specs.call("#{__dir__}/../bolt_spec_spec")
       raise "Module tests failed" unless success
     end

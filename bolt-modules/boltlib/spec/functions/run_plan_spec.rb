@@ -7,8 +7,6 @@ require 'bolt/plugin'
 require 'puppet/pops/types/p_sensitive_type'
 
 describe 'run_plan' do
-  include SpecFixtures
-
   let(:executor) { Bolt::Executor.new }
   let(:tasks_enabled) { true }
   let(:inventory) { Bolt::Inventory.empty }
@@ -169,11 +167,11 @@ describe 'run_plan' do
       }
 
       expect(sensitive).to receive(:new).with(input_params['array'])
-               .and_return(expected_params['array'])
+                                        .and_return(expected_params['array'])
       expect(sensitive).to receive(:new).with(input_params['hash'])
-               .and_return(expected_params['hash'])
+                                        .and_return(expected_params['hash'])
       expect(sensitive).to receive(:new).with(input_params['string'])
-               .and_return(expected_params['string'])
+                                        .and_return(expected_params['string'])
 
       is_expected.to run
         .with_params('sensitive_test', input_params.merge('_bolt_api_call' => true))

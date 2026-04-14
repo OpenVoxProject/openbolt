@@ -5,8 +5,6 @@ require 'bolt/executor'
 require 'bolt/error'
 
 describe 'fail_plan' do
-  include SpecFixtures
-
   let(:tasks_enabled) { true }
   let(:executor) { Bolt::Executor.new }
 

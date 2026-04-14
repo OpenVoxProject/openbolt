@@ -5,8 +5,6 @@ require 'bolt/executor'
 require 'bolt/inventory'
 
 describe 'set_config' do
-  include SpecFixtures
-
   let(:executor) { Bolt::Executor.new }
   let(:inventory) { Bolt::Inventory.empty }
   let(:target) { inventory.get_target('example') }

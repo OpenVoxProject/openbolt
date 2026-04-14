@@ -29,6 +29,12 @@ Layout/ClosingHeredocIndentation:
     - 'spec/unit/pal_spec.rb'
     - 'spec/unit/util/format_spec.rb'
 
+# Offense count: 1
+# This cop supports safe autocorrection (--autocorrect).
+Layout/EmptyLineAfterGuardClause:
+  Exclude:
+    - 'rakelib/tests.rake'
+
 # Offense count: 660
 # This cop supports safe autocorrection (--autocorrect).
 # Configuration parameters: AllowMultipleStyles, EnforcedHashRocketStyle, EnforcedColonStyle, EnforcedLastArgumentHashStyle.
@@ -43,7 +49,7 @@ Layout/HashAlignment:
 Layout/HeredocIndentation:
   Enabled: false
 
-# Offense count: 25
+# Offense count: 29
 # This cop supports safe autocorrection (--autocorrect).
 # Configuration parameters: EnforcedStyle, IndentationWidth.
 # SupportedStyles: aligned, indented
@@ -131,16 +137,6 @@ Lint/UselessConstantScoping:
 Lint/UselessOr:
   Exclude:
     - 'spec/integration/transport/winrm_spec.rb'
-
-# Offense count: 6
-# This cop supports safe autocorrection (--autocorrect).
-# Configuration parameters: EnforcedStyle, BlockForwardingName.
-# SupportedStyles: anonymous, explicit
-Naming/BlockForwarding:
-  Exclude:
-    - 'lib/bolt/executor.rb'
-    - 'lib/bolt/pal.rb'
-    - 'lib/bolt_spec/bolt_context.rb'
 
 # Offense count: 16
 # Configuration parameters: Mode, AllowedMethods, AllowedPatterns, AllowBangMethods, WaywardPredicates.
@@ -371,13 +367,13 @@ RSpec/ClassCheck:
 RSpec/ContextMethod:
   Enabled: false
 
-# Offense count: 332
+# Offense count: 339
 # Configuration parameters: Prefixes, AllowedPatterns.
 # Prefixes: when, with, without
 RSpec/ContextWording:
   Enabled: false
 
-# Offense count: 110
+# Offense count: 113
 # Configuration parameters: IgnoredMetadata.
 RSpec/DescribeClass:
   Enabled: false
@@ -394,14 +390,14 @@ RSpec/DescribeSymbol:
     - 'spec/unit/plugin/module_spec.rb'
     - 'spec/unit/result_spec.rb'
 
-# Offense count: 266
+# Offense count: 267
 # This cop supports unsafe autocorrection (--autocorrect-all).
 # Configuration parameters: SkipBlocks, EnforcedStyle, OnlyStaticConstants.
 # SupportedStyles: described_class, explicit
 RSpec/DescribedClass:
   Enabled: false
 
-# Offense count: 653
+# Offense count: 759
 # Configuration parameters: CountAsOne.
 RSpec/ExampleLength:
   Max: 42
@@ -413,15 +409,18 @@ RSpec/ExampleLength:
 RSpec/ExampleWording:
   Enabled: false
 
-# Offense count: 31
+# Offense count: 35
 RSpec/ExpectInHook:
   Exclude:
+    - 'bolt-modules/boltlib/spec/functions/apply_prep_spec.rb'
+    - 'bolt-modules/boltlib/spec/functions/background_spec.rb'
+    - 'bolt-modules/boltlib/spec/functions/parallelize_spec.rb'
     - 'spec/bolt_spec/run_spec.rb'
     - 'spec/integration/logging_spec.rb'
     - 'spec/integration/modules/write_file_spec.rb'
     - 'spec/unit/cli_spec.rb'
 
-# Offense count: 276
+# Offense count: 354
 # This cop supports safe autocorrection (--autocorrect).
 # Configuration parameters: EnforcedStyle.
 # SupportedStyles: implicit, each, example
@@ -433,14 +432,14 @@ RSpec/IdenticalEqualityAssertion:
   Exclude:
     - 'spec/unit/application_spec.rb'
 
-# Offense count: 371
+# Offense count: 369
 # This cop supports safe autocorrection (--autocorrect).
 # Configuration parameters: EnforcedStyle.
 # SupportedStyles: single_line_only, single_statement_only, disallow, require_implicit
 RSpec/ImplicitSubject:
   Enabled: false
 
-# Offense count: 71
+# Offense count: 75
 # This cop supports unsafe autocorrection (--autocorrect-all).
 RSpec/IncludeExamples:
   Enabled: false
@@ -456,7 +455,7 @@ RSpec/IndexedLet:
     - 'spec/unit/result_set_spec.rb'
     - 'spec/unit/util/format_spec.rb'
 
-# Offense count: 259
+# Offense count: 265
 # Configuration parameters: AssignmentOnly.
 RSpec/InstanceVariable:
   Enabled: false
@@ -489,7 +488,7 @@ RSpec/MatchArray:
     - 'spec/unit/target_spec.rb'
     - 'spec/unit/transport/ssh/connection_spec.rb'
 
-# Offense count: 332
+# Offense count: 709
 # Configuration parameters: .
 # SupportedStyles: have_received, receive
 RSpec/MessageSpies:
@@ -510,7 +509,7 @@ RSpec/MultipleDescribes:
     - 'spec/unit/analytics_spec.rb'
     - 'spec/unit/config/options_spec.rb'
 
-# Offense count: 649
+# Offense count: 648
 # Configuration parameters: AllowSubject.
 RSpec/MultipleMemoizedHelpers:
   Max: 27
@@ -530,7 +529,7 @@ RSpec/NamedSubject:
     - 'spec/unit/transport/ssh/connection_spec.rb'
     - 'spec/unit/transport/ssh/exec_connection_spec.rb'
 
-# Offense count: 93
+# Offense count: 95
 # Configuration parameters: AllowedGroups.
 RSpec/NestedGroups:
   Max: 5
@@ -635,7 +634,7 @@ RSpec/SortMetadata:
     - 'spec/integration/apply_error_spec.rb'
     - 'spec/integration/inventory_spec.rb'
 
-# Offense count: 78
+# Offense count: 83
 # Configuration parameters: CustomTransform, IgnoreMethods, IgnoreMetadata, InflectorPath, EnforcedInflector.
 # SupportedInflectors: default, active_support
 RSpec/SpecFilePathFormat:
@@ -648,7 +647,7 @@ RSpec/SpecFilePathSuffix:
     - 'bolt-modules/boltlib/spec/functions/puppetdb_query.rb'
     - 'spec/integration/task_param.rb'
 
-# Offense count: 103
+# Offense count: 364
 RSpec/StubbedMock:
   Enabled: false
 
@@ -680,7 +679,7 @@ RSpec/VerifiedDoubleReference:
     - 'spec/unit/applicator_spec.rb'
     - 'spec/unit/inventory/group_spec.rb'
 
-# Offense count: 108
+# Offense count: 139
 # Configuration parameters: IgnoreNameless, IgnoreSymbolicNames.
 RSpec/VerifiedDoubles:
   Enabled: false
@@ -697,7 +696,7 @@ RSpec/Yield:
     - 'spec/unit/application_spec.rb'
     - 'spec/unit/cli_spec.rb'
 
-# Offense count: 51
+# Offense count: 52
 # This cop supports unsafe autocorrection (--autocorrect-all).
 # Configuration parameters: EnforcedStyle, AllowModifiersOnSymbols, AllowModifiersOnAttrs, AllowModifiersOnAliasMethod.
 # SupportedStyles: inline, group
@@ -727,7 +726,7 @@ Style/ArrayIntersect:
   Exclude:
     - 'bolt-modules/boltlib/lib/puppet/functions/download_file.rb'
 
-# Offense count: 238
+# Offense count: 263
 # This cop supports safe autocorrection (--autocorrect).
 # Configuration parameters: EnforcedStyle, ProceduralMethods, FunctionalMethods, AllowedMethods, AllowedPatterns, AllowBracesOnProceduralOneLiners, BracesRequiredMethods.
 # SupportedStyles: line_count_based, semantic, braces_for_chaining, always_braces
@@ -745,7 +744,7 @@ Style/ConcatArrayLiterals:
     - 'spec/integration/cli/cli_spec.rb'
     - 'spec/unit/module_installer_spec.rb'
 
-# Offense count: 183
+# Offense count: 190
 # Configuration parameters: AllowedConstants.
 Style/Documentation:
   Enabled: false
@@ -817,7 +816,7 @@ Style/FrozenStringLiteralComment:
     - '**/*.arb'
     - 'scripts/check_dependencies.rb'
 
-# Offense count: 95
+# Offense count: 96
 # This cop supports safe autocorrection (--autocorrect).
 # Configuration parameters: MinBodyLength, AllowConsecutiveConditionals.
 Style/GuardClause:
@@ -863,7 +862,7 @@ Style/HashExcept:
     - 'lib/bolt/plugin/cache.rb'
     - 'lib/bolt/result.rb'
 
-# Offense count: 213
+# Offense count: 216
 # This cop supports safe autocorrection (--autocorrect).
 Style/IfUnlessModifier:
   Enabled: false
@@ -894,7 +893,7 @@ Style/MutableConstant:
   Exclude:
     - 'lib/bolt/bolt_option_parser.rb'
 
-# Offense count: 27
+# Offense count: 28
 # This cop supports safe autocorrection (--autocorrect).
 # Configuration parameters: Strict, AllowedNumbers, AllowedPatterns.
 Style/NumericLiterals:
@@ -930,6 +929,14 @@ Style/OneClassPerFile:
 Style/OptionalBooleanParameter:
   Enabled: false
 
+# Offense count: 5
+# This cop supports unsafe autocorrection (--autocorrect-all).
+Style/PartitionInsteadOfDoubleSelect:
+  Exclude:
+    - 'spec/unit/transport/choria/bolt_tasks_spec.rb'
+    - 'spec/unit/transport/choria/shell_spec.rb'
+    - 'spec/unit/transport/choria_spec.rb'
+
 # Offense count: 1
 # This cop supports safe autocorrection (--autocorrect).
 # Configuration parameters: EnforcedStyle.
@@ -938,7 +945,7 @@ Style/QuotedSymbols:
   Exclude:
     - 'spec/integration/transport/winrm_spec.rb'
 
-# Offense count: 13
+# Offense count: 15
 # This cop supports unsafe autocorrection (--autocorrect-all).
 Style/ReduceToHash:
   Exclude:
@@ -949,6 +956,8 @@ Style/ReduceToHash:
     - 'lib/bolt/puppetdb/client.rb'
     - 'lib/bolt/result_set.rb'
     - 'lib/bolt/task.rb'
+    - 'lib/bolt/transport/choria/bolt_tasks.rb'
+    - 'lib/bolt/transport/choria/client.rb'
     - 'rakelib/schemas.rake'
     - 'spec/unit/executor_spec.rb'
 
@@ -1098,7 +1107,7 @@ Style/StderrPuts:
 Style/StringConcatenation:
   Enabled: false
 
-# Offense count: 3351
+# Offense count: 3408
 # This cop supports safe autocorrection (--autocorrect).
 # Configuration parameters: EnforcedStyle, ConsistentQuotesInMultiline.
 # SupportedStyles: single_quotes, double_quotes
@@ -1114,28 +1123,28 @@ Style/SuperArguments:
     - 'lib/bolt/error.rb'
     - 'lib/bolt_spec/plans/action_stubs/plan_stub.rb'
 
-# Offense count: 31
+# Offense count: 32
 # This cop supports safe autocorrection (--autocorrect).
 # Configuration parameters: EnforcedStyle, AllowSafeAssignment.
 # SupportedStyles: require_parentheses, require_no_parentheses, require_parentheses_when_complex
 Style/TernaryParentheses:
   Enabled: false
 
-# Offense count: 521
+# Offense count: 575
 # This cop supports safe autocorrection (--autocorrect).
 # Configuration parameters: EnforcedStyleForMultiline.
 # SupportedStylesForMultiline: comma, consistent_comma, diff_comma, no_comma
 Style/TrailingCommaInArguments:
   Enabled: false
 
-# Offense count: 227
+# Offense count: 268
 # This cop supports safe autocorrection (--autocorrect).
 # Configuration parameters: EnforcedStyleForMultiline.
 # SupportedStylesForMultiline: comma, consistent_comma, diff_comma, no_comma
 Style/TrailingCommaInArrayLiteral:
   Enabled: false
 
-# Offense count: 1510
+# Offense count: 1558
 # This cop supports safe autocorrection (--autocorrect).
 # Configuration parameters: EnforcedStyleForMultiline.
 # SupportedStylesForMultiline: comma, consistent_comma, diff_comma, no_comma

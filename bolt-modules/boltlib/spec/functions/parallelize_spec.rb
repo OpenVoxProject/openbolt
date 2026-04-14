@@ -7,8 +7,6 @@ require 'bolt/inventory'
 require 'bolt/plan_result'
 
 describe 'parallelize' do
-  include SpecFixtures
-
   let(:array) { %w[a b c d a b a] }
   let(:future) { Bolt::PlanFuture.new(nil, 1, name: 'name', plan_id: 1234) }
   let(:executor) { Bolt::Executor.new }
@@ -18,17 +16,14 @@ describe 'parallelize' do
   before(:each) do
     Puppet[:tasks] = tasks_enabled
     Puppet.push_context(bolt_executor: executor, plan_stack: [])
-  end
-
-  after(:each) do
-    Puppet.pop_context
-  end
-
-  before :each do
     array.each do
       expect(executor).to receive(:create_future).and_return(future)
     end
     expect(executor).to receive(:wait).and_return(result_array)
+  end
+
+  after(:each) do
+    Puppet.pop_context
   end
 
   it 'reports the function call to analytics' do

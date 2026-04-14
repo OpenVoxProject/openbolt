@@ -3,8 +3,6 @@
 require 'spec_helper'
 
 describe 'puppetdb_query' do
-  include SpecFixtures
-
   let(:pdb_client) { double('pdb_client') }
 
   before(:each) do

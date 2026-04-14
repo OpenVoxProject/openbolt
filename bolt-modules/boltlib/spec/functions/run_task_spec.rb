@@ -22,8 +22,6 @@ class TaskTypeMatcher
 end
 
 describe 'run_task' do
-  include SpecFixtures
-
   let(:executor) { Bolt::Executor.new }
   let(:inventory) { Bolt::Inventory.empty }
   let(:tasks_enabled) { true }
@@ -59,8 +57,8 @@ describe 'run_task' do
       executable = File.join(tasks_root, 'echo.sh')
 
       expect(executor).to receive(:run_task)
-              .with([target], mock_task(executable, nil), default_args, {}, [])
-              .and_return(result_set)
+        .with([target], mock_task(executable, nil), default_args, {}, [])
+        .and_return(result_set)
       expect(inventory).to receive(:get_targets).with(hostname).and_return([target])
 
       is_expected.to run
@@ -72,8 +70,8 @@ describe 'run_task' do
       executable = File.join(tasks_root, 'meta.sh')
 
       expect(executor).to receive(:run_task)
-              .with([target], mock_task(executable, 'environment'), default_args, {}, [])
-              .and_return(result_set)
+        .with([target], mock_task(executable, 'environment'), default_args, {}, [])
+        .and_return(result_set)
       expect(inventory).to receive(:get_targets).with(hostname).and_return([target])
 
       is_expected.to run
@@ -85,8 +83,8 @@ describe 'run_task' do
       executable = File.join(tasks_root, 'meta.sh')
 
       expect(executor).to receive(:run_task)
-              .with([target], mock_task(executable, 'environment'), default_args, { run_as: 'root' }, [])
-              .and_return(result_set)
+        .with([target], mock_task(executable, 'environment'), default_args, { run_as: 'root' }, [])
+        .and_return(result_set)
       expect(inventory).to receive(:get_targets).with(hostname).and_return([target])
 
       args = default_args.merge('_run_as' => 'root')
@@ -99,8 +97,8 @@ describe 'run_task' do
       executable = File.join(tasks_root, 'yes.sh')
 
       expect(executor).to receive(:run_task)
-              .with([target], mock_task(executable, nil), {}, {}, [])
-              .and_return(result_set)
+        .with([target], mock_task(executable, nil), {}, {}, [])
+        .and_return(result_set)
       expect(inventory).to receive(:get_targets).with(hostname).and_return([target])
 
       is_expected.to run
@@ -118,8 +116,8 @@ describe 'run_task' do
 
       expected_args = args.merge('default_string' => 'hello', 'optional_default_string' => 'goodbye')
       expect(executor).to receive(:run_task)
-              .with([target], mock_task(executable, 'stdin'), expected_args, {}, [])
-              .and_return(result_set)
+        .with([target], mock_task(executable, 'stdin'), expected_args, {}, [])
+        .and_return(result_set)
       expect(inventory).to receive(:get_targets).with(hostname).and_return([target])
 
       is_expected.to run
@@ -137,8 +135,8 @@ describe 'run_task' do
       }
 
       expect(executor).to receive(:run_task)
-              .with([target], mock_task(executable, 'stdin'), args, {}, [])
-              .and_return(result_set)
+        .with([target], mock_task(executable, 'stdin'), args, {}, [])
+        .and_return(result_set)
       expect(inventory).to receive(:get_targets).with(hostname).and_return([target])
 
       is_expected.to run
@@ -157,8 +155,8 @@ describe 'run_task' do
       }
 
       expect(executor).to receive(:run_task)
-              .with([target], mock_task(executable, 'environment'), expected_args, {}, [])
-              .and_return(result_set)
+        .with([target], mock_task(executable, 'environment'), expected_args, {}, [])
+        .and_return(result_set)
       expect(inventory).to receive(:get_targets).with(hostname).and_return([target])
 
       is_expected.to run
@@ -181,8 +179,8 @@ describe 'run_task' do
       executable = File.join(tasks_root, 'echo.sh')
 
       expect(executor).to receive(:run_task)
-              .with([target], mock_task(executable, nil), default_args, {}, [])
-              .and_return(result_set)
+        .with([target], mock_task(executable, nil), default_args, {}, [])
+        .and_return(result_set)
       expect(inventory).to receive(:get_targets).with(hostname).and_return([target])
 
       is_expected.to run
@@ -195,8 +193,8 @@ describe 'run_task' do
       executable = File.join(tasks_root, 'echo.sh')
 
       expect(executor).to receive(:run_task)
-              .with([target], mock_task(executable, nil), default_args, kind_of(Hash), [])
-              .and_return(result_set)
+        .with([target], mock_task(executable, nil), default_args, kind_of(Hash), [])
+        .and_return(result_set)
       expect(inventory).to receive(:get_targets).with(hostname).and_return([target])
 
       is_expected.to run
@@ -219,8 +217,8 @@ describe 'run_task' do
 
       it 'passes the description through if parameters are passed' do
         expect(executor).to receive(:run_task)
-                .with([target], anything, {}, { description: message }, [])
-                .and_return(result_set)
+          .with([target], anything, {}, { description: message }, [])
+          .and_return(result_set)
         expect(inventory).to receive(:get_targets).with(hostname).and_return([target])
 
         is_expected.to run
@@ -229,8 +227,8 @@ describe 'run_task' do
 
       it 'passes the description through if no parameters are passed' do
         expect(executor).to receive(:run_task)
-                .with([target], anything, {}, { description: message }, [])
-                .and_return(result_set)
+          .with([target], anything, {}, { description: message }, [])
+          .and_return(result_set)
         expect(inventory).to receive(:get_targets).with(hostname).and_return([target])
 
         is_expected.to run
@@ -241,8 +239,8 @@ describe 'run_task' do
     context 'without description' do
       it 'ignores description if parameters are passed' do
         expect(executor).to receive(:run_task)
-                .with([target], anything, {}, {}, [])
-                .and_return(result_set)
+          .with([target], anything, {}, {}, [])
+          .and_return(result_set)
         expect(inventory).to receive(:get_targets).with(hostname).and_return([target])
 
         is_expected.to run
@@ -251,8 +249,8 @@ describe 'run_task' do
 
       it 'ignores description if no parameters are passed' do
         expect(executor).to receive(:run_task)
-                .with([target], anything, {}, {}, [])
-                .and_return(result_set)
+          .with([target], anything, {}, {}, [])
+          .and_return(result_set)
         expect(inventory).to receive(:get_targets).with(hostname).and_return([target])
 
         is_expected.to run
@@ -267,8 +265,8 @@ describe 'run_task' do
         executable = File.join(tasks_root, 'meta.sh')
 
         expect(executor).to receive(:run_task)
-                .with([target, target2], mock_task(executable, 'environment'), default_args, {}, [])
-                .and_return(result_set)
+          .with([target, target2], mock_task(executable, 'environment'), default_args, {}, [])
+          .and_return(result_set)
         expect(inventory).to receive(:get_targets).with([hostname, [[hostname2]], []]).and_return([target, target2])
 
         is_expected.to run
@@ -280,8 +278,8 @@ describe 'run_task' do
         executable = File.join(tasks_root, 'meta.sh')
 
         expect(executor).to receive(:run_task)
-                .with([target, target2], mock_task(executable, 'environment'), default_args, {}, [])
-                .and_return(result_set)
+          .with([target, target2], mock_task(executable, 'environment'), default_args, {}, [])
+          .and_return(result_set)
         expect(inventory).to receive(:get_targets).with([target, [[target2]], []]).and_return([target, target2])
 
         is_expected.to run
@@ -297,8 +295,8 @@ describe 'run_task' do
           executable = File.join(tasks_root, 'meta.sh')
 
           expect(executor).to receive(:run_task)
-                  .with([target, target2], mock_task(executable, 'environment'), default_args, {}, [])
-                  .and_return(result_set)
+            .with([target, target2], mock_task(executable, 'environment'), default_args, {}, [])
+            .and_return(result_set)
           expect(inventory).to receive(:get_targets).with([hostname, hostname2]).and_return([target, target2])
 
           is_expected.to run
@@ -310,11 +308,11 @@ describe 'run_task' do
           executable = File.join(tasks_root, 'meta.sh')
 
           expect(executor).to receive(:run_task).with([target, target2],
-                                           mock_task(executable, 'environment'),
-                                           default_args,
-                                           { catch_errors: true },
-                                           [])
-                  .and_return(result_set)
+                                                      mock_task(executable, 'environment'),
+                                                      default_args,
+                                                      { catch_errors: true },
+                                                      [])
+                                                .and_return(result_set)
           expect(inventory).to receive(:get_targets).with([hostname, hostname2]).and_return([target, target2])
 
           args = default_args.merge('_catch_errors' => true)
@@ -339,8 +337,8 @@ describe 'run_task' do
         executable = File.join(tasks_root, 'init.sh')
 
         expect(executor).to receive(:run_task)
-                .with([target], mock_task(executable, nil), {}, {}, [])
-                .and_return(result_set)
+          .with([target], mock_task(executable, nil), {}, {}, [])
+          .and_return(result_set)
         expect(inventory).to receive(:get_targets).with(hostname).and_return([target])
 
         is_expected.to run
@@ -384,15 +382,15 @@ describe 'run_task' do
         }
 
         expect(sensitive).to receive(:new).with(input_params['sensitive_string'])
-                 .and_return(expected_params['sensitive_string'])
+                                          .and_return(expected_params['sensitive_string'])
         expect(sensitive).to receive(:new).with(input_params['sensitive_array'])
-                 .and_return(expected_params['sensitive_array'])
+                                          .and_return(expected_params['sensitive_array'])
         expect(sensitive).to receive(:new).with(input_params['sensitive_hash'])
-                 .and_return(expected_params['sensitive_hash'])
+                                          .and_return(expected_params['sensitive_hash'])
 
         expect(executor).to receive(:run_task)
-                .with([target], mock_task(executable, nil), expected_params, {}, [])
-                .and_return(result_set)
+          .with([target], mock_task(executable, nil), expected_params, {}, [])
+          .and_return(result_set)
         expect(inventory).to receive(:get_targets).with(hostname).and_return([target])
 
         is_expected.to run
@@ -400,7 +398,6 @@ describe 'run_task' do
           .and_return(result_set)
       end
     end
-
   end
 
   context 'running in parallel' do

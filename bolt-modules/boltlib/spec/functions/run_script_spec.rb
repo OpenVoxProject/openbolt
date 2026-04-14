@@ -7,8 +7,6 @@ require 'bolt/result'
 require 'bolt/result_set'
 
 describe 'run_script' do
-  include SpecFixtures
-
   let(:executor) { Bolt::Executor.new }
   let(:inventory) { double('inventory') }
   let(:tasks_enabled) { true }
@@ -17,8 +15,7 @@ describe 'run_script' do
 
   before(:each) do
     Puppet[:tasks] = tasks_enabled
-    allow(inventory).to receive(:version).and_return(2)
-    allow(inventory).to receive(:target_implementation_class).and_return(Bolt::Target)
+    allow(inventory).to receive_messages(version: 2, target_implementation_class: Bolt::Target)
     Puppet.push_context(bolt_executor: executor, bolt_inventory: inventory)
   end
 
@@ -38,8 +35,8 @@ describe 'run_script' do
 
     it 'with fully resolved path of file' do
       expect(executor).to receive(:run_script)
-              .with([target], full_path, [], {}, [])
-              .and_return(result_set)
+        .with([target], full_path, [], {}, [])
+        .and_return(result_set)
       expect(inventory).to receive(:get_targets).with(hostname).and_return([target])
 
       is_expected.to run
@@ -65,8 +62,8 @@ describe 'run_script' do
           full_path = File.join(module_root, 'with_files/files/hostname.sh')
 
           expect(executor).to receive(:run_script)
-                  .with([target], full_path, [], {}, [])
-                  .and_return(result_set)
+            .with([target], full_path, [], {}, [])
+            .and_return(result_set)
 
           is_expected.to run
             .with_params('with_files/hostname.sh', hostname)
@@ -81,8 +78,8 @@ describe 'run_script' do
           full_path = File.join(module_root, 'with_both/files/scripts/hostname.sh')
 
           expect(executor).to receive(:run_script)
-                  .with([target], full_path, [], {}, [])
-                  .and_return(result_set)
+            .with([target], full_path, [], {}, [])
+            .and_return(result_set)
 
           is_expected.to run
             .with_params('with_both/scripts/hostname.sh', hostname)
@@ -94,8 +91,8 @@ describe 'run_script' do
           full_path = File.join(module_root, 'with_scripts/scripts/hostname.sh')
 
           expect(executor).to receive(:run_script)
-                  .with([target], full_path, [], {}, [])
-                  .and_return(result_set)
+            .with([target], full_path, [], {}, [])
+            .and_return(result_set)
 
           is_expected.to run
             .with_params('with_scripts/scripts/hostname.sh', hostname)
@@ -109,8 +106,8 @@ describe 'run_script' do
           full_path = File.join(module_root, 'with_files/files/files/hostname.sh')
 
           expect(executor).to receive(:run_script)
-                  .with([target], full_path, [], {}, [])
-                  .and_return(result_set)
+            .with([target], full_path, [], {}, [])
+            .and_return(result_set)
 
           is_expected.to run
             .with_params('with_files/files/hostname.sh', hostname)
@@ -122,8 +119,8 @@ describe 'run_script' do
           full_path = File.join(module_root, 'with_files/files/toplevel.sh')
 
           expect(executor).to receive(:run_script)
-                  .with([target], full_path, [], {}, [])
-                  .and_return(result_set)
+            .with([target], full_path, [], {}, [])
+            .and_return(result_set)
 
           is_expected.to run
             .with_params('with_files/files/toplevel.sh', hostname)
@@ -134,8 +131,8 @@ describe 'run_script' do
 
     it 'with host given as Target' do
       expect(executor).to receive(:run_script)
-              .with([target], full_path, [], {}, [])
-              .and_return(result_set)
+        .with([target], full_path, [], {}, [])
+        .and_return(result_set)
       expect(inventory).to receive(:get_targets).with(target).and_return([target])
 
       is_expected.to run
@@ -145,8 +142,8 @@ describe 'run_script' do
 
     it 'with given arguments as a hash of {arguments => [value]}' do
       expect(executor).to receive(:run_script)
-              .with([target], full_path, %w[hello world], {}, [])
-              .and_return(result_set)
+        .with([target], full_path, %w[hello world], {}, [])
+        .and_return(result_set)
       expect(inventory).to receive(:get_targets).with(hostname).and_return([target])
 
       is_expected.to run
@@ -158,8 +155,8 @@ describe 'run_script' do
 
     it 'with given arguments as a hash of {arguments => []}' do
       expect(executor).to receive(:run_script)
-              .with([target], full_path, [], {}, [])
-              .and_return(result_set)
+        .with([target], full_path, [], {}, [])
+        .and_return(result_set)
       expect(inventory).to receive(:get_targets).with(target).and_return([target])
 
       is_expected.to run
@@ -169,8 +166,8 @@ describe 'run_script' do
 
     it 'with pwsh_params' do
       expect(executor).to receive(:run_script)
-              .with([target], full_path, [], { pwsh_params: { 'Name' => 'BoltyMcBoltface' } }, [])
-              .and_return(result_set)
+        .with([target], full_path, [], { pwsh_params: { 'Name' => 'BoltyMcBoltface' } }, [])
+        .and_return(result_set)
       expect(inventory).to receive(:get_targets).with(hostname).and_return([target])
 
       is_expected.to run
@@ -182,8 +179,8 @@ describe 'run_script' do
 
     it 'with _run_as' do
       expect(executor).to receive(:run_script)
-              .with([target], full_path, [], { run_as: 'root' }, [])
-              .and_return(result_set)
+        .with([target], full_path, [], { run_as: 'root' }, [])
+        .and_return(result_set)
       expect(inventory).to receive(:get_targets).with(target).and_return([target])
 
       is_expected.to run
@@ -194,8 +191,8 @@ describe 'run_script' do
     it 'reports the call to analytics' do
       expect(executor).to receive(:report_function_call).with('run_script')
       expect(executor).to receive(:run_script)
-              .with([target], full_path, [], {}, [])
-              .and_return(result_set)
+        .with([target], full_path, [], {}, [])
+        .and_return(result_set)
       expect(inventory).to receive(:get_targets).with(hostname).and_return([target])
 
       is_expected.to run
@@ -208,8 +205,8 @@ describe 'run_script' do
 
       it 'passes the description through if parameters are passed' do
         expect(executor).to receive(:run_script)
-                .with([target], full_path, [], { description: message }, [])
-                .and_return(result_set)
+          .with([target], full_path, [], { description: message }, [])
+          .and_return(result_set)
         expect(inventory).to receive(:get_targets).with(target).and_return([target])
 
         is_expected.to run
@@ -218,8 +215,8 @@ describe 'run_script' do
 
       it 'passes the description through if no parameters are passed' do
         expect(executor).to receive(:run_script)
-                .with([target], full_path, [], { description: message }, [])
-                .and_return(result_set)
+          .with([target], full_path, [], { description: message }, [])
+          .and_return(result_set)
         expect(inventory).to receive(:get_targets).with(target).and_return([target])
 
         is_expected.to run
@@ -230,8 +227,8 @@ describe 'run_script' do
     context 'without description' do
       it 'ignores description if parameters are passed' do
         expect(executor).to receive(:run_script)
-                .with([target], full_path, [], {}, [])
-                .and_return(result_set)
+          .with([target], full_path, [], {}, [])
+          .and_return(result_set)
         expect(inventory).to receive(:get_targets).with(target).and_return([target])
 
         is_expected.to run
@@ -240,8 +237,8 @@ describe 'run_script' do
 
       it 'ignores description if no parameters are passed' do
         expect(executor).to receive(:run_script)
-                .with([target], full_path, [], {}, [])
-                .and_return(result_set)
+          .with([target], full_path, [], {}, [])
+          .and_return(result_set)
         expect(inventory).to receive(:get_targets).with(target).and_return([target])
 
         is_expected.to run
@@ -257,8 +254,8 @@ describe 'run_script' do
 
       it 'with propagated multiple hosts and returns multiple results' do
         expect(executor).to receive(:run_script)
-                .with([target, target2], full_path, [], {}, [])
-                .and_return(result_set)
+          .with([target, target2], full_path, [], {}, [])
+          .and_return(result_set)
         expect(inventory).to receive(:get_targets).with([hostname, hostname2]).and_return([target, target2])
 
         is_expected.to run
@@ -271,8 +268,8 @@ describe 'run_script' do
 
         it 'errors by default' do
           expect(executor).to receive(:run_script)
-                  .with([target, target2], full_path, [], {}, [])
-                  .and_return(result_set)
+            .with([target, target2], full_path, [], {}, [])
+            .and_return(result_set)
           expect(inventory).to receive(:get_targets).with([hostname, hostname2]).and_return([target, target2])
 
           is_expected.to run
@@ -282,8 +279,8 @@ describe 'run_script' do
 
         it 'does not error with _catch_errors' do
           expect(executor).to receive(:run_script)
-                  .with([target, target2], full_path, [], { catch_errors: true }, [])
-                  .and_return(result_set)
+            .with([target, target2], full_path, [], { catch_errors: true }, [])
+            .and_return(result_set)
           expect(inventory).to receive(:get_targets).with([hostname, hostname2]).and_return([target, target2])
 
           is_expected.to run
@@ -387,11 +384,11 @@ describe 'run_script' do
       options  = { env_vars: env_vars.transform_values(&:to_json) }
 
       expect(executor).to receive(:run_script)
-              .with(targets, full_path, [], options, [])
-              .and_return(Bolt::ResultSet.new([]))
+        .with(targets, full_path, [], options, [])
+        .and_return(Bolt::ResultSet.new([]))
       expect(inventory).to receive(:get_targets)
-               .with(targets)
-               .and_return(targets)
+        .with(targets)
+        .and_return(targets)
 
       is_expected.to run
         .with_params(full_path, targets, { '_env_vars' => env_vars })
