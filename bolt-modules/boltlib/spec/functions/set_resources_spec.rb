@@ -9,11 +9,13 @@ describe 'set_resources' do
   let(:inventory)     { Bolt::Inventory.empty }
   let(:tasks_enabled) { true }
 
-  around(:each) do |example|
+  before(:each) do
     Puppet[:tasks] = tasks_enabled
-    Puppet.override(bolt_executor: executor, bolt_inventory: inventory) do
-      example.run
-    end
+    Puppet.push_context(bolt_executor: executor, bolt_inventory: inventory)
+  end
+
+  after(:each) do
+    Puppet.pop_context
   end
 
   let(:target)    { inventory.get_target('foo') }
@@ -78,7 +80,7 @@ describe 'set_resources' do
   end
 
   it 'errors on unknown types' do
-    is_expected.to run.with_params(mock('anything')).and_raise_error(ArgumentError)
+    is_expected.to run.with_params(double('anything')).and_raise_error(ArgumentError)
   end
 
   it 'errors when setting a resource for one target on another' do
@@ -86,12 +88,12 @@ describe 'set_resources' do
   end
 
   it 'calls Target#set_resource' do
-    target.expects(:set_resource).with(resource).returns(resource)
+    expect(target).to receive(:set_resource).with(resource).and_return(resource)
     is_expected.to run.with_params(target, resource).and_return([resource])
   end
 
   it 'reports the call to analytics' do
-    executor.expects(:report_function_call).with('set_resources')
+    expect(executor).to receive(:report_function_call).with('set_resources')
     is_expected.to run.with_params(target, resource).and_return([resource])
   end
 

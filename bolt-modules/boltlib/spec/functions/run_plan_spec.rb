@@ -7,19 +7,19 @@ require 'bolt/plugin'
 require 'puppet/pops/types/p_sensitive_type'
 
 describe 'run_plan' do
-  include PuppetlabsSpec::Fixtures
-
   let(:executor) { Bolt::Executor.new }
   let(:tasks_enabled) { true }
   let(:inventory) { Bolt::Inventory.empty }
 
-  around(:each) do |example|
+  before(:each) do
     Puppet[:tasks] = tasks_enabled
-    executor.stubs(:noop).returns(false)
+    allow(executor).to receive(:noop).and_return(false)
 
-    Puppet.override(bolt_executor: executor, bolt_inventory: inventory) do
-      example.run
-    end
+    Puppet.push_context(bolt_executor: executor, bolt_inventory: inventory)
+  end
+
+  after(:each) do
+    Puppet.pop_context
   end
 
   context "when invoked" do
@@ -46,9 +46,9 @@ describe 'run_plan' do
       end
 
       it 'run_plan(name, hash) where hash includes _run_as' do
-        executor.stubs(:run_as).returns('foo')
-        executor.expects(:run_as=).with('bar')
-        executor.expects(:run_as=).with('foo')
+        allow(executor).to receive(:run_as).and_return('foo')
+        expect(executor).to receive(:run_as=).with('bar')
+        expect(executor).to receive(:run_as=).with('foo')
 
         is_expected.to run.with_params('test::run_me', '_run_as' => 'bar').and_return('worked2')
       end
@@ -59,13 +59,13 @@ describe 'run_plan' do
     end
 
     it 'reports the function call to analytics' do
-      executor.expects(:report_function_call).with('run_plan')
-      executor.expects(:report_bundled_content).with('Plan', 'test::run_me').once
+      expect(executor).to receive(:report_function_call).with('run_plan')
+      expect(executor).to receive(:report_bundled_content).with('Plan', 'test::run_me').once
       is_expected.to run.with_params('test::run_me').and_return('worked2')
     end
 
     it 'skips reporting the function call to analytics if called internally from Bolt' do
-      executor.expects(:report_function_call).never
+      expect(executor).not_to receive(:report_function_call)
       is_expected.to run.with_params('test::run_me', '_bolt_api_call' => true).and_return('worked2')
     end
 
@@ -166,12 +166,12 @@ describe 'run_plan' do
         'string' => sensitive.new(string)
       }
 
-      sensitive.expects(:new).with(input_params['array'])
-               .returns(expected_params['array'])
-      sensitive.expects(:new).with(input_params['hash'])
-               .returns(expected_params['hash'])
-      sensitive.expects(:new).with(input_params['string'])
-               .returns(expected_params['string'])
+      expect(sensitive).to receive(:new).with(input_params['array'])
+                                        .and_return(expected_params['array'])
+      expect(sensitive).to receive(:new).with(input_params['hash'])
+                                        .and_return(expected_params['hash'])
+      expect(sensitive).to receive(:new).with(input_params['string'])
+                                        .and_return(expected_params['string'])
 
       is_expected.to run
         .with_params('sensitive_test', input_params.merge('_bolt_api_call' => true))
@@ -179,7 +179,7 @@ describe 'run_plan' do
     end
 
     it 'parameters are not wrapped from non-API calls' do
-      sensitive.expects(:new).never
+      expect(sensitive).not_to receive(:new)
 
       is_expected.to run
         .with_params('sensitive_test::no_api', 'string' => string)
@@ -190,7 +190,7 @@ describe 'run_plan' do
     end
 
     it 'complex parameters using Sensitive are not wrapped' do
-      sensitive.expects(:new).never
+      expect(sensitive).not_to receive(:new)
 
       is_expected.to run
         .with_params('sensitive_test::complex', 'complex' => string)

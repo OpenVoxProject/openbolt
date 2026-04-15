@@ -8,20 +8,19 @@ require 'bolt/target'
 require 'bolt/project'
 
 describe 'download_file' do
-  include PuppetlabsSpec::Fixtures
-
   let(:executor)      { Bolt::Executor.new }
-  let(:inventory)     { mock('inventory') }
+  let(:inventory)     { double('inventory') }
   let(:project)       { Bolt::Project.default_project }
   let(:tasks_enabled) { true }
 
-  around(:each) do |example|
+  before(:each) do
     Puppet[:tasks] = tasks_enabled
-    Puppet.override(bolt_executor: executor, bolt_inventory: inventory, bolt_project: project) do
-      inventory.stubs(:version).returns(2)
-      inventory.stubs(:target_implementation_class).returns(Bolt::Target)
-      example.run
-    end
+    allow(inventory).to receive_messages(version: 2, target_implementation_class: Bolt::Target)
+    Puppet.push_context(bolt_executor: executor, bolt_inventory: inventory, bolt_project: project)
+  end
+
+  after(:each) do
+    Puppet.pop_context
   end
 
   context 'it calls bolt executor download_file' do
@@ -36,18 +35,18 @@ describe 'download_file' do
     let(:project_destination) { project.downloads + destination }
 
     before(:each) do
-      Puppet.features.stubs(:bolt?).returns(true)
-      Dir.stubs(:exist?).returns(false)
+      allow(Puppet.features).to receive(:bolt?).and_return(true)
+      allow(Dir).to receive(:exist?).and_return(false)
     end
 
     it 'with path of source and destination' do
-      executor.expects(:download_file)
-              .with([target], source, project_destination, {}, [])
-              .returns(result_set)
+      expect(executor).to receive(:download_file)
+        .with([target], source, project_destination, {}, [])
+        .and_return(result_set)
 
-      inventory.stubs(:get_targets)
-               .with(hostname)
-               .returns([target])
+      allow(inventory).to receive(:get_targets)
+        .with(hostname)
+        .and_return([target])
 
       is_expected.to run
         .with_params(source, destination, hostname)
@@ -57,11 +56,11 @@ describe 'download_file' do
     it 'raises an error when destination is an empty string' do
       destination = ' '
 
-      executor.expects(:download_file).never
+      expect(executor).not_to receive(:download_file)
 
-      inventory.stubs(:get_targets)
-               .with(hostname)
-               .returns([target])
+      allow(inventory).to receive(:get_targets)
+        .with(hostname)
+        .and_return([target])
 
       is_expected.to run
         .with_params(source, destination, hostname)
@@ -71,11 +70,11 @@ describe 'download_file' do
     it 'raises an error when destination is an aboslute path' do
       destination = '/downloads'
 
-      executor.expects(:download_file).never
+      expect(executor).not_to receive(:download_file)
 
-      inventory.stubs(:get_targets)
-               .with(hostname)
-               .returns([target])
+      allow(inventory).to receive(:get_targets)
+        .with(hostname)
+        .and_return([target])
 
       is_expected.to run
         .with_params(source, destination, hostname)
@@ -85,11 +84,11 @@ describe 'download_file' do
     it 'raises an error when destination includes path traversal' do
       destination = 'foo/../bar'
 
-      executor.expects(:download_file).never
+      expect(executor).not_to receive(:download_file)
 
-      inventory.stubs(:get_targets)
-               .with(hostname)
-               .returns([target])
+      allow(inventory).to receive(:get_targets)
+        .with(hostname)
+        .and_return([target])
 
       is_expected.to run
         .with_params(source, destination, hostname)
@@ -100,13 +99,13 @@ describe 'download_file' do
       destination = " foo\n"
       project_destination = project.downloads + destination.strip
 
-      executor.expects(:download_file)
-              .with([target], source, project_destination, {}, [])
-              .returns(result_set)
+      expect(executor).to receive(:download_file)
+        .with([target], source, project_destination, {}, [])
+        .and_return(result_set)
 
-      inventory.stubs(:get_targets)
-               .with(hostname)
-               .returns([target])
+      allow(inventory).to receive(:get_targets)
+        .with(hostname)
+        .and_return([target])
 
       is_expected.to run
         .with_params(source, destination, hostname)
@@ -117,13 +116,13 @@ describe 'download_file' do
       destination = '~/foo'
       project_destination = project.downloads + destination
 
-      executor.expects(:download_file)
-              .with([target], source, project_destination, {}, [])
-              .returns(result_set)
+      expect(executor).to receive(:download_file)
+        .with([target], source, project_destination, {}, [])
+        .and_return(result_set)
 
-      inventory.stubs(:get_targets)
-               .with(hostname)
-               .returns([target])
+      allow(inventory).to receive(:get_targets)
+        .with(hostname)
+        .and_return([target])
 
       is_expected.to run
         .with_params(source, destination, hostname)
@@ -131,22 +130,22 @@ describe 'download_file' do
     end
 
     it 'deletes contents of existing destination directory' do
-      Dir.stubs(:exist?)
-         .with(project_destination)
-         .returns(true)
+      allow(Dir).to receive(:exist?)
+        .with(project_destination)
+        .and_return(true)
 
-      FileUtils.stubs(:rm_r)
+      allow(FileUtils).to receive(:rm_r)
 
-      executor.expects(:download_file)
-              .with([target], source, project_destination, {}, [])
-              .returns(result_set)
+      expect(executor).to receive(:download_file)
+        .with([target], source, project_destination, {}, [])
+        .and_return(result_set)
 
-      inventory.stubs(:get_targets)
-               .with(hostname)
-               .returns([target])
+      allow(inventory).to receive(:get_targets)
+        .with(hostname)
+        .and_return([target])
 
-      FileUtils.expects(:rm_r)
-               .with([], secure: true)
+      expect(FileUtils).to receive(:rm_r)
+        .with([], secure: true)
 
       is_expected.to run
         .with_params(source, destination, hostname)
@@ -154,13 +153,13 @@ describe 'download_file' do
     end
 
     it 'with target specified as a Target' do
-      executor.expects(:download_file)
-              .with([target], source, project_destination, {}, [])
-              .returns(result_set)
+      expect(executor).to receive(:download_file)
+        .with([target], source, project_destination, {}, [])
+        .and_return(result_set)
 
-      inventory.stubs(:get_targets)
-               .with(target)
-               .returns([target])
+      allow(inventory).to receive(:get_targets)
+        .with(target)
+        .and_return([target])
 
       is_expected.to run
         .with_params(source, destination, target)
@@ -168,13 +167,13 @@ describe 'download_file' do
     end
 
     it 'runs as another user' do
-      executor.expects(:download_file)
-              .with([target], source, project_destination, { run_as: 'soandso' }, [])
-              .returns(result_set)
+      expect(executor).to receive(:download_file)
+        .with([target], source, project_destination, { run_as: 'soandso' }, [])
+        .and_return(result_set)
 
-      inventory.stubs(:get_targets)
-               .with(target)
-               .returns([target])
+      allow(inventory).to receive(:get_targets)
+        .with(target)
+        .and_return([target])
 
       is_expected.to run
         .with_params(source, destination, target, '_run_as' => 'soandso')
@@ -182,16 +181,16 @@ describe 'download_file' do
     end
 
     it 'reports the call to analytics' do
-      executor.expects(:download_file)
-              .with([target], source, project_destination, {}, [])
-              .returns(result_set)
+      expect(executor).to receive(:download_file)
+        .with([target], source, project_destination, {}, [])
+        .and_return(result_set)
 
-      inventory.stubs(:get_targets)
-               .with(hostname)
-               .returns([target])
+      allow(inventory).to receive(:get_targets)
+        .with(hostname)
+        .and_return([target])
 
-      executor.expects(:report_function_call)
-              .with('download_file')
+      expect(executor).to receive(:report_function_call)
+        .with('download_file')
 
       is_expected.to run
         .with_params(source, destination, hostname)
@@ -202,13 +201,13 @@ describe 'download_file' do
       let(:message) { 'test message' }
 
       it 'passes the description through if parameters are passed' do
-        executor.expects(:download_file)
-                .with([target], source, project_destination, { description: message }, [])
-                .returns(result_set)
+        expect(executor).to receive(:download_file)
+          .with([target], source, project_destination, { description: message }, [])
+          .and_return(result_set)
 
-        inventory.stubs(:get_targets)
-                 .with(target)
-                 .returns([target])
+        allow(inventory).to receive(:get_targets)
+          .with(target)
+          .and_return([target])
 
         is_expected.to run
           .with_params(source, destination, target, message, {})
@@ -216,13 +215,13 @@ describe 'download_file' do
       end
 
       it 'passes the description through if no parameters are passed' do
-        executor.expects(:download_file)
-                .with([target], source, project_destination, { description: message }, [])
-                .returns(result_set)
+        expect(executor).to receive(:download_file)
+          .with([target], source, project_destination, { description: message }, [])
+          .and_return(result_set)
 
-        inventory.stubs(:get_targets)
-                 .with(target)
-                 .returns([target])
+        allow(inventory).to receive(:get_targets)
+          .with(target)
+          .and_return([target])
 
         is_expected.to run
           .with_params(source, destination, target, message)
@@ -232,13 +231,13 @@ describe 'download_file' do
 
     context 'without description' do
       it 'ignores description if parameters are passed' do
-        executor.expects(:download_file)
-                .with([target], source, project_destination, {}, [])
-                .returns(result_set)
+        expect(executor).to receive(:download_file)
+          .with([target], source, project_destination, {}, [])
+          .and_return(result_set)
 
-        inventory.stubs(:get_targets)
-                 .with(target)
-                 .returns([target])
+        allow(inventory).to receive(:get_targets)
+          .with(target)
+          .and_return([target])
 
         is_expected.to run
           .with_params(source, destination, target, {})
@@ -246,13 +245,13 @@ describe 'download_file' do
       end
 
       it 'ignores description if no parameters are passed' do
-        executor.expects(:download_file)
-                .with([target], source, project_destination, {}, [])
-                .returns(result_set)
+        expect(executor).to receive(:download_file)
+          .with([target], source, project_destination, {}, [])
+          .and_return(result_set)
 
-        inventory.stubs(:get_targets)
-                 .with(target)
-                 .returns([target])
+        allow(inventory).to receive(:get_targets)
+          .with(target)
+          .and_return([target])
 
         is_expected.to run
           .with_params(source, destination, target)
@@ -268,13 +267,13 @@ describe 'download_file' do
       let(:result_set) { Bolt::ResultSet.new([result, result2]) }
 
       it 'propagates multiple hosts and returns multiple results' do
-        executor.expects(:download_file)
-                .with([target, target2], source, project_destination, {}, [])
-                .returns(result_set)
+        expect(executor).to receive(:download_file)
+          .with([target, target2], source, project_destination, {}, [])
+          .and_return(result_set)
 
-        inventory.stubs(:get_targets)
-                 .with([hostname, hostname2])
-                 .returns([target, target2])
+        allow(inventory).to receive(:get_targets)
+          .with([hostname, hostname2])
+          .and_return([target, target2])
 
         is_expected.to run
           .with_params(source, destination, [hostname, hostname2])
@@ -285,13 +284,13 @@ describe 'download_file' do
         let(:result2) { Bolt::Result.new(target2, error: { 'msg' => 'oops' }) }
 
         it 'errors by default' do
-          executor.expects(:download_file)
-                  .with([target, target2], source, project_destination, {}, [])
-                  .returns(result_set)
+          expect(executor).to receive(:download_file)
+            .with([target, target2], source, project_destination, {}, [])
+            .and_return(result_set)
 
-          inventory.expects(:get_targets)
-                   .with([hostname, hostname2])
-                   .returns([target, target2])
+          expect(inventory).to receive(:get_targets)
+            .with([hostname, hostname2])
+            .and_return([target, target2])
 
           is_expected.to run
             .with_params(source, destination, [hostname, hostname2])
@@ -299,13 +298,13 @@ describe 'download_file' do
         end
 
         it 'does not error with _catch_errors' do
-          executor.expects(:download_file)
-                  .with([target, target2], source, project_destination, { catch_errors: true }, [])
-                  .returns(result_set)
+          expect(executor).to receive(:download_file)
+            .with([target, target2], source, project_destination, { catch_errors: true }, [])
+            .and_return(result_set)
 
-          inventory.expects(:get_targets)
-                   .with([hostname, hostname2])
-                   .returns([target, target2])
+          expect(inventory).to receive(:get_targets)
+            .with([hostname, hostname2])
+            .and_return([target, target2])
 
           is_expected.to run
             .with_params(source, destination, [hostname, hostname2],
@@ -315,8 +314,8 @@ describe 'download_file' do
     end
 
     it 'without targets - does not invoke bolt' do
-      executor.expects(:download_file).never
-      inventory.expects(:get_targets).with([]).returns([])
+      expect(executor).not_to receive(:download_file)
+      expect(inventory).to receive(:get_targets).with([]).and_return([])
 
       is_expected.to run
         .with_params(source, destination, [])
@@ -325,7 +324,7 @@ describe 'download_file' do
   end
 
   context 'running in parallel' do
-    let(:future) { mock('future') }
+    let(:future) { double('future') }
     let(:hostname) { 'test.example.com' }
     let(:target) { Bolt::Target.new(hostname) }
     let(:result) { Bolt::Result.new(target, value: { 'stdout' => hostname }) }
@@ -334,10 +333,10 @@ describe 'download_file' do
     let(:destination) { 'downloads' }
 
     it 'executes in a thread if the executor is in parallel mode' do
-      inventory.expects(:get_targets).with(hostname).returns([target])
+      expect(inventory).to receive(:get_targets).with(hostname).and_return([target])
 
-      executor.expects(:in_parallel?).returns(true)
-      executor.expects(:run_in_thread).returns(result_set)
+      expect(executor).to receive(:in_parallel?).and_return(true)
+      expect(executor).to receive(:run_in_thread).and_return(result_set)
 
       is_expected.to run
         .with_params(source, destination, hostname)

@@ -4,17 +4,17 @@ require 'spec_helper'
 require 'fileutils'
 
 describe 'dir::children' do
-  include PuppetlabsSpec::Fixtures
-
   let(:path) { fixtures('modules', 'test') }
 
-  around(:each) do |example|
+  before(:each) do
     Puppet[:tasks] = true
     project = Struct.new(:name, :path, :load_as_module?).new('default', File.expand_path(path), true)
 
-    Puppet.override(bolt_project: project) do
-      example.run
-    end
+    Puppet.push_context(bolt_project: project)
+  end
+
+  after(:each) do
+    Puppet.pop_context
   end
 
   context 'finding an absolute path' do

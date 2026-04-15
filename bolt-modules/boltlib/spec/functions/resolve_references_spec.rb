@@ -4,8 +4,6 @@ require 'spec_helper'
 require 'bolt/plugin'
 
 describe 'resolve_references' do
-  include PuppetlabsSpec::Fixtures
-
   let(:project)       { Bolt::Project.create_project('./spec/fixtures') }
   let(:config)        { Bolt::Config.new(project, {}) }
   let(:pal)           {
@@ -35,11 +33,13 @@ describe 'resolve_references' do
     }
   end
 
-  around(:each) do |example|
+  before(:each) do
     Puppet[:tasks] = tasks_enabled
-    Puppet.override(bolt_executor: executor, bolt_inventory: inventory) do
-      example.run
-    end
+    Puppet.push_context(bolt_executor: executor, bolt_inventory: inventory)
+  end
+
+  after(:each) do
+    Puppet.pop_context
   end
 
   context 'calls resolve_references' do

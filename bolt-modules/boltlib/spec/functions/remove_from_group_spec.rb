@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 
 describe 'remove_from_group' do
-  include PuppetlabsSpec::Fixtures
-
   let(:executor)      { Bolt::Executor.new }
   let(:config)        { Bolt::Config.default }
   let(:pal)           { nil }
@@ -25,11 +23,13 @@ describe 'remove_from_group' do
     ] }
   end
 
-  around(:each) do |example|
+  before(:each) do
     Puppet[:tasks] = tasks_enabled
-    Puppet.override(bolt_executor: executor, bolt_inventory: inventory) do
-      example.run
-    end
+    Puppet.push_context(bolt_executor: executor, bolt_inventory: inventory)
+  end
+
+  after(:each) do
+    Puppet.pop_context
   end
 
   it 'errors when passed invalid data types' do
@@ -39,7 +39,7 @@ describe 'remove_from_group' do
   end
 
   it 'reports the call to analytics' do
-    executor.expects(:report_function_call).with('remove_from_group')
+    expect(executor).to receive(:report_function_call).with('remove_from_group')
     is_expected.to run.with_params(target1, parent)
   end
 

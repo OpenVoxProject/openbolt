@@ -141,28 +141,24 @@ begin
     desc "Run RSpec tests for Bolt's bundled content"
     task :modules do
       success = true
-      # Test core modules
-      Pathname.new("#{__dir__}/../bolt-modules").each_child do |mod|
-        Dir.chdir(mod) do
-          sh 'rake spec' do |ok, _|
+      run_specs = lambda do |dir|
+        puts "\n=== Running specs for module '#{File.basename(dir)}' ==="
+        Dir.chdir(dir) do
+          sh 'rspec spec' do |ok, _|
             success = false unless ok
           end
         end
       end
-      # Test modules
-      %w[canary aggregate puppetdb_fact].each do |mod|
-        Dir.chdir("#{__dir__}/../modules/#{mod}") do
-          sh 'rake spec' do |ok, _|
-            success = false unless ok
-          end
+      each_module_dir = lambda do |base|
+        Pathname.new(base).each_child do |child|
+          next unless child.directory? && child.join('spec').directory?
+
+          run_specs.call(child)
         end
       end
-      # Test BoltSpec
-      Dir.chdir("#{__dir__}/../bolt_spec_spec/") do
-        sh 'rake spec' do |ok, _|
-          success = false unless ok
-        end
-      end
+      each_module_dir.call("#{__dir__}/../bolt-modules")
+      each_module_dir.call("#{__dir__}/../modules")
+      run_specs.call("#{__dir__}/../bolt_spec_spec")
       raise "Module tests failed" unless success
     end
   end

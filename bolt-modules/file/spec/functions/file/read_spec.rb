@@ -4,10 +4,12 @@ require 'bolt/executor'
 require 'spec_helper'
 
 describe 'file::read' do
-  around(:each) do |example|
-    Puppet.override({ bolt_executor: executor }) do
-      example.run
-    end
+  before(:each) do
+    Puppet.push_context({ bolt_executor: executor })
+  end
+
+  after(:each) do
+    Puppet.pop_context
   end
 
   shared_examples 'file loading' do

@@ -3,15 +3,15 @@
 require 'spec_helper'
 
 describe 'puppetdb_fact' do
-  include PuppetlabsSpec::Fixtures
+  let(:pdb_client) { double('pdb_client') }
 
-  let(:pdb_client) { mock('pdb_client') }
-
-  around(:each) do |example|
+  before(:each) do
     Puppet[:tasks] = true
-    Puppet.override(bolt_pdb_client: pdb_client) do
-      example.run
-    end
+    Puppet.push_context(bolt_pdb_client: pdb_client)
+  end
+
+  after(:each) do
+    Puppet.pop_context
   end
 
   context 'it calls puppetdb_facts' do
@@ -19,13 +19,13 @@ describe 'puppetdb_fact' do
     let(:instance) { 'instance' }
 
     it 'with list of targets' do
-      pdb_client.expects(:facts_for_node).with(facts.keys).returns(facts)
+      expect(pdb_client).to receive(:facts_for_node).with(facts.keys).and_return(facts)
 
       is_expected.to run.with_params(facts.keys).and_return(facts)
     end
 
     it 'with a named instance' do
-      pdb_client.expects(:facts_for_node).with(facts.keys, instance).returns(facts)
+      expect(pdb_client).to receive(:facts_for_node).with(facts.keys, instance).and_return(facts)
 
       is_expected.to run.with_params(facts.keys, instance).and_return(facts)
     end

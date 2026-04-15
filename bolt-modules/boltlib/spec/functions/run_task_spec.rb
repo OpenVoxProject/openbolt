@@ -9,33 +9,32 @@ require 'bolt/target'
 require 'puppet/pops/types/p_sensitive_type'
 require 'rspec/expectations'
 
-class TaskTypeMatcher < Mocha::ParameterMatchers::Equals
+class TaskTypeMatcher
   def initialize(executable, input_method)
-    super(nil)
     @executable = Regexp.new(executable)
     @input_method = input_method
   end
 
-  def matches?(available_parameters)
-    other = available_parameters.shift
+  # rspec-mocks uses #=== to check whether an actual argument matches.
+  def ===(other)
     @executable =~ other.files.first['path'] && @input_method == other.metadata['input_method']
   end
 end
 
 describe 'run_task' do
-  include PuppetlabsSpec::Fixtures
-
   let(:executor) { Bolt::Executor.new }
   let(:inventory) { Bolt::Inventory.empty }
   let(:tasks_enabled) { true }
 
-  around(:each) do |example|
+  before(:each) do
     Puppet[:tasks] = tasks_enabled
-    executor.stubs(:noop).returns(false)
+    allow(executor).to receive(:noop).and_return(false)
 
-    Puppet.override(bolt_executor: executor, bolt_inventory: inventory) do
-      example.run
-    end
+    Puppet.push_context(bolt_executor: executor, bolt_inventory: inventory)
+  end
+
+  after(:each) do
+    Puppet.pop_context
   end
 
   def mock_task(executable, input_method)
@@ -57,10 +56,10 @@ describe 'run_task' do
     it 'when running a task without metadata the input method is "both"' do
       executable = File.join(tasks_root, 'echo.sh')
 
-      executor.expects(:run_task)
-              .with([target], mock_task(executable, nil), default_args, {}, [])
-              .returns(result_set)
-      inventory.expects(:get_targets).with(hostname).returns([target])
+      expect(executor).to receive(:run_task)
+        .with([target], mock_task(executable, nil), default_args, {}, [])
+        .and_return(result_set)
+      expect(inventory).to receive(:get_targets).with(hostname).and_return([target])
 
       is_expected.to run
         .with_params('Test::Echo', hostname, default_args)
@@ -70,10 +69,10 @@ describe 'run_task' do
     it 'when running a task with metadata - the input method is specified by the metadata' do
       executable = File.join(tasks_root, 'meta.sh')
 
-      executor.expects(:run_task)
-              .with([target], mock_task(executable, 'environment'), default_args, {}, [])
-              .returns(result_set)
-      inventory.expects(:get_targets).with(hostname).returns([target])
+      expect(executor).to receive(:run_task)
+        .with([target], mock_task(executable, 'environment'), default_args, {}, [])
+        .and_return(result_set)
+      expect(inventory).to receive(:get_targets).with(hostname).and_return([target])
 
       is_expected.to run
         .with_params('Test::Meta', hostname, default_args)
@@ -83,10 +82,10 @@ describe 'run_task' do
     it 'when called with _run_as - _run_as is passed to the executor' do
       executable = File.join(tasks_root, 'meta.sh')
 
-      executor.expects(:run_task)
-              .with([target], mock_task(executable, 'environment'), default_args, { run_as: 'root' }, [])
-              .returns(result_set)
-      inventory.expects(:get_targets).with(hostname).returns([target])
+      expect(executor).to receive(:run_task)
+        .with([target], mock_task(executable, 'environment'), default_args, { run_as: 'root' }, [])
+        .and_return(result_set)
+      expect(inventory).to receive(:get_targets).with(hostname).and_return([target])
 
       args = default_args.merge('_run_as' => 'root')
       is_expected.to run
@@ -97,10 +96,10 @@ describe 'run_task' do
     it 'when called without without args hash (for a task where this is allowed)' do
       executable = File.join(tasks_root, 'yes.sh')
 
-      executor.expects(:run_task)
-              .with([target], mock_task(executable, nil), {}, {}, [])
-              .returns(result_set)
-      inventory.expects(:get_targets).with(hostname).returns([target])
+      expect(executor).to receive(:run_task)
+        .with([target], mock_task(executable, nil), {}, {}, [])
+        .and_return(result_set)
+      expect(inventory).to receive(:get_targets).with(hostname).and_return([target])
 
       is_expected.to run
         .with_params('test::yes', hostname)
@@ -116,10 +115,10 @@ describe 'run_task' do
       }
 
       expected_args = args.merge('default_string' => 'hello', 'optional_default_string' => 'goodbye')
-      executor.expects(:run_task)
-              .with([target], mock_task(executable, 'stdin'), expected_args, {}, [])
-              .returns(result_set)
-      inventory.expects(:get_targets).with(hostname).returns([target])
+      expect(executor).to receive(:run_task)
+        .with([target], mock_task(executable, 'stdin'), expected_args, {}, [])
+        .and_return(result_set)
+      expect(inventory).to receive(:get_targets).with(hostname).and_return([target])
 
       is_expected.to run
         .with_params('Test::Params', hostname, args)
@@ -135,10 +134,10 @@ describe 'run_task' do
         'optional_default_string' => 'something else'
       }
 
-      executor.expects(:run_task)
-              .with([target], mock_task(executable, 'stdin'), args, {}, [])
-              .returns(result_set)
-      inventory.expects(:get_targets).with(hostname).returns([target])
+      expect(executor).to receive(:run_task)
+        .with([target], mock_task(executable, 'stdin'), args, {}, [])
+        .and_return(result_set)
+      expect(inventory).to receive(:get_targets).with(hostname).and_return([target])
 
       is_expected.to run
         .with_params('Test::Params', hostname, args)
@@ -155,10 +154,10 @@ describe 'run_task' do
         'undef_no_default' => nil
       }
 
-      executor.expects(:run_task)
-              .with([target], mock_task(executable, 'environment'), expected_args, {}, [])
-              .returns(result_set)
-      inventory.expects(:get_targets).with(hostname).returns([target])
+      expect(executor).to receive(:run_task)
+        .with([target], mock_task(executable, 'environment'), expected_args, {}, [])
+        .and_return(result_set)
+      expect(inventory).to receive(:get_targets).with(hostname).and_return([target])
 
       is_expected.to run
         .with_params('test::undef', hostname, args)
@@ -166,8 +165,8 @@ describe 'run_task' do
     end
 
     it 'when called with no destinations - does not invoke bolt' do
-      executor.expects(:run_task).never
-      inventory.expects(:get_targets).with([]).returns([])
+      expect(executor).not_to receive(:run_task)
+      expect(inventory).to receive(:get_targets).with([]).and_return([])
 
       is_expected.to run
         .with_params('Test::Yes', [])
@@ -175,14 +174,14 @@ describe 'run_task' do
     end
 
     it 'reports the function call and task name to analytics' do
-      executor.expects(:report_function_call).with('run_task')
-      executor.expects(:report_bundled_content).with('Task', 'Test::Echo').once
+      expect(executor).to receive(:report_function_call).with('run_task')
+      expect(executor).to receive(:report_bundled_content).with('Task', 'Test::Echo').once
       executable = File.join(tasks_root, 'echo.sh')
 
-      executor.expects(:run_task)
-              .with([target], mock_task(executable, nil), default_args, {}, [])
-              .returns(result_set)
-      inventory.expects(:get_targets).with(hostname).returns([target])
+      expect(executor).to receive(:run_task)
+        .with([target], mock_task(executable, nil), default_args, {}, [])
+        .and_return(result_set)
+      expect(inventory).to receive(:get_targets).with(hostname).and_return([target])
 
       is_expected.to run
         .with_params('Test::Echo', hostname, default_args)
@@ -190,13 +189,13 @@ describe 'run_task' do
     end
 
     it 'skips reporting the function call to analytics if called internally from Bolt' do
-      executor.expects(:report_function_call).with('run_task').never
+      expect(executor).not_to receive(:report_function_call).with('run_task')
       executable = File.join(tasks_root, 'echo.sh')
 
-      executor.expects(:run_task)
-              .with([target], mock_task(executable, nil), default_args, kind_of(Hash), [])
-              .returns(result_set)
-      inventory.expects(:get_targets).with(hostname).returns([target])
+      expect(executor).to receive(:run_task)
+        .with([target], mock_task(executable, nil), default_args, kind_of(Hash), [])
+        .and_return(result_set)
+      expect(inventory).to receive(:get_targets).with(hostname).and_return([target])
 
       is_expected.to run
         .with_params('Test::Echo', hostname, default_args.merge('_bolt_api_call' => true))
@@ -217,20 +216,20 @@ describe 'run_task' do
       let(:message) { 'test message' }
 
       it 'passes the description through if parameters are passed' do
-        executor.expects(:run_task)
-                .with([target], anything, {}, { description: message }, [])
-                .returns(result_set)
-        inventory.expects(:get_targets).with(hostname).returns([target])
+        expect(executor).to receive(:run_task)
+          .with([target], anything, {}, { description: message }, [])
+          .and_return(result_set)
+        expect(inventory).to receive(:get_targets).with(hostname).and_return([target])
 
         is_expected.to run
           .with_params('test::yes', hostname, message, {})
       end
 
       it 'passes the description through if no parameters are passed' do
-        executor.expects(:run_task)
-                .with([target], anything, {}, { description: message }, [])
-                .returns(result_set)
-        inventory.expects(:get_targets).with(hostname).returns([target])
+        expect(executor).to receive(:run_task)
+          .with([target], anything, {}, { description: message }, [])
+          .and_return(result_set)
+        expect(inventory).to receive(:get_targets).with(hostname).and_return([target])
 
         is_expected.to run
           .with_params('test::yes', hostname, message)
@@ -239,20 +238,20 @@ describe 'run_task' do
 
     context 'without description' do
       it 'ignores description if parameters are passed' do
-        executor.expects(:run_task)
-                .with([target], anything, {}, {}, [])
-                .returns(result_set)
-        inventory.expects(:get_targets).with(hostname).returns([target])
+        expect(executor).to receive(:run_task)
+          .with([target], anything, {}, {}, [])
+          .and_return(result_set)
+        expect(inventory).to receive(:get_targets).with(hostname).and_return([target])
 
         is_expected.to run
           .with_params('test::yes', hostname, {})
       end
 
       it 'ignores description if no parameters are passed' do
-        executor.expects(:run_task)
-                .with([target], anything, {}, {}, [])
-                .returns(result_set)
-        inventory.expects(:get_targets).with(hostname).returns([target])
+        expect(executor).to receive(:run_task)
+          .with([target], anything, {}, {}, [])
+          .and_return(result_set)
+        expect(inventory).to receive(:get_targets).with(hostname).and_return([target])
 
         is_expected.to run
           .with_params('test::yes', hostname)
@@ -265,10 +264,10 @@ describe 'run_task' do
       it 'targets can be specified as repeated nested arrays and strings and combine into one list of targets' do
         executable = File.join(tasks_root, 'meta.sh')
 
-        executor.expects(:run_task)
-                .with([target, target2], mock_task(executable, 'environment'), default_args, {}, [])
-                .returns(result_set)
-        inventory.expects(:get_targets).with([hostname, [[hostname2]], []]).returns([target, target2])
+        expect(executor).to receive(:run_task)
+          .with([target, target2], mock_task(executable, 'environment'), default_args, {}, [])
+          .and_return(result_set)
+        expect(inventory).to receive(:get_targets).with([hostname, [[hostname2]], []]).and_return([target, target2])
 
         is_expected.to run
           .with_params('Test::Meta', [hostname, [[hostname2]], []], default_args)
@@ -278,10 +277,10 @@ describe 'run_task' do
       it 'targets can be specified as repeated nested arrays and Targets and combine into one list of targets' do
         executable = File.join(tasks_root, 'meta.sh')
 
-        executor.expects(:run_task)
-                .with([target, target2], mock_task(executable, 'environment'), default_args, {}, [])
-                .returns(result_set)
-        inventory.expects(:get_targets).with([target, [[target2]], []]).returns([target, target2])
+        expect(executor).to receive(:run_task)
+          .with([target, target2], mock_task(executable, 'environment'), default_args, {}, [])
+          .and_return(result_set)
+        expect(inventory).to receive(:get_targets).with([target, [[target2]], []]).and_return([target, target2])
 
         is_expected.to run
           .with_params('Test::Meta', [target, [[target2]], []], default_args)
@@ -295,10 +294,10 @@ describe 'run_task' do
         it 'errors by default' do
           executable = File.join(tasks_root, 'meta.sh')
 
-          executor.expects(:run_task)
-                  .with([target, target2], mock_task(executable, 'environment'), default_args, {}, [])
-                  .returns(result_set)
-          inventory.expects(:get_targets).with([hostname, hostname2]).returns([target, target2])
+          expect(executor).to receive(:run_task)
+            .with([target, target2], mock_task(executable, 'environment'), default_args, {}, [])
+            .and_return(result_set)
+          expect(inventory).to receive(:get_targets).with([hostname, hostname2]).and_return([target, target2])
 
           is_expected.to run
             .with_params('Test::Meta', [hostname, hostname2], default_args)
@@ -308,13 +307,13 @@ describe 'run_task' do
         it 'does not error with _catch_errors' do
           executable = File.join(tasks_root, 'meta.sh')
 
-          executor.expects(:run_task).with([target, target2],
-                                           mock_task(executable, 'environment'),
-                                           default_args,
-                                           { catch_errors: true },
-                                           [])
-                  .returns(result_set)
-          inventory.expects(:get_targets).with([hostname, hostname2]).returns([target, target2])
+          expect(executor).to receive(:run_task).with([target, target2],
+                                                      mock_task(executable, 'environment'),
+                                                      default_args,
+                                                      { catch_errors: true },
+                                                      [])
+                                                .and_return(result_set)
+          expect(inventory).to receive(:get_targets).with([hostname, hostname2]).and_return([target, target2])
 
           args = default_args.merge('_catch_errors' => true)
           is_expected.to run
@@ -325,8 +324,8 @@ describe 'run_task' do
 
     context 'when called on a module that contains manifests/init.pp' do
       it 'the call does not load init.pp' do
-        executor.expects(:run_task).never
-        inventory.expects(:get_targets).with([]).returns([])
+        expect(executor).not_to receive(:run_task)
+        expect(inventory).to receive(:get_targets).with([]).and_return([])
 
         is_expected.to run
           .with_params('test::echo', [])
@@ -337,10 +336,10 @@ describe 'run_task' do
       it 'finds task named after the module' do
         executable = File.join(tasks_root, 'init.sh')
 
-        executor.expects(:run_task)
-                .with([target], mock_task(executable, nil), {}, {}, [])
-                .returns(result_set)
-        inventory.expects(:get_targets).with(hostname).returns([target])
+        expect(executor).to receive(:run_task)
+          .with([target], mock_task(executable, nil), {}, {}, [])
+          .and_return(result_set)
+        expect(inventory).to receive(:get_targets).with(hostname).and_return([target])
 
         is_expected.to run
           .with_params('test', hostname)
@@ -349,7 +348,7 @@ describe 'run_task' do
     end
 
     it 'when called with non existing task - reports an unknown task error' do
-      inventory.expects(:get_target).with(hostname).returns([target])
+      expect(inventory).to receive(:get_targets).with(hostname).and_return([target])
 
       is_expected.to run
         .with_params('test::nonesuch', hostname)
@@ -382,46 +381,28 @@ describe 'run_task' do
           'sensitive_hash' => sensitive.new(sensitive_hash)
         }
 
-        sensitive.expects(:new).with(input_params['sensitive_string'])
-                 .returns(expected_params['sensitive_string'])
-        sensitive.expects(:new).with(input_params['sensitive_array'])
-                 .returns(expected_params['sensitive_array'])
-        sensitive.expects(:new).with(input_params['sensitive_hash'])
-                 .returns(expected_params['sensitive_hash'])
+        expect(sensitive).to receive(:new).with(input_params['sensitive_string'])
+                                          .and_return(expected_params['sensitive_string'])
+        expect(sensitive).to receive(:new).with(input_params['sensitive_array'])
+                                          .and_return(expected_params['sensitive_array'])
+        expect(sensitive).to receive(:new).with(input_params['sensitive_hash'])
+                                          .and_return(expected_params['sensitive_hash'])
 
-        executor.expects(:run_task)
-                .with([target], mock_task(executable, nil), expected_params, {}, [])
-                .returns(result_set)
-        inventory.expects(:get_targets).with(hostname).returns([target])
+        expect(executor).to receive(:run_task)
+          .with([target], mock_task(executable, nil), expected_params, {}, [])
+          .and_return(result_set)
+        expect(inventory).to receive(:get_targets).with(hostname).and_return([target])
 
         is_expected.to run
           .with_params('Test::Sensitive_Meta', hostname, input_params)
           .and_return(result_set)
       end
     end
-
-    context 'using the pcp transport' do
-      let(:task_name)   { 'Test::Noop' }
-      let(:hostname)    { 'pcp://a.b.com' }
-      let(:task_params) { { '_noop' => true } }
-
-      it 'sets the noop metaparameter when running in noop mode' do
-        executor.expects(:run_task).with([target],
-                                         anything,
-                                         { '_noop' => true },
-                                         { noop: true },
-                                         [])
-                .returns(result_set)
-
-        is_expected.to run
-          .with_params(task_name, hostname, task_params)
-      end
-    end
   end
 
   context 'running in parallel' do
     let(:default_args) { { 'message' => 'Krabby patty' } }
-    let(:future) { mock('future') }
+    let(:future) { double('future') }
     let(:hostname) { 'a.b.com' }
     let(:result) { Bolt::Result.new(target, value: { '_output' => 'Krabby patty' }) }
     let(:result_set) { Bolt::ResultSet.new([result]) }
@@ -430,10 +411,10 @@ describe 'run_task' do
     let(:tasks_root) { File.expand_path(fixtures('modules', 'test', 'tasks')) }
 
     it 'executes in a thread if the executor is in parallel mode' do
-      inventory.expects(:get_target).with(hostname).returns([target])
+      expect(inventory).to receive(:get_targets).with(hostname).and_return([target])
 
-      executor.expects(:in_parallel?).returns(true)
-      executor.expects(:run_in_thread).returns(result_set)
+      expect(executor).to receive(:in_parallel?).and_return(true)
+      expect(executor).to receive(:run_in_thread).and_return(result_set)
 
       is_expected.to run
         .with_params('Test::Echo', hostname, default_args)

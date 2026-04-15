@@ -7,19 +7,18 @@ require 'bolt/result_set'
 require 'bolt/target'
 
 describe 'upload_file' do
-  include PuppetlabsSpec::Fixtures
-
   let(:executor) { Bolt::Executor.new }
-  let(:inventory) { mock('inventory') }
+  let(:inventory) { double('inventory') }
   let(:tasks_enabled) { true }
 
-  around(:each) do |example|
+  before(:each) do
     Puppet[:tasks] = tasks_enabled
-    Puppet.override(bolt_executor: executor, bolt_inventory: inventory) do
-      inventory.stubs(:version).returns(2)
-      inventory.stubs(:target_implementation_class).returns(Bolt::Target)
-      example.run
-    end
+    allow(inventory).to receive_messages(version: 2, target_implementation_class: Bolt::Target)
+    Puppet.push_context(bolt_executor: executor, bolt_inventory: inventory)
+  end
+
+  after(:each) do
+    Puppet.pop_context
   end
 
   context 'it calls bolt executor upload_file' do
@@ -35,14 +34,14 @@ describe 'upload_file' do
     let(:destination) { '/var/www/html' }
 
     before(:each) do
-      Puppet.features.stubs(:bolt?).returns(true)
+      allow(Puppet.features).to receive(:bolt?).and_return(true)
     end
 
     it 'with fully resolved path of file and destination' do
-      executor.expects(:upload_file)
-              .with([target], full_path, destination, {}, [])
-              .returns(result_set)
-      inventory.stubs(:get_targets).with(hostname).returns([target])
+      expect(executor).to receive(:upload_file)
+        .with([target], full_path, destination, {}, [])
+        .and_return(result_set)
+      allow(inventory).to receive(:get_targets).with(hostname).and_return([target])
 
       is_expected.to run
         .with_params('test/uploads/index.html', destination, hostname)
@@ -50,10 +49,10 @@ describe 'upload_file' do
     end
 
     it 'with fully resolved path of directory and destination' do
-      executor.expects(:upload_file)
-              .with([target], full_dir_path, destination, {}, [])
-              .returns(result_set)
-      inventory.stubs(:get_targets).with(hostname).returns([target])
+      expect(executor).to receive(:upload_file)
+        .with([target], full_dir_path, destination, {}, [])
+        .and_return(result_set)
+      allow(inventory).to receive(:get_targets).with(hostname).and_return([target])
 
       is_expected.to run
         .with_params('test/uploads', destination, hostname)
@@ -64,7 +63,7 @@ describe 'upload_file' do
       let(:module_root) { File.expand_path(fixtures('modules')) }
 
       before(:each) do
-        inventory.stubs(:get_targets).with(hostname).returns([target])
+        allow(inventory).to receive(:get_targets).with(hostname).and_return([target])
       end
 
       context 'with nonspecific module syntax' do
@@ -77,9 +76,9 @@ describe 'upload_file' do
         it 'loads from files/' do
           full_path = File.join(module_root, 'with_files/files/hostname.sh')
 
-          executor.expects(:upload_file)
-                  .with([target], full_path, destination, {}, [])
-                  .returns(result_set)
+          expect(executor).to receive(:upload_file)
+            .with([target], full_path, destination, {}, [])
+            .and_return(result_set)
 
           is_expected.to run
             .with_params('with_files/hostname.sh', destination, hostname)
@@ -93,9 +92,9 @@ describe 'upload_file' do
           # Path that should be loaded from
           full_path = File.join(module_root, 'with_both/files/scripts/hostname.sh')
 
-          executor.expects(:upload_file)
-                  .with([target], full_path, destination, {}, [])
-                  .returns(result_set)
+          expect(executor).to receive(:upload_file)
+            .with([target], full_path, destination, {}, [])
+            .and_return(result_set)
 
           is_expected.to run
             .with_params('with_both/scripts/hostname.sh', destination, hostname)
@@ -106,9 +105,9 @@ describe 'upload_file' do
           # Path that should be loaded from
           full_path = File.join(module_root, 'with_scripts/scripts/hostname.sh')
 
-          executor.expects(:upload_file)
-                  .with([target], full_path, destination, {}, [])
-                  .returns(result_set)
+          expect(executor).to receive(:upload_file)
+            .with([target], full_path, destination, {}, [])
+            .and_return(result_set)
 
           is_expected.to run
             .with_params('with_scripts/scripts/hostname.sh', destination, hostname)
@@ -121,9 +120,9 @@ describe 'upload_file' do
           # Path that should be loaded from
           full_path = File.join(module_root, 'with_files/files/files/hostname.sh')
 
-          executor.expects(:upload_file)
-                  .with([target], full_path, destination, {}, [])
-                  .returns(result_set)
+          expect(executor).to receive(:upload_file)
+            .with([target], full_path, destination, {}, [])
+            .and_return(result_set)
 
           is_expected.to run
             .with_params('with_files/files/hostname.sh', destination, hostname)
@@ -134,9 +133,9 @@ describe 'upload_file' do
           # Path that should be loaded from
           full_path = File.join(module_root, 'with_files/files/toplevel.sh')
 
-          executor.expects(:upload_file)
-                  .with([target], full_path, destination, {}, [])
-                  .returns(result_set)
+          expect(executor).to receive(:upload_file)
+            .with([target], full_path, destination, {}, [])
+            .and_return(result_set)
 
           is_expected.to run
             .with_params('with_files/files/toplevel.sh', destination, hostname)
@@ -146,10 +145,10 @@ describe 'upload_file' do
     end
 
     it 'with target specified as a Target' do
-      executor.expects(:upload_file)
-              .with([target], full_dir_path, destination, {}, [])
-              .returns(result_set)
-      inventory.stubs(:get_targets).with(target).returns([target])
+      expect(executor).to receive(:upload_file)
+        .with([target], full_dir_path, destination, {}, [])
+        .and_return(result_set)
+      allow(inventory).to receive(:get_targets).with(target).and_return([target])
 
       is_expected.to run
         .with_params('test/uploads', destination, target)
@@ -157,10 +156,10 @@ describe 'upload_file' do
     end
 
     it 'runs as another user' do
-      executor.expects(:upload_file)
-              .with([target], full_dir_path, destination, { run_as: 'soandso' }, [])
-              .returns(result_set)
-      inventory.stubs(:get_targets).with(target).returns([target])
+      expect(executor).to receive(:upload_file)
+        .with([target], full_dir_path, destination, { run_as: 'soandso' }, [])
+        .and_return(result_set)
+      allow(inventory).to receive(:get_targets).with(target).and_return([target])
 
       is_expected.to run
         .with_params('test/uploads', destination, target, '_run_as' => 'soandso')
@@ -168,11 +167,11 @@ describe 'upload_file' do
     end
 
     it 'reports the call to analytics' do
-      executor.expects(:upload_file)
-              .with([target], full_path, destination, {}, [])
-              .returns(result_set)
-      inventory.stubs(:get_targets).with(hostname).returns([target])
-      executor.expects(:report_function_call).with('upload_file')
+      expect(executor).to receive(:upload_file)
+        .with([target], full_path, destination, {}, [])
+        .and_return(result_set)
+      allow(inventory).to receive(:get_targets).with(hostname).and_return([target])
+      expect(executor).to receive(:report_function_call).with('upload_file')
 
       is_expected.to run
         .with_params('test/uploads/index.html', destination, hostname)
@@ -183,10 +182,10 @@ describe 'upload_file' do
       let(:message) { 'test message' }
 
       it 'passes the description through if parameters are passed' do
-        executor.expects(:upload_file)
-                .with([target], full_dir_path, destination, { description: message }, [])
-                .returns(result_set)
-        inventory.stubs(:get_targets).with(target).returns([target])
+        expect(executor).to receive(:upload_file)
+          .with([target], full_dir_path, destination, { description: message }, [])
+          .and_return(result_set)
+        allow(inventory).to receive(:get_targets).with(target).and_return([target])
 
         is_expected.to run
           .with_params('test/uploads', destination, target, message, {})
@@ -194,10 +193,10 @@ describe 'upload_file' do
       end
 
       it 'passes the description through if no parameters are passed' do
-        executor.expects(:upload_file)
-                .with([target], full_dir_path, destination, { description: message }, [])
-                .returns(result_set)
-        inventory.stubs(:get_targets).with(target).returns([target])
+        expect(executor).to receive(:upload_file)
+          .with([target], full_dir_path, destination, { description: message }, [])
+          .and_return(result_set)
+        allow(inventory).to receive(:get_targets).with(target).and_return([target])
 
         is_expected.to run
           .with_params('test/uploads', destination, target, message)
@@ -207,10 +206,10 @@ describe 'upload_file' do
 
     context 'without description' do
       it 'ignores description if parameters are passed' do
-        executor.expects(:upload_file)
-                .with([target], full_dir_path, destination, {}, [])
-                .returns(result_set)
-        inventory.stubs(:get_targets).with(target).returns([target])
+        expect(executor).to receive(:upload_file)
+          .with([target], full_dir_path, destination, {}, [])
+          .and_return(result_set)
+        allow(inventory).to receive(:get_targets).with(target).and_return([target])
 
         is_expected.to run
           .with_params('test/uploads', destination, target, {})
@@ -218,10 +217,10 @@ describe 'upload_file' do
       end
 
       it 'ignores description if no parameters are passed' do
-        executor.expects(:upload_file)
-                .with([target], full_dir_path, destination, {}, [])
-                .returns(result_set)
-        inventory.stubs(:get_targets).with(target).returns([target])
+        expect(executor).to receive(:upload_file)
+          .with([target], full_dir_path, destination, {}, [])
+          .and_return(result_set)
+        allow(inventory).to receive(:get_targets).with(target).and_return([target])
 
         is_expected.to run
           .with_params('test/uploads', destination, target)
@@ -237,10 +236,10 @@ describe 'upload_file' do
       let(:result_set) { Bolt::ResultSet.new([result, result2]) }
 
       it 'propagates multiple hosts and returns multiple results' do
-        executor
-          .expects(:upload_file).with([target, target2], full_path, destination, {}, [])
-          .returns(result_set)
-        inventory.stubs(:get_targets).with([hostname, hostname2]).returns([target, target2])
+        expect(executor).to receive(:upload_file)
+          .with([target, target2], full_path, destination, {}, [])
+          .and_return(result_set)
+        allow(inventory).to receive(:get_targets).with([hostname, hostname2]).and_return([target, target2])
 
         is_expected.to run.with_params('test/uploads/index.html', destination, [hostname, hostname2])
                           .and_return(result_set)
@@ -250,10 +249,10 @@ describe 'upload_file' do
         let(:result2) { Bolt::Result.new(target2, error: { 'msg' => 'oops' }) }
 
         it 'errors by default' do
-          executor.expects(:upload_file)
-                  .with([target, target2], full_path, destination, {}, [])
-                  .returns(result_set)
-          inventory.expects(:get_targets).with([hostname, hostname2]).returns([target, target2])
+          expect(executor).to receive(:upload_file)
+            .with([target, target2], full_path, destination, {}, [])
+            .and_return(result_set)
+          expect(inventory).to receive(:get_targets).with([hostname, hostname2]).and_return([target, target2])
 
           is_expected.to run
             .with_params('test/uploads/index.html', destination, [hostname, hostname2])
@@ -261,10 +260,10 @@ describe 'upload_file' do
         end
 
         it 'does not error with _catch_errors' do
-          executor.expects(:upload_file)
-                  .with([target, target2], full_path, destination, { catch_errors: true }, [])
-                  .returns(result_set)
-          inventory.expects(:get_targets).with([hostname, hostname2]).returns([target, target2])
+          expect(executor).to receive(:upload_file)
+            .with([target, target2], full_path, destination, { catch_errors: true }, [])
+            .and_return(result_set)
+          expect(inventory).to receive(:get_targets).with([hostname, hostname2]).and_return([target, target2])
 
           is_expected.to run
             .with_params('test/uploads/index.html', destination, [hostname, hostname2], '_catch_errors' => true)
@@ -273,15 +272,15 @@ describe 'upload_file' do
     end
 
     it 'without targets - does not invoke bolt' do
-      executor.expects(:upload_file).never
-      inventory.expects(:get_targets).with([]).returns([])
+      expect(executor).not_to receive(:upload_file)
+      expect(inventory).to receive(:get_targets).with([]).and_return([])
 
       is_expected.to run.with_params('test/uploads/index.html', destination, [])
                         .and_return(Bolt::ResultSet.new([]))
     end
 
     it 'errors when file is not found' do
-      executor.expects(:upload_file).never
+      expect(executor).not_to receive(:upload_file)
 
       is_expected.to run.with_params('test/uploads/nonesuch.html', destination, [])
                         .and_raise_error(/No such file or directory: .*nonesuch\.html/)
@@ -289,7 +288,7 @@ describe 'upload_file' do
   end
 
   context 'running in parallel' do
-    let(:future) { mock('future') }
+    let(:future) { double('future') }
     let(:hostname) { 'test.example.com' }
     let(:target) { Bolt::Target.new(hostname) }
     let(:result) { Bolt::Result.new(target, value: { 'stdout' => hostname }) }
@@ -297,10 +296,10 @@ describe 'upload_file' do
     let(:destination) { '/var/www/html' }
 
     it 'executes in a thread if the executor is in parallel mode' do
-      inventory.expects(:get_targets).with(hostname).returns([target])
+      expect(inventory).to receive(:get_targets).with(hostname).and_return([target])
 
-      executor.expects(:in_parallel?).returns(true)
-      executor.expects(:run_in_thread).returns(result_set)
+      expect(executor).to receive(:in_parallel?).and_return(true)
+      expect(executor).to receive(:run_in_thread).and_return(result_set)
 
       is_expected.to run
         .with_params('test/uploads/index.html', destination, hostname)

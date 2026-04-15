@@ -1,12 +1,6 @@
 # frozen_string_literal: true
 
-require 'puppet_pal'
-require 'bolt/pal'
+require_relative '../../shared_spec_helper'
+require 'bolt/target'
 
-# Ensure tasks are enabled when rspec-puppet sets up an environment
-# so we get task loaders.
-Puppet[:tasks] = true
-Bolt::PAL.load_puppet
-RSpec.configure do |c|
-  c.mock_with :mocha
-end
+configure_rspec_for_this_module!(with_bolt_pal: true)

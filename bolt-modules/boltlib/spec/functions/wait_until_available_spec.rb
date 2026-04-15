@@ -6,44 +6,45 @@ require 'bolt/target'
 
 describe 'wait_until_available' do
   let(:executor) { Bolt::Executor.new }
-  let(:inventory) { mock('inventory') }
+  let(:inventory) { double('inventory') }
   let(:target) { Bolt::Target.new('test.example.com') }
   let(:tasks_enabled) { true }
   let(:result_set) { Bolt::ResultSet.new([Bolt::Result.new(target)]) }
 
-  around(:each) do |example|
+  before(:each) do
     Puppet[:tasks] = tasks_enabled
-    Puppet.override(bolt_executor: executor, bolt_inventory: inventory) do
-      inventory.stubs(:version).returns(2)
-      inventory.stubs(:target_implementation_class).returns(Bolt::Target)
-      example.run
-    end
+    allow(inventory).to receive_messages(version: 2, target_implementation_class: Bolt::Target)
+    Puppet.push_context(bolt_executor: executor, bolt_inventory: inventory)
+  end
+
+  after(:each) do
+    Puppet.pop_context
   end
 
   context 'with bolt feature present' do
     before(:each) do
-      Puppet.features.stubs(:bolt?).returns(true)
+      allow(Puppet.features).to receive(:bolt?).and_return(true)
     end
 
     it 'calls executor wait_until_available' do
-      executor.expects(:wait_until_available).with([target], anything).returns(result_set)
-      inventory.expects(:get_targets).with(target).returns([target])
+      expect(executor).to receive(:wait_until_available).with([target]).and_return(result_set)
+      expect(inventory).to receive(:get_targets).with(target).and_return([target])
 
       is_expected.to run.with_params(target).and_return(result_set)
     end
 
     it 'passes extra parameters' do
-      executor.expects(:wait_until_available)
-              .with([target], description: 'desc', wait_time: 5, retry_interval: 0)
-              .returns(result_set)
-      inventory.expects(:get_targets).with(target).returns([target])
+      expect(executor).to receive(:wait_until_available)
+        .with([target], description: 'desc', wait_time: 5, retry_interval: 0)
+        .and_return(result_set)
+      expect(inventory).to receive(:get_targets).with(target).and_return([target])
 
       is_expected.to run.with_params(target, 'description' => 'desc', 'wait_time' => 5, 'retry_interval' => 0)
                         .and_return(result_set)
     end
 
     it 'errors on unknown parameters' do
-      inventory.expects(:get_targets).with(target).returns([target])
+      expect(inventory).to receive(:get_targets).with(target).and_return([target])
       is_expected.to run.with_params(target, 'foo' => true)
                         .and_raise_error(/unknown keyword: :foo/)
     end

@@ -31,9 +31,9 @@ gem "paint", "~> 2.2"
 
 group(:test) do
   gem "beaker-hostgenerator"
-  gem "mocha", '>= 1.4.0', '< 4'
   gem "rack-test", '>= 1', '< 3'
   gem 'rspec-github', require: false
+  gem 'voxpupuli-test', '~> 14.0', require: false
 end
 
 group(:release, optional: true) do
