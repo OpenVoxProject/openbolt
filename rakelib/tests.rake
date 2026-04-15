@@ -142,6 +142,7 @@ begin
     task :modules do
       success = true
       run_specs = lambda do |dir|
+        puts "\n=== Running specs for module '#{File.basename(dir)}' ==="
         Dir.chdir(dir) do
           sh 'rspec spec' do |ok, _|
             success = false unless ok
