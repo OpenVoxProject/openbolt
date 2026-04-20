@@ -123,7 +123,7 @@ jobs:
     - name: Generate docs
       run: bundle exec rake docs:all
     - name: Docs test
-      uses: dita-ot/dita-ot-action@4.3.5
+      uses: dita-ot/dita-ot-action@4.4
       with:
         build: dita -i documentation/bolt.ditamap -o out -f html5 --processing-mode=strict
 
