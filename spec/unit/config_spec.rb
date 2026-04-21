@@ -25,7 +25,18 @@ describe Bolt::Config do
   describe "defaults" do
     let(:config) { Bolt::Config.new(project, {}) }
 
-    it 'sets concurrency to 100' do
+    it 'sets concurrency to SC_OPEN_MAX / 7 when the ulimit is low', unless: Bolt::Util.windows? do
+      allow(Etc).to receive(:sysconf).with(Etc::SC_OPEN_MAX).and_return(49)
+      expect(config.concurrency).to eq(7)
+    end
+
+    it 'caps concurrency at 100 when the ulimit is not low', unless: Bolt::Util.windows? do
+      allow(Etc).to receive(:sysconf).with(Etc::SC_OPEN_MAX).and_return(800)
+      expect(config.concurrency).to eq(100)
+    end
+
+    it 'defaults concurrency to 100 on Windows' do
+      allow(Bolt::Util).to receive(:windows?).and_return(true)
       expect(config.concurrency).to eq(100)
     end
 
