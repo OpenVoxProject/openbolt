@@ -10,11 +10,16 @@ begin
   end
 
   namespace :tests do
+    desc 'Install Puppetfile modules required by the spec suite'
+    task :install_modules do
+      sh 'bundle exec r10k puppetfile install'
+    end
+
     desc "Run all RSpec tests"
     RSpec::Core::RakeTask.new(:spec)
 
     desc "Run RSpec tests that do not require VM fixtures or a particular shell"
-    RSpec::Core::RakeTask.new(:unit) do |t|
+    RSpec::Core::RakeTask.new(unit: :install_modules) do |t|
       t.pattern = "spec/unit/**/*_spec.rb"
     end
 
