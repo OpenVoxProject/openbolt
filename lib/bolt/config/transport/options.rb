@@ -275,6 +275,15 @@ module Bolt
             _plugin: true,
             _example: %w[defaults hmac-md5]
           },
+          "mcollective-certname" => {
+            type: String,
+            description: "Override the MCollective certname used for Choria client identity. " \
+                         "The choria-mcorpc-support library identifies non-root clients as " \
+                         "'<username>.mcollective'. Set this when authenticating with a certificate " \
+                         "whose CN differs from that default (e.g. the host's Puppet cert).",
+            _plugin: true,
+            _example: "primary.example.com"
+          },
           "nats-servers" => {
             type: [String, Array],
             description: "One or more NATS server addresses for the Choria transport. Overrides the middleware " \

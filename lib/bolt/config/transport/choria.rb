@@ -14,6 +14,7 @@ module Bolt
           config-file
           host
           interpreters
+          mcollective-certname
           nats-connection-timeout
           nats-servers
           puppet-environment

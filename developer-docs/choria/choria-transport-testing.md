@@ -79,11 +79,16 @@ MCollective looks for client config files in this order (first readable wins):
 3. `/etc/choria/client.conf`
 4. `/etc/puppetlabs/mcollective/client.cfg`
 
-### Generate a client certificate
+### Client certificate
 
-The user running OpenBolt needs a certificate signed by the Puppet CA. For non-root
-users, MCollective resolves the certname as `<username>.mcollective` by default.
-Generate a matching certificate on the primary server:
+The user running OpenBolt needs a certificate signed by the Puppet CA.
+There are two approaches:
+
+**Option A: Generate a `.mcollective` certificate (traditional)**
+
+For non-root users, MCollective resolves the certname as
+`<username>.mcollective` by default. Generate a matching certificate on
+the primary server:
 
 ```bash
 sudo puppetserver ca generate --certname <username>.mcollective
@@ -102,6 +107,29 @@ sudo cp /etc/puppetlabs/puppet/ssl/certs/ca.pem \
 sudo chown -R $(whoami) ~/.puppetlabs
 chmod 600 ~/.puppetlabs/etc/puppet/ssl/private_keys/*.pem
 ```
+
+**Option B: Reuse the host's Puppet certificate**
+
+If the non-root user can read the host's Puppet SSL files (e.g. via
+group membership in the `puppet` group), you can skip certificate
+generation and use the host's own cert with `--choria-mcollective-certname`
+to override the automatic `<username>.mcollective` certname:
+
+```bash
+bolt task run facts --targets node1.example.com \
+  --transport choria \
+  --choria-ssl-cert /etc/puppetlabs/puppet/ssl/certs/$(hostname -f).pem \
+  --choria-ssl-key /etc/puppetlabs/puppet/ssl/private_keys/$(hostname -f).pem \
+  --choria-ssl-ca /etc/puppetlabs/puppet/ssl/certs/ca.pem \
+  --choria-mcollective-certname $(hostname -f)
+```
+
+This requires a permissive `certname_whitelist` on the Choria servers
+(e.g. `/.*/`) since the host's FQDN does not match the default
+`\.mcollective$` pattern. In production, use a more restrictive pattern
+such as `/.*\.example\.com$/` to limit which certnames are accepted. See
+[choria-transport.md](../../documentation/choria-transport.md#non-root-certname)
+for details.
 
 ### Set up `~/.choriarc`
 
@@ -270,7 +298,8 @@ choria::server_config:
   plugin.choria.middleware_hosts: "primary.example.com:4222"
   plugin.choria.use_srv: false
 
-# Allow all callers for testing. Restrict in production.
+# Allow all callers for testing. In production, restrict callers to specific
+# certnames or a domain pattern like /.*\.example\.com$/.
 mcollective::site_policies:
   - action: "allow"
     callers: "/.*/"
@@ -279,6 +308,8 @@ mcollective::site_policies:
     classes: "*"
 
 mcollective::client: true
+# Allow all certnames for testing. In production, replace /.*/ with a pattern
+# matching your environment, such as /.*\.example\.com$/.
 mcollective_choria::config:
   security.certname_whitelist: "/\\.mcollective$/, /.*/"
 
