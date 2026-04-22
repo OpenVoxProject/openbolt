@@ -55,7 +55,7 @@ Describe "test bolt command syntax" {
     It "has correct number of parameters" {
       ($command.Parameters.Values | Where-Object {
           $_.name -notin $common
-      } | measure-object).Count | Should -Be 49
+      } | measure-object).Count | Should -Be 50
     }
   }
 
@@ -73,7 +73,7 @@ Describe "test bolt command syntax" {
     It "has correct number of parameters" {
       ($command.Parameters.Values | Where-Object {
         $_.name -notin $common
-      } | measure-object).Count | Should -Be 46
+      } | measure-object).Count | Should -Be 47
     }
   }
 
@@ -95,7 +95,7 @@ Describe "test bolt command syntax" {
     It "has correct number of parameters" {
       ($command.Parameters.Values | Where-Object {
         $_.name -notin $common
-      } | measure-object).Count | Should -Be 47
+      } | measure-object).Count | Should -Be 48
     }
   }
 

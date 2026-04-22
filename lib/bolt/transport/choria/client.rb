@@ -68,6 +68,11 @@ module Bolt
             logger.debug { "Loaded Choria client config from #{config_file}" }
           end
 
+          if opts['mcollective-certname']
+            ENV['MCOLLECTIVE_CERTNAME'] = opts['mcollective-certname']
+            logger.debug { "MCOLLECTIVE_CERTNAME set to #{opts['mcollective-certname']}" }
+          end
+
           if opts['nats-servers']
             servers = [opts['nats-servers']].flatten
             config.pluginconf['choria.middleware_hosts'] = servers.join(',')

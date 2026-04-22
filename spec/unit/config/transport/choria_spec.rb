@@ -22,7 +22,7 @@ describe Bolt::Config::Transport::Choria do
   context 'validating' do
     include_examples 'interpreters'
 
-    %w[task-agent config-file collective host puppet-environment ssl-ca ssl-cert ssl-key tmpdir].each do |opt|
+    %w[task-agent config-file collective host mcollective-certname puppet-environment ssl-ca ssl-cert ssl-key tmpdir].each do |opt|
       it "#{opt} rejects non-string value" do
         data[opt] = 100
         expect { transport.new(data) }.to raise_error(Bolt::ValidationError)

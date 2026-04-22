@@ -13,7 +13,8 @@ module Bolt
                 run_context: %w[concurrency inventoryfile save-rerun cleanup puppetdb],
                 global_config_setters: PROJECT_PATHS + %w[modulepath],
                 transports: %w[transport connect-timeout tty native-ssh ssh-command copy-command],
-                choria: %w[choria-config-file choria-ssl-ca choria-ssl-cert choria-ssl-key
+                choria: %w[choria-config-file choria-mcollective-certname
+                           choria-ssl-ca choria-ssl-cert choria-ssl-key
                            choria-collective choria-puppet-environment choria-rpc-timeout
                            choria-task-timeout choria-command-timeout nats-servers
                            nats-connection-timeout],
@@ -1107,6 +1108,14 @@ module Bolt
       define('--choria-config-file PATH',
              'Path to a Choria/MCollective client configuration file.') do |path|
         @options[:'config-file'] = path
+      end
+      define('--choria-mcollective-certname NAME',
+             'Override the MCollective certname for Choria client identity.',
+             'The choria-mcorpc-support library identifies non-root clients',
+             "as '<username>.mcollective', which fails when authenticating",
+             "with a certificate that has a different CN (e.g. the host's",
+             'Puppet cert). Set this to the CN of the certificate being used.') do |name|
+        @options[:'mcollective-certname'] = name
       end
       define('--choria-ssl-ca PATH',
              'CA certificate path for Choria TLS authentication.') do |path|

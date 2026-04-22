@@ -9,6 +9,27 @@ describe Bolt::Transport::Choria do
   include_context 'choria task'
   include BoltSpec::Sensitive
 
+  describe '#configure_client mcollective-certname' do
+    before(:each) do
+      ENV.delete('MCOLLECTIVE_CERTNAME')
+    end
+
+    after(:each) do
+      ENV.delete('MCOLLECTIVE_CERTNAME')
+    end
+
+    it 'sets MCOLLECTIVE_CERTNAME when mcollective-certname option is provided' do
+      inventory.set_config(target, %w[choria mcollective-certname], 'primary.example.com')
+      transport.configure_client(target)
+      expect(ENV['MCOLLECTIVE_CERTNAME']).to eq('primary.example.com')
+    end
+
+    it 'does not set MCOLLECTIVE_CERTNAME when mcollective-certname is not provided' do
+      transport.configure_client(target)
+      expect(ENV.key?('MCOLLECTIVE_CERTNAME')).to be false
+    end
+  end
+
   describe '#provided_features' do
     it 'includes shell and powershell' do
       expect(transport.provided_features).to eq(%w[shell powershell])

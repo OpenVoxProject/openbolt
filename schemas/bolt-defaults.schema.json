@@ -578,6 +578,16 @@
                 }
               ]
             },
+            "mcollective-certname": {
+              "oneOf": [
+                {
+                  "$ref": "#/transport_definitions/mcollective-certname"
+                },
+                {
+                  "$ref": "#/definitions/_plugin"
+                }
+              ]
+            },
             "nats-connection-timeout": {
               "oneOf": [
                 {
@@ -2139,6 +2149,17 @@
               }
             ]
           }
+        },
+        {
+          "$ref": "#/definitions/_plugin"
+        }
+      ]
+    },
+    "mcollective-certname": {
+      "description": "Override the MCollective certname used for Choria client identity. The choria-mcorpc-support library identifies non-root clients as '<username>.mcollective'. Set this when authenticating with a certificate whose CN differs from that default (e.g. the host's Puppet cert).",
+      "oneOf": [
+        {
+          "type": "string"
         },
         {
           "$ref": "#/definitions/_plugin"

@@ -95,6 +95,7 @@ targets:
 | `config-file` | `--choria-config-file` | String | (auto-detected) | Path to a Choria/MCollective client config file. |
 | `host` | | String | (from URI) | Target's Choria identity (FQDN). Overrides the hostname from the URI. |
 | `interpreters` | | Hash | (none) | File extension to interpreter mapping (e.g., `{".rb": "/usr/bin/ruby"}`). |
+| `mcollective-certname` | `--choria-mcollective-certname` | String | (auto) | Override the MCollective certname for Choria client identity. See [Non-root certname](#non-root-certname) below. |
 | `nats-connection-timeout` | `--nats-connection-timeout` | Integer | `30` | Seconds to wait for the TCP connection to the NATS broker. |
 | `nats-servers` | `--nats-servers` | String or Array | (from config file) | NATS broker addresses in `nats://host:port` format (comma-separated for multiple). Multiple servers provide failover if a broker is unavailable. Overrides the config file. |
 | `puppet-environment` | `--choria-puppet-environment` | String | `production` | Puppet environment for bolt_tasks file URIs. |
@@ -129,6 +130,47 @@ the Choria config file.
 **SSL options:** If you provide any of `ssl-ca`, `ssl-cert`, or `ssl-key`,
 you must provide all three. Partial SSL configurations are rejected during
 validation.
+
+### Non-root certname
+
+The `choria-mcorpc-support` library derives the MCollective certname as
+`<username>.mcollective` for non-root users. This certname is embedded
+in signed messages and validated against the SSL certificate's CN during
+`check_ssl_setup`. When running as a non-root user (e.g. `foreman-proxy`)
+with the host's own Puppet certificate, the automatic certname
+(`foreman-proxy.mcollective`) does not match the certificate's CN
+(the host's FQDN), causing authentication failures.
+
+The `mcollective-certname` option overrides this automatic derivation.
+Set it to the CN of the certificate you are authenticating with:
+
+```bash
+bolt task run facts --targets node1.example.com \
+  --transport choria \
+  --choria-ssl-cert /etc/puppetlabs/puppet/ssl/certs/primary.example.com.pem \
+  --choria-ssl-key /etc/puppetlabs/puppet/ssl/private_keys/primary.example.com.pem \
+  --choria-ssl-ca /etc/puppetlabs/puppet/ssl/certs/ca.pem \
+  --choria-mcollective-certname primary.example.com
+```
+
+Or in the inventory file:
+
+```yaml
+config:
+  transport: choria
+  choria:
+    mcollective-certname: primary.example.com
+    ssl-cert: /etc/puppetlabs/puppet/ssl/certs/primary.example.com.pem
+    ssl-key: /etc/puppetlabs/puppet/ssl/private_keys/primary.example.com.pem
+    ssl-ca: /etc/puppetlabs/puppet/ssl/certs/ca.pem
+```
+
+This is not needed when running as root (the library uses the configured
+identity directly) or when using a certificate that matches the
+`<username>.mcollective` naming convention.
+
+When using OpenBolt through `smart_proxy_openbolt`, the proxy sets this
+automatically from its SSL certificate.
 
 ## Operations
 
@@ -386,6 +428,7 @@ local modulepath matters.
     long-running infrastructure.
 
 11. **MCollective client library refuses to run as root.** Use a non-root
-    user with a Puppet CA-signed certificate. See the
-    [testing guide](choria-transport-testing.md#running-bolt-as-a-non-root-user)
-    for setup instructions.
+    user with a Puppet CA-signed certificate. When using a certificate
+    whose CN does not match `<username>.mcollective`, set the
+    `mcollective-certname` option to the certificate's CN. See
+    [Non-root certname](#non-root-certname) above.
