@@ -2167,7 +2167,7 @@
       ]
     },
     "nats-servers": {
-      "description": "One or more NATS server addresses for the Choria transport. Overrides the middleware hosts from the Choria client configuration file. Can be a single string or an array.",
+      "description": "One or more NATS server addresses in host:port format for the Choria transport. Do not use the nats:// prefix. Overrides the middleware hosts from the Choria client configuration file. Can be a single string or an array.",
       "oneOf": [
         {
           "type": [

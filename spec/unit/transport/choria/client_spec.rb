@@ -75,12 +75,12 @@ describe Bolt::Transport::Choria do
     end
 
     it 'applies NATS server overrides to pluginconf' do
-      inventory.set_config(target, %w[choria nats-servers], %w[nats://broker1:4222 nats://broker2:4222])
+      inventory.set_config(target, %w[choria nats-servers], %w[broker1:4222 broker2:4222])
 
       transport.configure_client(target)
 
       mc_config = MCollective::Config.instance
-      expect(mc_config.pluginconf['choria.middleware_hosts']).to eq('nats://broker1:4222,nats://broker2:4222')
+      expect(mc_config.pluginconf['choria.middleware_hosts']).to eq('broker1:4222,broker2:4222')
     end
 
     it 'applies TLS overrides to pluginconf' do

@@ -286,13 +286,14 @@ module Bolt
           },
           "nats-servers" => {
             type: [String, Array],
-            description: "One or more NATS server addresses for the Choria transport. Overrides the middleware " \
-                         "hosts from the Choria client configuration file. Can be a single string or an array.",
+            description: "One or more NATS server addresses in host:port format for the Choria transport. " \
+                         "Do not use the nats:// prefix. Overrides the middleware hosts from the Choria " \
+                         "client configuration file. Can be a single string or an array.",
             items: {
               type: String
             },
             _plugin: true,
-            _example: ["nats://broker1:4222", "nats://broker2:4222"]
+            _example: ["broker1:4222", "broker2:4222"]
           },
           "native-ssh" => {
             type: [TrueClass, FalseClass],
