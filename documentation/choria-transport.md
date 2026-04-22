@@ -52,8 +52,8 @@ targets:
       choria:
         collective: production
         nats-servers:
-          - nats://broker1:4222
-          - nats://broker2:4222
+          - broker1:4222
+          - broker2:4222
 ```
 
 If the config file is in one of the auto-detected locations (`~/.choriarc`,
@@ -97,7 +97,7 @@ targets:
 | `interpreters` | | Hash | (none) | File extension to interpreter mapping (e.g., `{".rb": "/usr/bin/ruby"}`). |
 | `mcollective-certname` | `--choria-mcollective-certname` | String | (auto) | Override the MCollective certname for Choria client identity. See [Non-root certname](#non-root-certname) below. |
 | `nats-connection-timeout` | `--nats-connection-timeout` | Integer | `30` | Seconds to wait for the TCP connection to the NATS broker. |
-| `nats-servers` | `--nats-servers` | String or Array | (from config file) | NATS broker addresses in `nats://host:port` format (comma-separated for multiple). Multiple servers provide failover if a broker is unavailable. Overrides the config file. |
+| `nats-servers` | `--nats-servers` | String or Array | (from config file) | NATS broker addresses in `host:port` format (comma-separated for multiple). Do not use the `nats://` prefix. Multiple servers provide failover if a broker is unavailable. Overrides the config file. |
 | `puppet-environment` | `--choria-puppet-environment` | String | `production` | Puppet environment for bolt_tasks file URIs. |
 | `rpc-timeout` | `--choria-rpc-timeout` | Integer | `30` | Seconds to wait for replies to individual RPC calls. |
 | `ssl-ca` | `--choria-ssl-ca` | String | (from config file) | CA certificate path for TLS. |

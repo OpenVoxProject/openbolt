@@ -1150,7 +1150,7 @@ module Bolt
         @options[:'command-timeout'] = timeout
       end
       define('--nats-servers SERVERS',
-             'NATS broker addresses in nats://host:port format (comma-separated for multiple).') do |servers|
+             'NATS broker addresses in host:port format (comma-separated for multiple). Do not use the nats:// prefix.') do |servers|
         @options[:'nats-servers'] = servers
       end
       define('--nats-connection-timeout SECONDS', Integer,

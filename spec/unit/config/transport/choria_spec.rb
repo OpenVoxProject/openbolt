@@ -37,12 +37,12 @@ describe Bolt::Config::Transport::Choria do
     end
 
     it 'nats-servers accepts a string' do
-      data['nats-servers'] = 'nats://broker:4222'
+      data['nats-servers'] = 'broker:4222'
       expect { transport.new(data) }.not_to raise_error
     end
 
     it 'nats-servers accepts an array' do
-      data['nats-servers'] = ['nats://broker1:4222', 'nats://broker2:4222']
+      data['nats-servers'] = ['broker1:4222', 'broker2:4222']
       expect { transport.new(data) }.not_to raise_error
     end
 
