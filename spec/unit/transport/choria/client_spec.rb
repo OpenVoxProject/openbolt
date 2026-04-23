@@ -74,13 +74,31 @@ describe Bolt::Transport::Choria do
       )
     end
 
-    it 'applies NATS server overrides to pluginconf' do
-      inventory.set_config(target, %w[choria nats-servers], %w[nats://broker1:4222 nats://broker2:4222])
+    it 'applies Choria broker overrides to pluginconf' do
+      inventory.set_config(target, %w[choria brokers], %w[broker1:4222 broker2:4222])
 
       transport.configure_client(target)
 
       mc_config = MCollective::Config.instance
-      expect(mc_config.pluginconf['choria.middleware_hosts']).to eq('nats://broker1:4222,nats://broker2:4222')
+      expect(mc_config.pluginconf['choria.middleware_hosts']).to eq('broker1:4222,broker2:4222')
+    end
+
+    it 'defaults brokers port to 4222 when omitted' do
+      inventory.set_config(target, %w[choria brokers], %w[broker1 broker2:5222])
+
+      transport.configure_client(target)
+
+      mc_config = MCollective::Config.instance
+      expect(mc_config.pluginconf['choria.middleware_hosts']).to eq('broker1:4222,broker2:5222')
+    end
+
+    it 'defaults port to 4222 for a single broker string' do
+      inventory.set_config(target, %w[choria brokers], 'broker1')
+
+      transport.configure_client(target)
+
+      mc_config = MCollective::Config.instance
+      expect(mc_config.pluginconf['choria.middleware_hosts']).to eq('broker1:4222')
     end
 
     it 'applies TLS overrides to pluginconf' do
@@ -165,9 +183,9 @@ describe Bolt::Transport::Choria do
       transport.create_rpc_client('shell', [target], 60)
     end
 
-    it 'passes nats-connection-timeout to RPC client options' do
+    it 'passes broker-timeout to RPC client options' do
       transport.configure_client(target)
-      inventory.set_config(target, %w[choria nats-connection-timeout], 45)
+      inventory.set_config(target, %w[choria broker-timeout], 45)
 
       expect(MCollective::RPC::Client).to receive(:new) do |_agent, opts|
         expect(opts[:options][:connection_timeout]).to eq(45)

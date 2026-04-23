@@ -51,9 +51,9 @@ targets:
     config:
       choria:
         collective: production
-        nats-servers:
-          - nats://broker1:4222
-          - nats://broker2:4222
+        brokers:
+          - broker1:4222
+          - broker2:4222
 ```
 
 If the config file is in one of the auto-detected locations (`~/.choriarc`,
@@ -96,8 +96,8 @@ targets:
 | `host` | | String | (from URI) | Target's Choria identity (FQDN). Overrides the hostname from the URI. |
 | `interpreters` | | Hash | (none) | File extension to interpreter mapping (e.g., `{".rb": "/usr/bin/ruby"}`). |
 | `mcollective-certname` | `--choria-mcollective-certname` | String | (auto) | Override the MCollective certname for Choria client identity. See [Non-root certname](#non-root-certname) below. |
-| `nats-connection-timeout` | `--nats-connection-timeout` | Integer | `30` | Seconds to wait for the TCP connection to the NATS broker. |
-| `nats-servers` | `--nats-servers` | String or Array | (from config file) | NATS broker addresses in `nats://host:port` format (comma-separated for multiple). Multiple servers provide failover if a broker is unavailable. Overrides the config file. |
+| `broker-timeout` | `--choria-broker-timeout` | Integer | `30` | Seconds to wait for the TCP connection to a Choria broker. |
+| `brokers` | `--choria-brokers` | String or Array | (auto-discovered) | Choria broker addresses in `host` or `host:port` format (comma-separated for multiple). Port defaults to 4222 if omitted. Do not use the `nats://` prefix. When not provided, the Choria client checks the config file, then SRV records, then falls back to `puppet:4222`. Multiple servers provide failover. |
 | `puppet-environment` | `--choria-puppet-environment` | String | `production` | Puppet environment for bolt_tasks file URIs. |
 | `rpc-timeout` | `--choria-rpc-timeout` | Integer | `30` | Seconds to wait for replies to individual RPC calls. |
 | `ssl-ca` | `--choria-ssl-ca` | String | (from config file) | CA certificate path for TLS. |
@@ -114,14 +114,14 @@ wins. For ad-hoc targets specified via `--targets` that aren't defined in an
 inventory file, CLI flags take full effect.
 
 For options that have corresponding values in the Choria config file
-(`nats-servers`, `ssl-ca`/`ssl-cert`/`ssl-key`, and `collective`), the full
+(`brokers`, `ssl-ca`/`ssl-cert`/`ssl-key`, and `collective`), the full
 precedence from lowest to highest is: Choria config file < CLI flags <
 inventory. All other options use OpenBolt-level defaults and are not affected by
 the Choria config file.
 
 **Timeout hierarchy:** Three levels of timeout control different things:
-- `nats-connection-timeout` (30s): How long to wait for the initial TCP
-  connection to the NATS broker
+- `broker-timeout` (30s): How long to wait for the initial TCP
+  connection to a Choria broker
 - `rpc-timeout` (30s): How long to wait for replies to each individual RPC
   call (discovery, status checks, etc.)
 - `command-timeout` (60s) / `task-timeout` (300s): How long to wait for the

@@ -228,5 +228,50 @@ describe 'parser' do
         )
       end
     end
+
+    describe '--choria-brokers' do
+      it 'splits comma-separated brokers into an array' do
+        parser.permute(%w[--choria-brokers broker1:4222,broker2:4222])
+        expect(options[:brokers]).to eq(%w[broker1:4222 broker2:4222])
+      end
+
+      it 'wraps a single broker in an array' do
+        parser.permute(%w[--choria-brokers broker1:4222])
+        expect(options[:brokers]).to eq(%w[broker1:4222])
+      end
+    end
+
+    describe '--choria-broker-timeout' do
+      it 'parses an integer timeout' do
+        parser.permute(%w[--choria-broker-timeout 45])
+        expect(options[:'broker-timeout']).to eq(45)
+      end
+
+      it 'rejects non-integer value' do
+        expect { parser.permute(%w[--choria-broker-timeout slow]) }.to raise_error(
+          Bolt::CLIError, /Invalid parameter.*--choria-broker-timeout/
+        )
+      end
+    end
+
+    describe '--choria-task-agent' do
+      it 'parses a valid agent' do
+        parser.permute(%w[--choria-task-agent shell])
+        expect(options[:'task-agent']).to eq('shell')
+      end
+
+      it 'rejects an invalid agent' do
+        expect { parser.permute(%w[--choria-task-agent puppet]) }.to raise_error(
+          Bolt::CLIError, /Invalid parameter.*--choria-task-agent.*puppet/
+        )
+      end
+    end
+
+    describe '--choria-mcollective-certname' do
+      it 'parses a certname' do
+        parser.permute(%w[--choria-mcollective-certname primary.example.com])
+        expect(options[:'mcollective-certname']).to eq('primary.example.com')
+      end
+    end
   end
 end
