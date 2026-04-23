@@ -29,25 +29,25 @@ describe Bolt::Config::Transport::Choria do
       end
     end
 
-    %w[command-timeout nats-connection-timeout rpc-timeout task-timeout].each do |opt|
+    %w[command-timeout broker-timeout rpc-timeout task-timeout].each do |opt|
       it "#{opt} rejects non-integer value" do
         data[opt] = 'not_an_integer'
         expect { transport.new(data) }.to raise_error(Bolt::ValidationError)
       end
     end
 
-    it 'nats-servers accepts a string' do
-      data['nats-servers'] = 'broker:4222'
+    it 'brokers accepts a string' do
+      data['brokers'] = 'broker:4222'
       expect { transport.new(data) }.not_to raise_error
     end
 
-    it 'nats-servers accepts an array' do
-      data['nats-servers'] = ['broker1:4222', 'broker2:4222']
+    it 'brokers accepts an array' do
+      data['brokers'] = ['broker1:4222', 'broker2:4222']
       expect { transport.new(data) }.not_to raise_error
     end
 
-    it 'nats-servers errors with wrong type' do
-      data['nats-servers'] = 12345
+    it 'brokers errors with wrong type' do
+      data['brokers'] = 12345
       expect { transport.new(data) }.to raise_error(Bolt::ValidationError)
     end
 

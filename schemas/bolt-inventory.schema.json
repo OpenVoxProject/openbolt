@@ -63,6 +63,42 @@
                 {
                   "type": "object",
                   "properties": {
+                    "broker-timeout": {
+                      "description": "How long to wait in seconds for the initial TCP connection to a Choria broker. If the connection cannot be made within this time, the operation fails.",
+                      "oneOf": [
+                        {
+                          "type": "integer",
+                          "minimum": 1
+                        },
+                        {
+                          "$ref": "#/definitions/_plugin"
+                        }
+                      ]
+                    },
+                    "brokers": {
+                      "description": "One or more Choria broker addresses in host or host:port format. Port defaults to 4222 if omitted. Do not use the nats:// prefix. Overrides the middleware hosts from the Choria client configuration file. Can be a single string or an array.",
+                      "oneOf": [
+                        {
+                          "type": [
+                            "string",
+                            "array"
+                          ],
+                          "items": {
+                            "oneOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "$ref": "#/definitions/_plugin"
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "$ref": "#/definitions/_plugin"
+                        }
+                      ]
+                    },
                     "cleanup": {
                       "description": "Whether to clean up temporary files created on targets. When running commands on a target, Bolt might create temporary files. After completing the command, these files are automatically deleted. This value can be set to 'false' if you wish to leave these temporary files on the target.",
                       "oneOf": [
@@ -144,42 +180,6 @@
                       "oneOf": [
                         {
                           "type": "string"
-                        },
-                        {
-                          "$ref": "#/definitions/_plugin"
-                        }
-                      ]
-                    },
-                    "nats-connection-timeout": {
-                      "description": "How long to wait in seconds for the initial TCP connection to the NATS broker. If the connection cannot be made within this time, the operation fails.",
-                      "oneOf": [
-                        {
-                          "type": "integer",
-                          "minimum": 1
-                        },
-                        {
-                          "$ref": "#/definitions/_plugin"
-                        }
-                      ]
-                    },
-                    "nats-servers": {
-                      "description": "One or more NATS server addresses in host:port format for the Choria transport. Do not use the nats:// prefix. Overrides the middleware hosts from the Choria client configuration file. Can be a single string or an array.",
-                      "oneOf": [
-                        {
-                          "type": [
-                            "string",
-                            "array"
-                          ],
-                          "items": {
-                            "oneOf": [
-                              {
-                                "type": "string"
-                              },
-                              {
-                                "$ref": "#/definitions/_plugin"
-                              }
-                            ]
-                          }
                         },
                         {
                           "$ref": "#/definitions/_plugin"

@@ -81,9 +81,9 @@ module Bolt
             _plugin: true,
             _example: "/etc/choria/client.conf"
           },
-          "nats-connection-timeout" => {
+          "broker-timeout" => {
             type: Integer,
-            description: "How long to wait in seconds for the initial TCP connection to the NATS broker. " \
+            description: "How long to wait in seconds for the initial TCP connection to a Choria broker. " \
                          "If the connection cannot be made within this time, the operation fails.",
             minimum: 1,
             _plugin: true,
@@ -284,11 +284,12 @@ module Bolt
             _plugin: true,
             _example: "primary.example.com"
           },
-          "nats-servers" => {
+          "brokers" => {
             type: [String, Array],
-            description: "One or more NATS server addresses in host:port format for the Choria transport. " \
-                         "Do not use the nats:// prefix. Overrides the middleware hosts from the Choria " \
-                         "client configuration file. Can be a single string or an array.",
+            description: "One or more Choria broker addresses in host or host:port format. " \
+                         "Port defaults to 4222 if omitted. Do not use the nats:// prefix. " \
+                         "Overrides the middleware hosts from the Choria client configuration file. " \
+                         "Can be a single string or an array.",
             items: {
               type: String
             },
