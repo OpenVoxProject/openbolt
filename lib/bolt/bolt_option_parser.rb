@@ -16,8 +16,8 @@ module Bolt
                 choria: %w[choria-config-file choria-mcollective-certname
                            choria-ssl-ca choria-ssl-cert choria-ssl-key
                            choria-collective choria-puppet-environment choria-rpc-timeout
-                           choria-task-timeout choria-command-timeout nats-servers
-                           nats-connection-timeout],
+                           choria-task-timeout choria-command-timeout choria-brokers
+                           choria-broker-timeout],
                 display: %w[format color verbose trace stream],
                 global: %w[help version log-level clear-cache] }.freeze
 
@@ -1149,13 +1149,13 @@ module Bolt
              'Seconds to wait for commands and scripts to complete (default: 60).') do |timeout|
         @options[:'command-timeout'] = timeout
       end
-      define('--nats-servers SERVERS',
-             'NATS broker addresses in nats://host:port format (comma-separated for multiple).') do |servers|
-        @options[:'nats-servers'] = servers
+      define('--choria-brokers BROKERS',
+             'Choria broker addresses in host or host:port format (comma-separated). Port defaults to 4222 if omitted.') do |brokers|
+        @options[:brokers] = brokers.split(',')
       end
-      define('--nats-connection-timeout SECONDS', Integer,
-             'Seconds to wait for the TCP connection to the NATS broker (default: 30).') do |timeout|
-        @options[:'nats-connection-timeout'] = timeout
+      define('--choria-broker-timeout SECONDS', Integer,
+             'Seconds to wait for the TCP connection to a Choria broker (default: 30).') do |timeout|
+        @options[:'broker-timeout'] = timeout
       end
 
       separator "\n#{self.class.colorize(:cyan, 'Module options')}"

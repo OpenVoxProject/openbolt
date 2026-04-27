@@ -15,8 +15,8 @@ module Bolt
           host
           interpreters
           mcollective-certname
-          nats-connection-timeout
-          nats-servers
+          broker-timeout
+          brokers
           puppet-environment
           rpc-timeout
           ssl-ca
@@ -30,7 +30,7 @@ module Bolt
         DEFAULTS = {
           'cleanup' => true,
           'command-timeout' => 60,
-          'nats-connection-timeout' => 30,
+          'broker-timeout' => 30,
           'puppet-environment' => 'production',
           'rpc-timeout' => 30,
           'task-timeout' => 300,

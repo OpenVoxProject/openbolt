@@ -73,10 +73,10 @@ module Bolt
             logger.debug { "MCOLLECTIVE_CERTNAME set to #{opts['mcollective-certname']}" }
           end
 
-          if opts['nats-servers']
-            servers = [opts['nats-servers']].flatten
-            config.pluginconf['choria.middleware_hosts'] = servers.join(',')
-            logger.debug { "NATS servers overridden: #{servers.join(', ')}" }
+          if opts['brokers']
+            brokers = Array(opts['brokers']).map { |broker| broker.include?(':') ? broker : "#{broker}:4222" }
+            config.pluginconf['choria.middleware_hosts'] = brokers.join(',')
+            logger.debug { "Choria brokers overridden: #{brokers.join(', ')}" }
           end
 
           if opts['ssl-ca'] && opts['ssl-cert'] && opts['ssl-key']
@@ -117,11 +117,11 @@ module Bolt
       # @param timeout [Numeric] RPC call timeout in seconds
       # @return [MCollective::RPC::Client] Configured client with direct addressing enabled
       def create_rpc_client(agent_name, targets, timeout)
-        targets = [targets].flatten
+        targets = Array(targets)
         options = MCollective::Util.default_options
         options[:timeout] = timeout
         options[:verbose] = false
-        options[:connection_timeout] = targets.first.options['nats-connection-timeout']
+        options[:connection_timeout] = targets.first.options['broker-timeout']
 
         collective = collective_for(targets.first)
         options[:collective] = collective if collective
@@ -169,7 +169,7 @@ module Bolt
       #     Includes all targets that responded (both :responded and :errors).
       #     Not populated when rpc_failed is true (no individual responses).
       def rpc_request(agent, targets, context)
-        targets = [targets].flatten
+        targets = Array(targets)
         rpc_results = @rpc_mutex.synchronize do
           rpc_timeout = targets.first.options['rpc-timeout']
           client = create_rpc_client(agent, targets, rpc_timeout)
