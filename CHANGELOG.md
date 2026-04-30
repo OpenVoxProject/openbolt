@@ -2,6 +2,33 @@
 
 All notable changes to this project will be documented in this file.
 
+## [5.5.0](https://github.com/openvoxproject/openbolt/tree/5.5.0) (2026-04-30)
+
+[Full Changelog](https://github.com/openvoxproject/openbolt/compare/5.4.0...5.5.0)
+
+**Implemented enhancements:**
+
+- feat: allow to pass additional HTTP headers in puppetdb requests [\#175](https://github.com/OpenVoxProject/openbolt/pull/175) ([TheMeier](https://github.com/TheMeier))
+
+**Merged pull requests:**
+
+- Rename NATS server terminology to Choria Broker [\#225](https://github.com/OpenVoxProject/openbolt/pull/225) ([nmburgan](https://github.com/nmburgan))
+- Add --choria-mcollective-certname flag for non-root cert identity [\#223](https://github.com/OpenVoxProject/openbolt/pull/223) ([nmburgan](https://github.com/nmburgan))
+- Fix concurrency test bug and install modules before unit tests [\#222](https://github.com/OpenVoxProject/openbolt/pull/222) ([nmburgan](https://github.com/nmburgan))
+- Move Choria docs to existing locations [\#221](https://github.com/OpenVoxProject/openbolt/pull/221) ([nmburgan](https://github.com/nmburgan))
+- Promote puppet-runtime 2026.04.20.1 [\#220](https://github.com/OpenVoxProject/openbolt/pull/220) ([OpenVoxProjectBot](https://github.com/OpenVoxProjectBot))
+- package build: replace `build`-\> `vanagon build` [\#219](https://github.com/OpenVoxProject/openbolt/pull/219) ([bastelfreak](https://github.com/bastelfreak))
+- Add signoff option to promotion workflow [\#217](https://github.com/OpenVoxProject/openbolt/pull/217) ([nmburgan](https://github.com/nmburgan))
+- Migrate bundled module specs from mocha to rspec-mocks/voxpupuli-test [\#216](https://github.com/OpenVoxProject/openbolt/pull/216) ([nmburgan](https://github.com/nmburgan))
+- Implement Choria Transport \(Phases 1 and 2\) [\#206](https://github.com/OpenVoxProject/openbolt/pull/206) ([nmburgan](https://github.com/nmburgan))
+- Promote puppet-runtime 2026.03.19.1 [\#205](https://github.com/OpenVoxProject/openbolt/pull/205) ([OpenVoxProjectBot](https://github.com/OpenVoxProjectBot))
+- Fix windows builds [\#204](https://github.com/OpenVoxProject/openbolt/pull/204) ([nmburgan](https://github.com/nmburgan))
+- Increase WinRM shell and user limits for CI [\#199](https://github.com/OpenVoxProject/openbolt/pull/199) ([nmburgan](https://github.com/nmburgan))
+- Drop puppet\_connect plugin & module [\#197](https://github.com/OpenVoxProject/openbolt/pull/197) ([jay7x](https://github.com/jay7x))
+- Add SLES16 [\#176](https://github.com/OpenVoxProject/openbolt/pull/176) ([sbernhard](https://github.com/sbernhard))
+- docs: fix README badges [\#172](https://github.com/OpenVoxProject/openbolt/pull/172) ([d1nuc0m](https://github.com/d1nuc0m))
+- Update gem versions to align with openbolt-runtime changes [\#140](https://github.com/OpenVoxProject/openbolt/pull/140) ([nmburgan](https://github.com/nmburgan))
+
 ## [5.4.0](https://github.com/openvoxproject/openbolt/tree/5.4.0) (2026-03-04)
 
 [Full Changelog](https://github.com/openvoxproject/openbolt/compare/5.3.0...5.4.0)
