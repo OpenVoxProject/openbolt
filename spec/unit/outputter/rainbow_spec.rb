@@ -65,7 +65,7 @@ describe "Bolt::Outputter::Rainbow" do
     CONTENT
 
     expect(outputter).to receive(:colorize).with(:rainbow, content)
-    outputter.print_topics(%w[foo bar])
+    outputter.print_topics(topics: %w[foo bar])
   end
 
   it "colorizes a message" do

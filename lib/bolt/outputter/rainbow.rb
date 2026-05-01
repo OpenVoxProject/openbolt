@@ -104,7 +104,11 @@ module Bolt
         @stream.puts colorize(:rainbow, guide)
       end
 
-      def print_topics(topics)
+      # Print available guide topics.
+      #
+      # @param topics [Array] The available topics.
+      #
+      def print_topics(topics:, **_kwargs)
         content  = String.new("Available topics are:\n")
         content += topics.join("\n")
         content += "\n\nUse `bolt guide <topic>` to view a specific guide."
