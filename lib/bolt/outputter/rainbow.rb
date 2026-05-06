@@ -108,7 +108,7 @@ module Bolt
       #
       # @param topics [Array] The available topics.
       #
-      def print_topics(topics:, **_kwargs)
+      def print_topics(topics:)
         content  = String.new("Available topics are:\n")
         content += topics.join("\n")
         content += "\n\nUse `bolt guide <topic>` to view a specific guide."
