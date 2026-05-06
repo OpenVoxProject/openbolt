@@ -122,8 +122,8 @@ module Bolt
       #
       # @param topics [Array] The available topics.
       #
-      def print_topics(**kwargs)
-        print_table(kwargs)
+      def print_topics(topics:)
+        print_table({ topics: topics })
       end
 
       # Print the guide for the specified topic.
