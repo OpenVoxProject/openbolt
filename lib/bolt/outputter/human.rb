@@ -486,7 +486,7 @@ module Bolt
       #
       # @param topics [Array] The available topics.
       #
-      def print_topics(topics:, **_kwargs)
+      def print_topics(topics:)
         info = +"#{colorize(:cyan, 'Topics')}\n"
         info << indent(2, topics.join("\n"))
         info << "\n\n#{colorize(:cyan, 'Additional information')}\n"

@@ -148,10 +148,8 @@ module Bolt
 
     # Show available guides.
     #
-    # @param guides [Hash] A map of topics to paths to guides.
-    # @param outputter [Bolt::Outputter] An outputter instance.
-    # @return [Boolean]
-    #
+    # @return [Hash] A map of topics of guides
+    #   Currently, the map is structured as `:topics => [Array] of guide names`
     def list_guides
       { topics: load_guides.keys }
     end
