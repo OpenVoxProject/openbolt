@@ -624,4 +624,3 @@ def rewrite_md_links(content)
     .gsub(/(\]\([^):]*?)\.md((?:#[^)]*)?)\)/, '\1.html\2)')
     .gsub(/\bhref="([^":]*?)\.md((?:#[^"]*)?)"/, 'href="\1.html\2"')
 end
-
