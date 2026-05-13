@@ -4,6 +4,7 @@ require 'fileutils'
 require 'json'
 require 'erb'
 require 'net/http'
+require 'yaml'
 require 'bolt/util'
 
 class PuppetfileParser
@@ -299,7 +300,7 @@ begin
                         "targets for an apply, call the [apply_prep](#apply-prep) function before " \
                         "the apply function.\n\nTo learn more about applying manifest code from a plan, " \
                         "see [Applying manifest blocks from a Puppet " \
-                        "plan](applying_manifest_blocks.md#applying-manifest-blocks-from-a-puppet-plan).\n\n" \
+                        "plan](applying_manifest_blocks.html#applying-manifest-blocks-from-a-puppet-plan).\n\n" \
                         "> **Note:** The `apply` function returns a `ResultSet` object containing `ApplyResult`\n" \
                         "> objects.",
         "examples"   => [
@@ -524,6 +525,48 @@ begin
 
       $stdout.puts "Generated transports configuration reference at:\n\t#{filepath}"
     end
+
+    desc "Generate Jekyll-ready reference docs in documentation/jekyll_build/"
+    task jekyll: :all do
+      source_dir = File.expand_path('../documentation', __dir__)
+      build_dir  = File.expand_path('../documentation/jekyll_build', __dir__)
+
+      FileUtils.rm_rf(build_dir)
+      FileUtils.mkdir_p(build_dir)
+
+      Dir["#{source_dir}/*.md"].each do |src|
+        content = rewrite_md_links(File.read(src))
+        File.write(File.join(build_dir, File.basename(src)), content)
+      end
+
+      Dir["#{source_dir}/*.{png,jpg,gif,svg}"].each do |img|
+        FileUtils.cp(img, File.join(build_dir, File.basename(img)))
+      end
+
+      $stdout.puts "Generated Jekyll docs at:\n\t#{build_dir}"
+    end
+
+    desc "Verify documentation/jekyll_build/ output is correct"
+    task :jekyll_verify do
+      build_dir    = File.expand_path('../documentation/jekyll_build', __dir__)
+      template_dir = File.expand_path('../documentation/templates', __dir__)
+      errors       = []
+
+      Dir["#{template_dir}/*.md.erb"].each do |template|
+        page = File.join(build_dir, File.basename(template, '.erb'))
+        errors << "Missing generated page: #{page}" unless File.exist?(page)
+      end
+
+      Dir["#{build_dir}/*.md"].each do |file|
+        content = File.read(file)
+        errors << "Unrewritten .md links in: #{file}" if content.match?(/\]\([^):]*\.md[)#]/)
+        errors << "Unrewritten href .md links in: #{file}" if content.match?(/href="[^":]*\.md/)
+      end
+
+      raise errors.join("\n") unless errors.empty?
+
+      $stdout.puts "Jekyll output verified."
+    end
   end
 rescue LoadError
 end
@@ -571,3 +614,14 @@ def make_signature(function_name, params, return_type)
   params.map! { |param| param == '&block' ? param : "$#{param}" }
   "#{function_name}(#{params.join(', ')}) => #{return_type}"
 end
+
+def rewrite_md_links(content)
+  # Rewrite relative .md cross-reference links to .html. Skips URLs
+  # containing ':' (e.g. https://) so only relative links are affected.
+  # Needed for links embedded in Ruby config descriptions and Puppet
+  # docstrings where we can't bake .html in at the source level.
+  content
+    .gsub(/(\]\([^):]*?)\.md((?:#[^)]*)?)\)/, '\1.html\2)')
+    .gsub(/\bhref="([^":]*?)\.md((?:#[^"]*)?)"/, 'href="\1.html\2"')
+end
+

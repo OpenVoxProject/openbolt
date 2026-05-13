@@ -1,3 +1,8 @@
+---
+layout: default
+title: Escalating privilege with Bolt
+---
+
 # Escalating privilege with Bolt
 
 By default, Bolt connects to, and executes on, remote systems as the same user.
@@ -47,7 +52,7 @@ You can use privilege escalation from the command-line, or set it up using Bolt'
 
 You can configure escalation privilege in your `inventory.yaml` or
 `bolt-defaults.yaml` files. For more information on which file to use, see
-[Configuring Bolt](configuring_bolt.md).
+[Configuring Bolt](configuring_bolt.html).
 
 <% @run_as.each do |option, data| -%>
 #### `<%= option %>`
@@ -121,8 +126,8 @@ Get-WmiObject -Class Win32_BIOS -Computer SERVER1 -Credential $Cred
 ```
 
 If you want to securely pass credentials into a Powershell script, you have two options: 
-- **[Convert your script into a task](writing_tasks.md#converting-scripts-to-tasks) and
-  use [sensitive task parameters](writing_tasks.md#defining-sensitive-parameters):** 
+- **[Convert your script into a task](writing_tasks.html#converting-scripts-to-tasks) and
+  use [sensitive task parameters](writing_tasks.html#defining-sensitive-parameters):**
   This is the best option if you need your secret obfuscated in logs. You can either 
   pass the parameters as static values to a task, or compute them per target and use a
   plan to pass them to the task.
@@ -143,11 +148,11 @@ user, you can set arbitrary variables on targets in the inventory which you
 can then access from a Bolt plan.
 
 You can set [variables on the target
-object](inventory_files.md#target-object) in your
-[inventory](inventory_files.md), either statically as plaintext in the
-inventory file or dynamically using [inventory plugins](using_plugins.md). You
+object](inventory_files.html#target-object) in your
+[inventory](inventory_files.html), either statically as plaintext in the
+inventory file or dynamically using [inventory plugins](using_plugins.html). You
 can then access variables on the target object in a plan, or using a [remote
-task](writing_tasks.md#writing-remote-tasks).
+task](writing_tasks.html#writing-remote-tasks).
 
 Remote tasks run on localhost and pass the entire target object as JSON to the
 task as a metaparameter `_target`. You can write a task to get the secret, and
@@ -252,8 +257,8 @@ Write-Output $Message
 
 📖 **Related information**
 
-- [Defining sensitive parameters](writing_tasks.md#defining-sensitive-parameters)
-- [Passing sensitive data to tasks](writing_plans.md#passing-sensitive-data-to-tasks)
-- [Setting vars on a target in inventory](inventory_files.md#top-level-fields)
+- [Defining sensitive parameters](writing_tasks.html#defining-sensitive-parameters)
+- [Passing sensitive data to tasks](writing_plans.html#passing-sensitive-data-to-tasks)
+- [Setting vars on a target in inventory](inventory_files.html#top-level-fields)
 - [Using inventory plugins](https://puppet.com/docs/bolt/latest/using_plugins.html)
-- [Writing remote tasks](writing_tasks.md#writing-remote-tasks)
+- [Writing remote tasks](writing_tasks.html#writing-remote-tasks)

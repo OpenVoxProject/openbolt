@@ -1,10 +1,15 @@
+---
+layout: default
+title: Transport configuration options
+---
+
 # Transport configuration options
 
 This page lists the configuration options that are available to each transport used by Bolt to connect
 to targets. These options can be set in multiple locations:
 
-- Under a `config` key in an [inventory file](inventory_files.md). 
-- Under the `inventory-config` key in a [`bolt-defaults.yaml` file](bolt_defaults_reference.md).
+- Under a `config` key in an [inventory file](inventory_files.html).
+- Under the `inventory-config` key in a [`bolt-defaults.yaml` file](bolt_defaults_reference.html).
 - As top-level keys in a `bolt.yaml` file. ⛔ **The `bolt.yaml` file is deprecated.
   Use one of the other options above instead.**
 
@@ -56,7 +61,7 @@ Bolt's SSH transport uses the Ruby library `net-ssh`, which is a pure Ruby
 implementation of the SSH2 client protocol. The library reads and uses some,
 but not all, settings from the user's OpenSSH configuration file (typically
 `~/.ssh/config`). OpenSSH configuration takes the [lowest
-precedence](configuring_bolt.md#configuration-precedence), and any configurable
+precedence](configuring_bolt.html#configuration-precedence), and any configurable
 settings that you've set through Bolt, such as `port`, override the OpenSSH
 settings. Bolt uses the following OpenSSH configuration options when using the
 SSH transport:
@@ -124,7 +129,7 @@ ssh:
 
 > 🧪 The native SSH transport is experimental and is subject to
 > breaking changes. To read more about the native SSH transport, see
-> [Native SSH transport](experimental_features.md#native-ssh-transport).
+> [Native SSH transport](experimental_features.html#native-ssh-transport).
 
 <% @nativessh.each do |transport_option, data| -%>
 ### `<%= transport_option %>`
