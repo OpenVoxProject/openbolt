@@ -48,7 +48,7 @@ mod 'puppetlabs-http_request', '0.3.1'
 mod 'puppetlabs-pkcs7', '0.1.2'
 mod 'puppetlabs-secure_env_vars', '0.2.0'
 mod 'puppetlabs-terraform', '0.7.1'
-mod 'puppetlabs-vault', '0.4.0'
+mod 'puppetlabs-vault', '0.4.1'
 mod 'puppetlabs-yaml', '0.2.0'
 
 # If we don't list these modules explicitly, r10k will purge them
