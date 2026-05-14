@@ -47,7 +47,7 @@ mod 'puppetlabs-gcloud_inventory', '0.3.1'
 mod 'puppetlabs-http_request', '0.3.2'
 mod 'puppetlabs-pkcs7', '0.1.2'
 mod 'puppetlabs-secure_env_vars', '0.2.0'
-mod 'puppetlabs-terraform', '0.7.1'
+mod 'puppetlabs-terraform', '0.7.2'
 mod 'puppetlabs-vault', '0.4.1'
 mod 'puppetlabs-yaml', '0.2.0'
 
