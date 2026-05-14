@@ -42,7 +42,7 @@ mod 'puppetlabs-bash_task_helper', '2.2.0'
 
 # Plugin modules
 mod 'puppetlabs-aws_inventory', '0.7.0'
-mod 'puppetlabs-azure_inventory', '0.5.0'
+mod 'puppetlabs-azure_inventory', '0.5.1'
 mod 'puppetlabs-gcloud_inventory', '0.3.1'
 mod 'puppetlabs-http_request', '0.3.2'
 mod 'puppetlabs-pkcs7', '0.1.2'
