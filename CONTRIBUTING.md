@@ -90,7 +90,7 @@ our best to review PRs in a timely manner.
 
 If you are interested in trying OpenBolt out or using it in production, we recommend
 installing from a system package detailed in [Installing
-Bolt](https://puppet.com/docs/bolt/latest/bolt_installing.html). The following
+Bolt](https://docs.openvoxproject.org/openbolt/latest/bolt_installing.html). The following
 installation instructions are focused on developers who wish to contribute to
 OpenBolt.
 
