@@ -110,7 +110,7 @@ jobs:
       - name: Unit tests
         run: bundle exec rake tests:unit
 
-  run-dita:
+  generate-docs:
     runs-on: ubuntu-24.04
     steps:
     - name: Initialize
@@ -122,10 +122,8 @@ jobs:
         bundler-cache: true
     - name: Generate docs
       run: bundle exec rake docs:all
-    - name: Docs test
-      uses: dita-ot/dita-ot-action@4.3.5
-      with:
-        build: dita -i documentation/bolt.ditamap -o out -f html5 --processing-mode=strict
+    - name: Generate and verify Jekyll docs
+      run: bundle exec rake docs:jekyll docs:jekyll_verify
 
   local_transports:
     name: "local transport ${{ matrix.ruby }} ${{ matrix.os }}"
@@ -466,7 +464,7 @@ jobs:
       - cache_modules_linux
       - cache_modules_windows
       - unit
-      - run-dita
+      - generate-docs
       - local_transports
       - winrm_transport
       - apply
