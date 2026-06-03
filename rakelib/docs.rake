@@ -297,7 +297,7 @@ begin
         "desc"       => "Applies a block of manifest code to the targets.\n\nApplying manifest " \
                         "code requires facts to compile a catalog. Targets must also have " \
                         "the Puppet agent package installed to apply manifest code. To prep " \
-                        "targets for an apply, call the [apply_prep](#apply-prep) function before " \
+                        "targets for an apply, call the [apply_prep](#apply_prep) function before " \
                         "the apply function.\n\nTo learn more about applying manifest code from a plan, " \
                         "see [Applying manifest blocks from a Puppet " \
                         "plan](applying_manifest_blocks.html#applying-manifest-blocks-from-a-puppet-plan).\n\n" \

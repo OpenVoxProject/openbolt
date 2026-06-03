@@ -7,7 +7,7 @@ require 'bolt/error'
 # Using the `facts` function does not automatically collect facts for a target,
 # and will only return facts that are currently set in the inventory. To collect
 # facts from a target and set them in the inventory, run the
-# [facts](writing_plans.md#collect-facts-from-targets) plan or
+# [facts](writing_plans.md#collect-facts-from-the-targets) plan or
 # [puppetdb_fact](writing_plans.md#collect-facts-from-puppetdb) plan.
 Puppet::Functions.create_function(:facts) do
   # @param target A target.

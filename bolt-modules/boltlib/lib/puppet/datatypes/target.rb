@@ -11,7 +11,7 @@
 #   The target's facts. This function does not look up facts for a target and
 #   only returns the facts specified in an `inventory.yaml` file or set on a
 #   target during a plan run. To retrieve facts for a target and set them in
-#   inventory, run the [facts](writing_plans.md#collect-facts-from-targets)
+#   inventory, run the [facts](writing_plans.md#collect-facts-from-the-targets)
 #   plan or [puppetdb_fact](writing_plans.md#collect-facts-from-puppetdb)
 #   plan.
 # @param features
@@ -20,7 +20,7 @@
 #   The target's human-readable name, or its URI if a name was not given.
 # @param plugin_hooks
 #   The target's `plugin_hooks` [configuration
-#   options](bolt_inventory_reference.md#plugin-hooks-1).
+#   options](bolt_inventory_reference.md#plugin_hooks-1).
 # @param resources
 #   The target's resources. This function does not look up resources for a
 #   target and only returns resources set on a target during a plan run.
