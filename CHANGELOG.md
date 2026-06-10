@@ -2,6 +2,33 @@
 
 All notable changes to this project will be documented in this file.
 
+## [5.6.0](https://github.com/openvoxproject/openbolt/tree/5.6.0) (2026-06-10)
+
+[Full Changelog](https://github.com/openvoxproject/openbolt/compare/5.5.0...5.6.0)
+
+**Implemented enhancements:**
+
+- Add platform definitions for Fedora 44 [\#248](https://github.com/OpenVoxProject/openbolt/pull/248) ([Sharpie](https://github.com/Sharpie))
+- Build\(deps\): Update jwt requirement from ~\> 2.2 to \>= 2.2, \< 4.0 [\#211](https://github.com/OpenVoxProject/openbolt/pull/211) ([dependabot[bot]](https://github.com/apps/dependabot))
+
+**Fixed bugs:**
+
+- Fix `bolt guide` crash when using rainbow formatter [\#230](https://github.com/OpenVoxProject/openbolt/pull/230) ([op-ct](https://github.com/op-ct))
+
+**Closed issues:**
+
+- Generated reference pages contain broken internal cross-links \(hyphen vs underscore anchors; relocated sections\) [\#249](https://github.com/OpenVoxProject/openbolt/issues/249)
+- Publish OpenBolt docs to openvox-docs [\#232](https://github.com/OpenVoxProject/openbolt/issues/232)
+- Running `bolt guide` with `rainbow` formatter causes crash [\#229](https://github.com/OpenVoxProject/openbolt/issues/229)
+- Openbolt installs perforce puppet agent for apply\_prep [\#44](https://github.com/OpenVoxProject/openbolt/issues/44)
+
+**Merged pull requests:**
+
+- Promote puppet-runtime 2026.06.10.1 [\#254](https://github.com/OpenVoxProject/openbolt/pull/254) ([OpenVoxProjectBot](https://github.com/OpenVoxProjectBot))
+- Fix broken cross-links in generated reference pages [\#251](https://github.com/OpenVoxProject/openbolt/pull/251) ([miharp](https://github.com/miharp))
+- point install doc to https://docs.openvoxproject [\#242](https://github.com/OpenVoxProject/openbolt/pull/242) ([alaunay](https://github.com/alaunay))
+- Move static docs to openvox-docs, remove DITA [\#233](https://github.com/OpenVoxProject/openbolt/pull/233) ([miharp](https://github.com/miharp))
+
 ## [5.5.0](https://github.com/openvoxproject/openbolt/tree/5.5.0) (2026-04-30)
 
 [Full Changelog](https://github.com/openvoxproject/openbolt/compare/5.4.0...5.5.0)
