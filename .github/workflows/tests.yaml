@@ -47,7 +47,7 @@ jobs:
           bundler-cache: true
       - name: Cache modules
         id: modules
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: modules
           key: ${{ runner.os }}-modules-${{ hashFiles('**/Puppetfile') }}
@@ -69,7 +69,7 @@ jobs:
           bundler-cache: true
       - name: Cache modules
         id: modules
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: modules
           key: ${{ runner.os }}-modules-${{ hashFiles('**/Puppetfile') }}
@@ -103,7 +103,7 @@ jobs:
         run: bundle env
       - name: Cache modules
         id: modules
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: modules
           key: ${{ runner.os }}-modules-${{ hashFiles('**/Puppetfile') }}
@@ -147,7 +147,7 @@ jobs:
           bundler-cache: true
       - name: Cache modules
         id: modules
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: modules
           key: ${{ runner.os }}-modules-${{ hashFiles('**/Puppetfile') }}
@@ -182,7 +182,7 @@ jobs:
           bundler-cache: true
       - name: Cache modules
         id: modules
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: modules
           key: ${{ runner.os }}-modules-${{ hashFiles('**/Puppetfile') }}
@@ -216,7 +216,7 @@ jobs:
           bundler-cache: true
       - name: Cache modules
         id: modules
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: modules
           key: ${{ runner.os }}-modules-${{ hashFiles('**/Puppetfile') }}
@@ -257,7 +257,7 @@ jobs:
           bundler-cache: true
       - name: Cache modules
         id: modules
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: modules
           key: ${{ runner.os }}-modules-${{ hashFiles('**/Puppetfile') }}
@@ -287,7 +287,7 @@ jobs:
           bundler-cache: true
       - name: Cache modules
         id: modules
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: modules
           key: ${{ runner.os }}-modules-${{ hashFiles('**/Puppetfile') }}
@@ -316,7 +316,7 @@ jobs:
           bundler-cache: true
       - name: Cache modules
         id: modules
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: modules
           key: ${{ runner.os }}-modules-${{ hashFiles('**/Puppetfile') }}
@@ -346,7 +346,7 @@ jobs:
           bundler-cache: true
       - name: Cache modules
         id: modules
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: modules
           key: ${{ runner.os }}-modules-${{ hashFiles('**/Puppetfile') }}
@@ -374,7 +374,7 @@ jobs:
           bundler-cache: true
       - name: Cache modules
         id: modules
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: modules
           key: ${{ runner.os }}-modules-${{ hashFiles('**/Puppetfile') }}
@@ -402,7 +402,7 @@ jobs:
           bundler-cache: true
       - name: Cache modules
         id: modules
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: modules
           key: ${{ runner.os }}-modules-${{ hashFiles('**/Puppetfile') }}
@@ -430,7 +430,7 @@ jobs:
           bundler-cache: true
       - name: Cache modules
         id: modules
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: modules
           key: ${{ runner.os }}-modules-${{ hashFiles('**/Puppetfile') }}
