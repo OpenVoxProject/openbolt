@@ -112,7 +112,6 @@ describe Bolt::Applicator do
       allow(env_loader).to receive(:load).with(:type, 'applyresult').and_return(double('applyresult'))
       allow(Puppet::Pal).to receive(:assert_type)
       allow(Puppet::Pops::Serialization::ToDataConverter).to receive(:convert).and_return(ast)
-      allow(applicator).to receive(:count_statements)
     end
 
     let(:scope) { double('scope') }
