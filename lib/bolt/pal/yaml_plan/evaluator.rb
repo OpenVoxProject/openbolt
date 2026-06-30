@@ -6,9 +6,8 @@ module Bolt
   class PAL
     class YamlPlan
       class Evaluator
-        def initialize(analytics = Bolt::Analytics::NoopClient.new)
+        def initialize
           @logger = Bolt::Logger.logger(self)
-          @analytics = analytics
           @evaluator = Puppet::Pops::Parser::EvaluatingParser.new
         end
 

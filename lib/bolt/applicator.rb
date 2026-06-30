@@ -186,8 +186,6 @@ module Bolt
       type0 = Puppet.lookup(:pal_script_compiler).type('TargetSpec')
       Puppet::Pal.assert_type(type0, args[0], 'apply targets')
 
-      @executor.report_function_call('apply')
-
       options = {}
       if args.count > 1
         type1 = Puppet.lookup(:pal_script_compiler).type('Hash[String, Data]')
@@ -200,18 +198,6 @@ module Bolt
       targets = @inventory.get_targets(args[0])
 
       apply_ast(apply_body, targets, options, plan_vars)
-    end
-
-    # Count the number of top-level statements in the AST.
-    def count_statements(ast)
-      case ast
-      when Puppet::Pops::Model::Program
-        count_statements(ast.body)
-      when Puppet::Pops::Model::BlockExpression
-        ast.statements.count
-      else
-        1
-      end
     end
 
     def apply_ast(raw_ast, targets, options, plan_vars = {})
@@ -312,10 +298,6 @@ module Bolt
 
         @executor.await_results(result_promises)
       end
-
-      # Allow for report to exclude event metrics (apply_result doesn't require it to be present)
-      resource_counts = r.ok_set.map { |result| result.event_metrics&.fetch('total') }.compact
-      @executor.report_apply(count_statements(raw_ast), resource_counts)
 
       if !r.ok && !options[:catch_errors]
         raise Bolt::ApplyFailure, r
