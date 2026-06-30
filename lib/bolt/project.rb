@@ -132,6 +132,10 @@ module Bolt
         @rerunfile = File.expand_path(@data['rerunfile'], @path)
       end
 
+      if @data['puppetfile']
+        @puppetfile = Pathname.new(File.expand_path(@data['puppetfile'], @path))
+      end
+
       validate if project_file?
     end
 
