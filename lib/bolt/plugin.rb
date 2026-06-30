@@ -135,9 +135,8 @@ module Bolt
     attr_reader :pal, :plugin_context
     attr_writer :plugin_hooks
 
-    def initialize(config, pal, analytics = Bolt::Analytics::NoopClient.new, load_plugins: true)
+    def initialize(config, pal, load_plugins: true)
       @config = config
-      @analytics = analytics
       @plugin_context = PluginContext.new(config, pal, self)
       @plugins = {}
       @pal = pal
@@ -226,8 +225,6 @@ module Bolt
       plugin = by_name(plugin_name)
       raise PluginError::Unknown, plugin_name unless plugin
       raise PluginError::UnsupportedHook.new(plugin_name, hook) unless plugin.hooks.include?(hook)
-
-      @analytics.report_bundled_content("Plugin #{hook}", plugin_name)
 
       plugin.method(hook)
     end
