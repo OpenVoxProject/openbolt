@@ -64,13 +64,7 @@ describe 'file::exists' do
   end
 
   context "with an executor" do
-    # *Why* didn't we use kwargs
-    let(:executor) {
-      Bolt::Executor.new(1,
-                         Bolt::Analytics::NoopClient.new,
-                         false,
-                         false)
-    }
+    let(:executor) { Bolt::Executor.new(1, false, false) }
 
     include_examples 'file loading'
   end
