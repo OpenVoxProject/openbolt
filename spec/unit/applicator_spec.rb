@@ -123,6 +123,7 @@ describe Bolt::Applicator do
         allow(mock_logger).to receive(:level=).with(any_args)
         allow(mock_logger).to receive(:debug).with(any_args)
         allow(mock_logger).to receive(:trace).with(any_args)
+        allow(mock_logger).to receive(:info).with(any_args)
       end
 
       let(:mock_logger) { instance_double("Logging.logger") }
@@ -150,6 +151,8 @@ describe Bolt::Applicator do
         allow(mock_logger).to receive(:[]).and_return(mock_logger)
         allow(mock_logger).to receive(:level=).with(any_args)
         allow(mock_logger).to receive(:debug).with(any_args)
+        allow(mock_logger).to receive(:info).with(any_args)
+        allow(mock_logger).to receive(:trace).with(any_args)
       end
 
       let(:mock_logger) { instance_double("Logging.logger") }
