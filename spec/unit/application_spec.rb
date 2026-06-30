@@ -8,7 +8,6 @@ require 'bolt_spec/files'
 describe Bolt::Application do
   include BoltSpec::Files
 
-  let(:analytics)  { double('analytics').as_null_object }
   let(:config)     { double('config').as_null_object }
   let(:executor)   { double('executor').as_null_object }
   let(:inventory)  { double('inventory', get_targets: targets).as_null_object }
@@ -18,7 +17,6 @@ describe Bolt::Application do
 
   let(:application) do
     described_class.new(
-      analytics: analytics,
       config:    config,
       executor:  executor,
       inventory: inventory,
