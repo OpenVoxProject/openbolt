@@ -7,7 +7,6 @@ require 'bolt_spec/pal'
 require 'bolt/pal'
 require 'bolt/plugin'
 require 'bolt/plugin/env_var'
-require 'bolt/analytics'
 
 describe Bolt::Plugin do
   include BoltSpec::Config

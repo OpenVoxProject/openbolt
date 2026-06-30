@@ -4,7 +4,6 @@ require 'spec_helper'
 require 'bolt_spec/config'
 require 'bolt_spec/files'
 require 'bolt/plugin'
-require 'bolt/analytics'
 
 describe Bolt::Plugin::Module do
   include BoltSpec::Config
