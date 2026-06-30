@@ -30,9 +30,4 @@ describe 'resource' do
     is_expected.to run.with_params(*hash.values)
                       .and_return(resource)
   end
-
-  it 'reports the call to analytics' do
-    expect(executor).to receive(:report_function_call).with('resource')
-    is_expected.to run.with_params(target, 'Foo', 'bar')
-  end
 end

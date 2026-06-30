@@ -27,9 +27,4 @@ describe 'vars' do
     inventory.set_var(target, 'a' => 'b')
     is_expected.to run.with_params(target).and_return('a' => 'b')
   end
-
-  it 'reports the call to analytics' do
-    expect(executor).to receive(:report_function_call).with('vars')
-    is_expected.to run.with_params(target).and_return({})
-  end
 end

@@ -21,14 +21,6 @@ describe 'background' do
     Puppet.pop_context
   end
 
-  it 'reports the function call to analytics' do
-    expect(executor).to receive(:report_function_call).with('background')
-
-    is_expected.to(run
-      .with_params(name)
-      .with_lambda { 'a' + 'b' })
-  end
-
   it 'returns the PlanFuture the executor creates' do
     expect(executor).to receive(:create_future)
       .with(hash_including(scope: anything, name: name))

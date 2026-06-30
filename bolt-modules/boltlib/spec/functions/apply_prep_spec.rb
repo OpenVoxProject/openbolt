@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
-require 'bolt/analytics'
 require 'bolt/executor'
 require 'bolt/inventory'
 require 'bolt/plugin'

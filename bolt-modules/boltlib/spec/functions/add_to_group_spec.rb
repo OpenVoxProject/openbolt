@@ -30,11 +30,6 @@ describe 'add_to_group' do
                                        "'add_to_group' parameter 'group' expects a String value, got Integer")
   end
 
-  it 'reports the call to analytics' do
-    expect(executor).to receive(:report_function_call).with('add_to_group')
-    is_expected.to run.with_params(target, group)
-  end
-
   context 'without tasks enabled' do
     let(:tasks_enabled) { false }
 

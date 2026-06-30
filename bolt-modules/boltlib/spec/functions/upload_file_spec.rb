@@ -166,18 +166,6 @@ describe 'upload_file' do
         .and_return(result_set)
     end
 
-    it 'reports the call to analytics' do
-      expect(executor).to receive(:upload_file)
-        .with([target], full_path, destination, {}, [])
-        .and_return(result_set)
-      allow(inventory).to receive(:get_targets).with(hostname).and_return([target])
-      expect(executor).to receive(:report_function_call).with('upload_file')
-
-      is_expected.to run
-        .with_params('test/uploads/index.html', destination, hostname)
-        .and_return(result_set)
-    end
-
     context 'with description' do
       let(:message) { 'test message' }
 

@@ -31,11 +31,6 @@ describe 'set_feature' do
                                        "'set_feature' parameter 'feature' expects a String value, got Integer")
   end
 
-  it 'reports the call to analytics' do
-    expect(executor).to receive(:report_function_call).with('set_feature')
-    is_expected.to run.with_params(target, feature, true).and_return(target)
-  end
-
   context 'without tasks enabled' do
     let(:tasks_enabled) { false }
 

@@ -26,15 +26,6 @@ describe 'fail_plan' do
     is_expected.to run.with_params(error).and_raise_error(Bolt::PlanFailure)
   end
 
-  it 'reports the call to analytics' do
-    executor = Bolt::Executor.new
-    expect(executor).to receive(:report_function_call).with('fail_plan')
-
-    Puppet.override(bolt_executor: executor) do
-      is_expected.to run.with_params('foo').and_raise_error(Bolt::PlanFailure)
-    end
-  end
-
   context 'without tasks enabled' do
     let(:tasks_enabled) { false }
 

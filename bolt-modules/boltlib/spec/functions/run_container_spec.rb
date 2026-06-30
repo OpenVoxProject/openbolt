@@ -163,14 +163,6 @@ describe 'run_container' do
       end
     end
 
-    it 'reports the call to analytics' do
-      expect(executor).to receive(:report_function_call).with('run_container')
-
-      is_expected.to run
-        .with_params(image, { 'cmd' => 'whoami', 'rm' => true })
-        .and_return(result)
-    end
-
     context 'without tasks enabled' do
       let(:tasks_enabled) { false }
 

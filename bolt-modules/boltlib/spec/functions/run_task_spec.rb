@@ -173,35 +173,6 @@ describe 'run_task' do
         .and_return(Bolt::ResultSet.new([]))
     end
 
-    it 'reports the function call and task name to analytics' do
-      expect(executor).to receive(:report_function_call).with('run_task')
-      expect(executor).to receive(:report_bundled_content).with('Task', 'Test::Echo').once
-      executable = File.join(tasks_root, 'echo.sh')
-
-      expect(executor).to receive(:run_task)
-        .with([target], mock_task(executable, nil), default_args, {}, [])
-        .and_return(result_set)
-      expect(inventory).to receive(:get_targets).with(hostname).and_return([target])
-
-      is_expected.to run
-        .with_params('Test::Echo', hostname, default_args)
-        .and_return(result_set)
-    end
-
-    it 'skips reporting the function call to analytics if called internally from Bolt' do
-      expect(executor).not_to receive(:report_function_call).with('run_task')
-      executable = File.join(tasks_root, 'echo.sh')
-
-      expect(executor).to receive(:run_task)
-        .with([target], mock_task(executable, nil), default_args, kind_of(Hash), [])
-        .and_return(result_set)
-      expect(inventory).to receive(:get_targets).with(hostname).and_return([target])
-
-      is_expected.to run
-        .with_params('Test::Echo', hostname, default_args.merge('_bolt_api_call' => true))
-        .and_return(result_set)
-    end
-
     context 'without tasks enabled' do
       let(:tasks_enabled) { false }
 
