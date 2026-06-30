@@ -29,9 +29,6 @@ Puppet::Functions.create_function(:add_to_group) do
     end
 
     inventory = Puppet.lookup(:bolt_inventory)
-    executor = Puppet.lookup(:bolt_executor)
-    # Send Analytics Report
-    executor.report_function_call(self.class.name)
 
     inventory.add_to_group(inventory.get_targets(targets), group)
   end

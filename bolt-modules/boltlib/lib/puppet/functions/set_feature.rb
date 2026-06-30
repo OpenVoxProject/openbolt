@@ -32,9 +32,6 @@ Puppet::Functions.create_function(:set_feature) do
     end
 
     inventory = Puppet.lookup(:bolt_inventory)
-    executor = Puppet.lookup(:bolt_executor)
-    # Send Analytics Report
-    executor.report_function_call(self.class.name)
 
     inventory.set_feature(target, feature, value)
 

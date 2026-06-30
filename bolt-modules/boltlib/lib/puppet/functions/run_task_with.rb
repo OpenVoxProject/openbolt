@@ -79,10 +79,6 @@ Puppet::Functions.create_function(:run_task_with) do
     inventory = Puppet.lookup(:bolt_inventory)
     error_set = []
 
-    # Report to analytics
-    executor.report_function_call(self.class.name)
-    executor.report_bundled_content('Task', task_name)
-
     # Keep valid metaparameters, discarding everything else
     options = options.select { |k, _v| k.start_with?('_') }
                      .transform_keys { |k| k.sub(/^_/, '').to_sym }
@@ -181,9 +177,6 @@ Puppet::Functions.create_function(:run_task_with) do
         raise with_stack(:TASK_NO_NOOP, 'Task does not support noop')
       end
     end
-
-    # Report whether the task was run in noop mode.
-    executor.report_noop_mode(executor.noop || options[:noop])
 
     # Combine the results from the task run with any failing results that were
     # generated earlier when creating the target mapping

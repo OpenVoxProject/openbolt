@@ -62,17 +62,6 @@ Puppet::Functions.create_function(:run_task) do
     executor = Puppet.lookup(:bolt_executor)
     inventory = Puppet.lookup(:bolt_inventory)
 
-    # Bolt calls this function internally to trigger tasks from the CLI. We
-    # don't want to count those invocations.
-    unless options[:bolt_api_call]
-      # Send Analytics Report
-      executor.report_function_call(self.class.name)
-    end
-
-    # Report Analytics for bundled content, this should capture tasks run from
-    # both CLI and Plans.
-    executor.report_bundled_content('Task', task_name)
-
     # Ensure that given targets are all Target instances.
     targets = inventory.get_targets(targets)
 
@@ -137,9 +126,6 @@ Puppet::Functions.create_function(:run_task) do
         raise with_stack(:TASK_NO_NOOP, 'Task does not support noop')
       end
     end
-
-    # Report whether the task was run in noop mode.
-    executor.report_noop_mode(executor.noop || options[:noop])
 
     file_line = Puppet::Pops::PuppetStack.top_of_stack
     result = if executor.in_parallel?

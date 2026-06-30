@@ -26,9 +26,6 @@ Puppet::Functions.create_function(:set_var) do
     end
 
     inventory = Puppet.lookup(:bolt_inventory)
-    executor = Puppet.lookup(:bolt_executor)
-    # Send Analytics Report
-    executor.report_function_call(self.class.name)
 
     var_hash = { key => value }
     inventory.set_var(target, var_hash)

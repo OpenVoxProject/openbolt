@@ -31,7 +31,6 @@ Puppet::Functions.create_function(:parallelize, Puppet::Functions::InternalFunct
     end
 
     executor = Puppet.lookup(:bolt_executor)
-    executor.report_function_call(self.class.name)
 
     futures = data.map do |object|
       # We're going to immediately wait for these futures, *and* don't want

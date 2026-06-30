@@ -32,9 +32,6 @@ Puppet::Functions.create_function(:set_config) do
     end
 
     inventory = Puppet.lookup(:bolt_inventory)
-    executor = Puppet.lookup(:bolt_executor)
-    # Send Analytics Report
-    executor.report_function_call(self.class.name)
 
     unless inventory.version > 1
       raise Puppet::ParseErrorWithIssue

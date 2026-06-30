@@ -29,7 +29,6 @@ Puppet::Functions.create_function(:background, Puppet::Functions::InternalFuncti
     end
 
     executor = Puppet.lookup(:bolt_executor)
-    executor.report_function_call(self.class.name)
 
     plan_id = executor.get_current_plan_id(fiber: Fiber.current)
     executor.create_future(scope: scope, name: name, plan_id: plan_id) do |newscope|

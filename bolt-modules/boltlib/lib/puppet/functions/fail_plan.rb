@@ -39,10 +39,6 @@ Puppet::Functions.create_function(:fail_plan) do
         .from_issue_and_stack(Bolt::PAL::Issues::PLAN_OPERATION_NOT_SUPPORTED_WHEN_COMPILING, action: 'fail_plan')
     end
 
-    executor = Puppet.lookup(:bolt_executor)
-    # Send Analytics Report
-    executor.report_function_call(self.class.name)
-
     raise Bolt::PlanFailure.new(msg, kind || 'bolt/plan-failure', details, issue_code)
   end
 

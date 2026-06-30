@@ -67,9 +67,6 @@ Puppet::Functions.create_function(:upload_file, Puppet::Functions::InternalFunct
     executor = Puppet.lookup(:bolt_executor)
     inventory = Puppet.lookup(:bolt_inventory)
 
-    # Send Analytics Report
-    executor.report_function_call(self.class.name)
-
     # Find the file path if it exists, otherwise return nil
     found = Bolt::Util.find_file_from_scope(source, scope)
     unless found && Puppet::FileSystem.exist?(found)
@@ -77,7 +74,6 @@ Puppet::Functions.create_function(:upload_file, Puppet::Functions::InternalFunct
         Puppet::Pops::Issues::NO_SUCH_FILE_OR_DIRECTORY, file: source
       )
     end
-    executor.report_file_source(self.class.name, source)
     # Ensure that that given targets are all Target instances
     targets = inventory.get_targets(targets)
     if targets.empty?

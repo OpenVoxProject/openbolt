@@ -105,9 +105,6 @@ Puppet::Functions.create_function(:run_script, Puppet::Functions::InternalFuncti
     executor = Puppet.lookup(:bolt_executor)
     inventory = Puppet.lookup(:bolt_inventory)
 
-    # Send Analytics Report
-    executor.report_function_call(self.class.name)
-
     # Find the file path if it exists, otherwise return nil
     found = Bolt::Util.find_file_from_scope(script, scope)
     unless found && Puppet::FileSystem.exist?(found)
@@ -120,7 +117,6 @@ Puppet::Functions.create_function(:run_script, Puppet::Functions::InternalFuncti
         Puppet::Pops::Issues::NOT_A_FILE, file: script
       )
     end
-    executor.report_file_source(self.class.name, script)
     # Ensure that given targets are all Target instances)
     targets = inventory.get_targets(targets)
 
