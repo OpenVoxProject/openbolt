@@ -65,9 +65,6 @@ RSpec.configure do |config|
   end
 
   config.before :each do
-    # Disable analytics while running tests
-    ENV['BOLT_DISABLE_ANALYTICS'] = 'true'
-
     # Ignore local bolt-project.yaml files
     allow(Bolt::Project).to receive(:create_project)
       .and_call_original
@@ -82,8 +79,7 @@ RSpec.configure do |config|
 
   # Reset logger after every test.
   config.after :each do
-    Bolt::Logger.stream    = nil
-    Bolt::Logger.analytics = nil
+    Bolt::Logger.stream = nil
     YARD::Registry.clear if defined?(YARD::Registry)
   end
 
