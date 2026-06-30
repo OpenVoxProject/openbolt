@@ -92,8 +92,6 @@ module Bolt
       def target_names
         groups.all_targets
       end
-      # alias for analytics
-      alias node_names target_names
 
       def get_targets(targets, ext_glob: false)
         target_array = expand_targets(targets, ext_glob: ext_glob)
