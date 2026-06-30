@@ -81,6 +81,44 @@ describe Bolt::Project do
       end
     end
 
+    describe "#puppetfile" do
+      context "without a puppetfile override" do
+        let(:project_config) { {} }
+
+        it "defaults to <project>/Puppetfile" do
+          expect(project.puppetfile).to be_a(Pathname)
+          expect(project.puppetfile).to eq(project.path + 'Puppetfile')
+        end
+      end
+
+      context "with a relative puppetfile override" do
+        let(:project_config) { { 'puppetfile' => 'custom/Puppetfile.dev' } }
+
+        it "resolves the path relative to the project directory" do
+          expect(project.puppetfile).to be_a(Pathname)
+          expect(project.puppetfile).to eq(project.path + 'custom' + 'Puppetfile.dev')
+        end
+      end
+
+      context "with an absolute puppetfile override" do
+        let(:project_config) { { 'puppetfile' => '/tmp/shared/Puppetfile' } }
+
+        it "uses the absolute path verbatim" do
+          expect(project.puppetfile).to be_a(Pathname)
+          expect(project.puppetfile).to eq(Pathname.new('/tmp/shared/Puppetfile'))
+        end
+      end
+
+      context "with a non-string puppetfile value" do
+        let(:project_config) { { 'puppetfile' => 42 } }
+
+        it "fails project schema validation" do
+          expect { Bolt::Project.create_project(@project_path) }
+            .to raise_error(Bolt::ValidationError, /puppetfile/)
+        end
+      end
+    end
+
     describe "with namespaced project names" do
       let(:project_config) { { 'name' => 'puppetlabs-foo' } }
 
