@@ -132,7 +132,7 @@ module Bolt
         @rerunfile = File.expand_path(@data['rerunfile'], @path)
       end
 
-      if @data['puppetfile']
+      if @data['puppetfile'].is_a?(String)
         @puppetfile = Pathname.new(File.expand_path(@data['puppetfile'], @path))
       end
 
