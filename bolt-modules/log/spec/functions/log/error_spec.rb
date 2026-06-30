@@ -3,7 +3,7 @@
 require 'spec_helper'
 
 describe 'log::error' do
-  let(:executor)      { double('executor', report_function_call: nil, publish_event: nil) }
+  let(:executor)      { double('executor', publish_event: nil) }
   let(:tasks_enabled) { true }
 
   before(:each) do
@@ -23,11 +23,6 @@ describe 'log::error' do
       message: 'This is an error message'
     )
 
-    is_expected.to run.with_params('This is an error message')
-  end
-
-  it 'reports function call to analytics' do
-    expect(executor).to receive(:report_function_call).with('log::error')
     is_expected.to run.with_params('This is an error message')
   end
 

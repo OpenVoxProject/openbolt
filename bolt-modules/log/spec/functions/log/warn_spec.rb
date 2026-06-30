@@ -3,7 +3,7 @@
 require 'spec_helper'
 
 describe 'log::warn' do
-  let(:executor)      { double('executor', report_function_call: nil, publish_event: nil) }
+  let(:executor)      { double('executor', publish_event: nil) }
   let(:tasks_enabled) { true }
 
   before(:each) do
@@ -23,11 +23,6 @@ describe 'log::warn' do
       message: 'This is a warn message'
     )
 
-    is_expected.to run.with_params('This is a warn message')
-  end
-
-  it 'reports function call to analytics' do
-    expect(executor).to receive(:report_function_call).with('log::warn')
     is_expected.to run.with_params('This is a warn message')
   end
 
