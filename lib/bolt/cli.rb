@@ -9,7 +9,6 @@ require 'json'
 require 'io/console'
 require 'logging'
 require 'optparse'
-require_relative '../bolt/analytics'
 require_relative '../bolt/application'
 require_relative '../bolt/bolt_option_parser'
 require_relative '../bolt/config'
@@ -371,21 +370,12 @@ module Bolt
 
           @rerun = Bolt::Rerun.new(config.rerunfile, config.save_rerun)
 
-          # TODO: Subscribe this to the executor.
-          analytics = begin
-            client = Bolt::Analytics.build_client(config.analytics)
-            client.bundled_content = bundled_content(options)
-            client
-          end
-
           Bolt::Logger.configure(config.log, config.color, config.disable_warnings)
           Bolt::Logger.stream = config.stream
-          Bolt::Logger.analytics = analytics
           Bolt::Logger.flush_queue
 
           executor = Bolt::Executor.new(
             config.concurrency,
-            analytics,
             options[:noop],
             config.modified_concurrency,
             config.future
@@ -401,7 +391,7 @@ module Bolt
             config.project
           )
 
-          plugins = Bolt::Plugin.new(config, pal, analytics)
+          plugins = Bolt::Plugin.new(config, pal)
 
           inventory = Bolt::Inventory.from_config(config, plugins)
 
@@ -413,7 +403,6 @@ module Bolt
 
           check_gem_install
           warn_inventory_overrides_cli(config, options)
-          submit_screen_view(analytics, config, inventory, options)
           options[:targets] = process_target_list(plugins, @rerun, options)
 
           # TODO: Fix casing issue in Windows.
@@ -455,7 +444,6 @@ module Bolt
           end
 
           application = Bolt::Application.new(
-            analytics: analytics,
             config:    config,
             executor:  executor,
             inventory: inventory,
@@ -464,8 +452,6 @@ module Bolt
           )
 
           process_command(application, command, action, options)
-        ensure
-          analytics&.finish
         end
       end
     end
@@ -692,28 +678,6 @@ module Bolt
       end
     end
 
-    # List content that ships with Bolt.
-    #
-    # @param options [Hash] The CLI options.
-    #
-    private def bundled_content(options)
-      # We only need to enumerate bundled content when running a task or plan
-      content = { 'Plan' => [],
-                  'Task' => [],
-                  'Plugin' => Bolt::Plugin::BUILTIN_PLUGINS }
-      if %w[plan task].include?(options[:subcommand]) && options[:action] == 'run'
-        default_content = Bolt::PAL.new(Bolt::Config::Modulepath.new([]), nil, nil)
-        content['Plan'] = default_content.list_plans.each_with_object([]) do |iter, col|
-          col << iter&.first
-        end
-        content['Task'] = default_content.list_tasks.each_with_object([]) do |iter, col|
-          col << iter&.first
-        end
-      end
-
-      content
-    end
-
     # Check and warn if Bolt is installed as a gem.
     #
     private def check_gem_install
@@ -774,51 +738,6 @@ module Bolt
       return unless vars
 
       Hash[vars.map { |a| a.split('=', 2) }]
-    end
-
-    # TODO: See if this can be moved to Bolt::Analytics.
-    #
-    # Submit a screen view to the analytics client.
-    #
-    # @param analytics [Bolt::Analytics] The analytics client.
-    # @param config [Bolt::Config] The config.
-    # @param inventory [Bolt::Inventory] The inventory.
-    # @param options [Hash] The CLI options.
-    #
-    private def submit_screen_view(analytics, config, inventory, options)
-      screen = "#{options[:subcommand]}_#{options[:action]}"
-
-      if options[:action] == 'show' && options[:object]
-        screen += '_object'
-      end
-
-      pp_count, yaml_count = if File.exist?(config.project.plans_path)
-                               %w[pp yaml].map do |extension|
-                                 Find.find(config.project.plans_path.to_s)
-                                     .grep(/.*\.#{extension}/)
-                                     .length
-                               end
-                             else
-                               [0, 0]
-                             end
-
-      screen_view_fields = {
-        output_format:     config.format,
-        boltdir_type:      config.project.type,
-        puppet_plan_count: pp_count,
-        yaml_plan_count:   yaml_count
-      }
-
-      if options.key?(:targets)
-        screen_view_fields.merge!(
-          target_nodes:      options[:targets].count,
-          inventory_nodes:   inventory.node_names.count,
-          inventory_groups:  inventory.group_names.count,
-          inventory_version: inventory.version
-        )
-      end
-
-      analytics.screen_view(screen, **screen_view_fields)
     end
 
     # Issue a deprecation warning if the user is running an unsupported version
