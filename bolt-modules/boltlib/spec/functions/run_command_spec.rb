@@ -65,7 +65,6 @@ describe 'run_command' do
         .and_return(result_set)
     end
 
-
     context 'with description' do
       let(:message) { 'test message' }
 
