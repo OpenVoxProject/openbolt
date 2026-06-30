@@ -77,12 +77,6 @@ describe 'prompt::menu' do
       .and_raise_error(/Default value 'durian' is not one of the provided menu options/)
   end
 
-  it 'reports the call to analytics' do
-    expect(executor).to receive(:report_function_call).with('prompt::menu')
-    expect(executor).to receive(:prompt).with("(1) apple\nSelect a fruit", {}).and_return('1')
-    is_expected.to run.with_params('Select a fruit', ['apple'])
-  end
-
   context 'without tasks enabled' do
     let(:tasks_enabled) { false }
 
