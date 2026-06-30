@@ -25,9 +25,6 @@ Puppet::Functions.create_function(:'ctrl::do_until') do
   end
 
   def do_until(options = {})
-    # Send Analytics Report
-    Puppet.lookup(:bolt_executor) {}&.report_function_call(self.class.name)
-
     limit = options['limit'] || 0
     interval = options['interval']
 
