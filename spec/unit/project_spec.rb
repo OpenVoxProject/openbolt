@@ -101,11 +101,14 @@ describe Bolt::Project do
       end
 
       context "with an absolute puppetfile override" do
-        let(:project_config) { { 'puppetfile' => '/tmp/shared/Puppetfile' } }
+        # File.expand_path on Windows prepends the cwd's drive letter to a
+        # Unix-style absolute, so feed the same expansion through both sides.
+        let(:absolute_path)  { File.expand_path('/tmp/shared/Puppetfile') }
+        let(:project_config) { { 'puppetfile' => absolute_path } }
 
         it "uses the absolute path verbatim" do
           expect(project.puppetfile).to be_a(Pathname)
-          expect(project.puppetfile).to eq(Pathname.new('/tmp/shared/Puppetfile'))
+          expect(project.puppetfile).to eq(Pathname.new(absolute_path))
         end
       end
 
