@@ -100,15 +100,19 @@ describe Bolt::Project do
         end
       end
 
-      context "with an absolute puppetfile override" do
-        # File.expand_path on Windows prepends the cwd's drive letter to a
-        # Unix-style absolute, so feed the same expansion through both sides.
-        let(:absolute_path)  { File.expand_path('/tmp/shared/Puppetfile') }
-        let(:project_config) { { 'puppetfile' => absolute_path } }
+      context "with an absolute puppetfile path" do
+        let(:project_config) { { 'puppetfile' => File.expand_path('/tmp/shared/Puppetfile') } }
 
-        it "uses the absolute path verbatim" do
-          expect(project.puppetfile).to be_a(Pathname)
-          expect(project.puppetfile).to eq(Pathname.new(absolute_path))
+        it "raises a validation error" do
+          expect { project }.to raise_error(Bolt::ValidationError, /must be a relative path within the project directory/)
+        end
+      end
+
+      context "with a puppetfile path that escapes the project directory" do
+        let(:project_config) { { 'puppetfile' => '../outside/Puppetfile' } }
+
+        it "raises a validation error" do
+          expect { project }.to raise_error(Bolt::ValidationError, /must be a relative path within the project directory/)
         end
       end
 

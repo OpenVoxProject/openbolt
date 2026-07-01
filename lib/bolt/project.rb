@@ -133,7 +133,12 @@ module Bolt
       end
 
       if @data['puppetfile'].is_a?(String)
-        @puppetfile = Pathname.new(File.expand_path(@data['puppetfile'], @path))
+        expanded = File.expand_path(@data['puppetfile'], @path)
+        unless expanded.start_with?(@path.to_s + '/')
+          raise Bolt::ValidationError,
+                "Option 'puppetfile' must be a relative path within the project directory."
+        end
+        @puppetfile = Pathname.new(expanded)
       end
 
       validate if project_file?
