@@ -24,30 +24,30 @@ jobs:
     outputs:
       ruby: ${{ steps.ruby.outputs.versions }}
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - name: Install Ruby ${{ matrix.ruby }}
-        uses: ruby/setup-ruby@v1
+        uses: ruby/setup-ruby@0dafeac902942906541bc140009cdbf32665b601 # v1.315.0
         with:
           ruby-version: "3.4"
           bundler-cache: true
       - name: Run Rubocop
         run: bundle exec rake rubocop
       - id: ruby
-        uses: voxpupuli/ruby-version@v1
+        uses: voxpupuli/ruby-version@656370e339050da63b86b1c631f5f88a3f4c0803 # 1.0.1
 
   cache_modules_linux:
     name: 'Linux: Generate module cache'
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - name: Install Ruby
-        uses: ruby/setup-ruby@v1
+        uses: ruby/setup-ruby@0dafeac902942906541bc140009cdbf32665b601 # v1.315.0
         with:
           ruby-version: "3.4"
           bundler-cache: true
       - name: Cache modules
         id: modules
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: modules
           key: ${{ runner.os }}-modules-${{ hashFiles('**/Puppetfile') }}
@@ -61,15 +61,15 @@ jobs:
     name: 'Windows: Generate module cache'
     runs-on: 'windows-2025'
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - name: Install Ruby
-        uses: ruby/setup-ruby@v1
+        uses: ruby/setup-ruby@0dafeac902942906541bc140009cdbf32665b601 # v1.315.0
         with:
           ruby-version: "3.4"
           bundler-cache: true
       - name: Cache modules
         id: modules
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: modules
           key: ${{ runner.os }}-modules-${{ hashFiles('**/Puppetfile') }}
@@ -93,9 +93,9 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - name: Setup Ruby
-        uses: ruby/setup-ruby@v1
+        uses: ruby/setup-ruby@0dafeac902942906541bc140009cdbf32665b601 # v1.315.0
         with:
           ruby-version: ${{ matrix.ruby }}
           bundler-cache: true
@@ -103,7 +103,7 @@ jobs:
         run: bundle env
       - name: Cache modules
         id: modules
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: modules
           key: ${{ runner.os }}-modules-${{ hashFiles('**/Puppetfile') }}
@@ -114,9 +114,9 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
     - name: Initialize
-      uses: actions/checkout@v7
+      uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
     - name: Setup Ruby
-      uses: ruby/setup-ruby@v1
+      uses: ruby/setup-ruby@0dafeac902942906541bc140009cdbf32665b601 # v1.315.0
       with:
         ruby-version: 3.3
         bundler-cache: true
@@ -139,15 +139,15 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - name: Setup Ruby
-        uses: ruby/setup-ruby@v1
+        uses: ruby/setup-ruby@0dafeac902942906541bc140009cdbf32665b601 # v1.315.0
         with:
           ruby-version: ${{ matrix.ruby }}
           bundler-cache: true
       - name: Cache modules
         id: modules
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: modules
           key: ${{ runner.os }}-modules-${{ hashFiles('**/Puppetfile') }}
@@ -174,15 +174,15 @@ jobs:
         ruby: ${{ fromJSON(needs.rubocop_and_matrix.outputs.ruby) }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - name: Setup Ruby
-        uses: ruby/setup-ruby@v1
+        uses: ruby/setup-ruby@0dafeac902942906541bc140009cdbf32665b601 # v1.315.0
         with:
           ruby-version: ${{ matrix.ruby }}
           bundler-cache: true
       - name: Cache modules
         id: modules
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: modules
           key: ${{ runner.os }}-modules-${{ hashFiles('**/Puppetfile') }}
@@ -208,15 +208,15 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - name: Setup Ruby
-        uses: ruby/setup-ruby@v1
+        uses: ruby/setup-ruby@0dafeac902942906541bc140009cdbf32665b601 # v1.315.0
         with:
           ruby-version: ${{ matrix.ruby }}
           bundler-cache: true
       - name: Cache modules
         id: modules
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: modules
           key: ${{ runner.os }}-modules-${{ hashFiles('**/Puppetfile') }}
@@ -249,15 +249,15 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - name: Setup Ruby
-        uses: ruby/setup-ruby@v1
+        uses: ruby/setup-ruby@0dafeac902942906541bc140009cdbf32665b601 # v1.315.0
         with:
           ruby-version: ${{ matrix.ruby }}
           bundler-cache: true
       - name: Cache modules
         id: modules
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: modules
           key: ${{ runner.os }}-modules-${{ hashFiles('**/Puppetfile') }}
@@ -279,15 +279,15 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - name: Setup Ruby
-        uses: ruby/setup-ruby@v1
+        uses: ruby/setup-ruby@0dafeac902942906541bc140009cdbf32665b601 # v1.315.0
         with:
           ruby-version: '3.4'
           bundler-cache: true
       - name: Cache modules
         id: modules
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: modules
           key: ${{ runner.os }}-modules-${{ hashFiles('**/Puppetfile') }}
@@ -308,15 +308,15 @@ jobs:
       WINDOWS_AGENTS: true
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - name: Setup Ruby
-        uses: ruby/setup-ruby@v1
+        uses: ruby/setup-ruby@0dafeac902942906541bc140009cdbf32665b601 # v1.315.0
         with:
           ruby-version: ${{ matrix.ruby }}
           bundler-cache: true
       - name: Cache modules
         id: modules
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: modules
           key: ${{ runner.os }}-modules-${{ hashFiles('**/Puppetfile') }}
@@ -338,15 +338,15 @@ jobs:
       BOLT_WINDOWS: true
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - name: Setup Ruby
-        uses: ruby/setup-ruby@v1
+        uses: ruby/setup-ruby@0dafeac902942906541bc140009cdbf32665b601 # v1.315.0
         with:
           ruby-version: ${{ matrix.ruby }}
           bundler-cache: true
       - name: Cache modules
         id: modules
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: modules
           key: ${{ runner.os }}-modules-${{ hashFiles('**/Puppetfile') }}
@@ -366,15 +366,15 @@ jobs:
         ruby: ['3.2', '3.3']
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - name: Setup Ruby
-        uses: ruby/setup-ruby@v1
+        uses: ruby/setup-ruby@0dafeac902942906541bc140009cdbf32665b601 # v1.315.0
         with:
           ruby-version: ${{ matrix.ruby }}
           bundler-cache: true
       - name: Cache modules
         id: modules
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: modules
           key: ${{ runner.os }}-modules-${{ hashFiles('**/Puppetfile') }}
@@ -394,15 +394,15 @@ jobs:
         ruby: ${{ fromJSON(needs.rubocop_and_matrix.outputs.ruby) }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - name: Setup Ruby
-        uses: ruby/setup-ruby@v1
+        uses: ruby/setup-ruby@0dafeac902942906541bc140009cdbf32665b601 # v1.315.0
         with:
           ruby-version: ${{ matrix.ruby }}
           bundler-cache: true
       - name: Cache modules
         id: modules
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: modules
           key: ${{ runner.os }}-modules-${{ hashFiles('**/Puppetfile') }}
@@ -422,15 +422,15 @@ jobs:
         ruby: ${{ fromJSON(needs.rubocop_and_matrix.outputs.ruby) }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - name: Setup Ruby
-        uses: ruby/setup-ruby@v1
+        uses: ruby/setup-ruby@0dafeac902942906541bc140009cdbf32665b601 # v1.315.0
         with:
           ruby-version: ${{ matrix.ruby }}
           bundler-cache: true
       - name: Cache modules
         id: modules
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: modules
           key: ${{ runner.os }}-modules-${{ hashFiles('**/Puppetfile') }}
@@ -448,9 +448,9 @@ jobs:
           - windows-2025
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - name: Setup Ruby
-        uses: ruby/setup-ruby@v1
+        uses: ruby/setup-ruby@0dafeac902942906541bc140009cdbf32665b601 # v1.315.0
         with:
           ruby-version: 3.2
           bundler-cache: true
