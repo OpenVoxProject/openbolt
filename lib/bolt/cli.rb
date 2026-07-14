@@ -411,7 +411,6 @@ module Bolt
           # FINALIZING SETUP
           #
 
-          check_gem_install
           warn_inventory_overrides_cli(config, options)
           submit_screen_view(analytics, config, inventory, options)
           options[:targets] = process_target_list(plugins, @rerun, options)
@@ -712,23 +711,6 @@ module Bolt
       end
 
       content
-    end
-
-    # Check and warn if Bolt is installed as a gem.
-    #
-    private def check_gem_install
-      if ENV['BOLT_GEM'].nil? && incomplete_install?
-        msg = <<~MSG.chomp
-          Bolt might be installed as a gem. To use Bolt reliably and with all of its
-          dependencies, uninstall the 'bolt' gem and install Bolt as a package:
-          https://puppet.com/docs/bolt/latest/bolt_installing.html
-
-          If you meant to install Bolt as a gem and want to disable this warning,
-          set the BOLT_GEM environment variable.
-        MSG
-
-        Bolt::Logger.warn("gem_install", msg)
-      end
     end
 
     # Print a fatal error. Print using the outputter if it's configured.
