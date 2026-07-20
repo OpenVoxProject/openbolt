@@ -3,7 +3,7 @@
 require 'spec_helper'
 
 describe 'log::debug' do
-  let(:executor)      { double('executor', report_function_call: nil, publish_event: nil) }
+  let(:executor)      { double('executor', publish_event: nil) }
   let(:tasks_enabled) { true }
 
   before(:each) do
@@ -23,11 +23,6 @@ describe 'log::debug' do
       message: 'This is a debug message'
     )
 
-    is_expected.to run.with_params('This is a debug message')
-  end
-
-  it 'reports function call to analytics' do
-    expect(executor).to receive(:report_function_call).with('log::debug')
     is_expected.to run.with_params('This is a debug message')
   end
 

@@ -117,13 +117,6 @@ module Bolt
       # Definitions used to validate config options.
       # https://github.com/puppetlabs/bolt/blob/main/schemas/README.md
       OPTIONS = {
-        "analytics" => {
-          description: "Whether to disable analytics. Setting this option to 'false' in the system-wide " \
-                       "or user-level configuration will disable analytics for all projects, even if this " \
-                       "option is set to 'true' at the project level.",
-          type: [TrueClass, FalseClass],
-          _example: false
-        },
         "apply-settings" => {
           description: "A map of Puppet settings to use when applying Puppet code using the `apply` " \
                        "plan function or the `bolt apply` command.",
@@ -626,7 +619,6 @@ module Bolt
 
       # Options that are available in a bolt-defaults.yaml file
       DEFAULTS_OPTIONS = %w[
-        analytics
         color
         compile-concurrency
         concurrency
@@ -647,7 +639,6 @@ module Bolt
 
       # Options that are available in a bolt-project.yaml file
       PROJECT_OPTIONS = %w[
-        analytics
         apply-settings
         color
         compile-concurrency

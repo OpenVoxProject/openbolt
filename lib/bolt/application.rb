@@ -7,18 +7,16 @@ require_relative '../bolt/util'
 
 module Bolt
   class Application
-    attr_reader :analytics, :config, :executor, :inventory, :logger, :pal, :plugins
-    private     :analytics, :config, :executor, :inventory, :logger, :pal, :plugins
+    attr_reader :config, :executor, :inventory, :logger, :pal, :plugins
+    private     :config, :executor, :inventory, :logger, :pal, :plugins
 
     def initialize(
-      analytics:,
       config:,
       executor:,
       inventory:,
       pal:,
       plugins:
     )
-      @analytics = analytics
       @config    = config
       @executor  = executor
       @inventory = inventory
@@ -163,8 +161,6 @@ module Bolt
     #
     def show_guide(topic)
       if (path = load_guides[topic])
-        analytics.event('Guide', 'known_topic', label: topic)
-
         begin
           guide = Bolt::Util.read_yaml_hash(path, 'guide')
         rescue SystemCallError => e
@@ -179,7 +175,6 @@ module Bolt
 
         Bolt::Util.symbolize_top_level_keys(guide)
       else
-        analytics.event('Guide', 'unknown_topic', label: topic)
         raise Bolt::Error.new(
           "Unknown topic '#{topic}'. For a list of available topics, run 'bolt guide'.",
           'bolt/unknown-topic'

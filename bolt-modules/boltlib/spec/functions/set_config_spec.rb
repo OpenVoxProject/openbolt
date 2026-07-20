@@ -43,9 +43,4 @@ describe 'set_config' do
                       .and_raise_error(ArgumentError,
                                        /'set_config' parameter 'key_or_key_path' expects a value of type String/)
   end
-
-  it 'reports the call to analytics' do
-    expect(executor).to receive(:report_function_call).with('set_config')
-    is_expected.to run.with_params(target, 'a', 'b').and_return(target)
-  end
 end

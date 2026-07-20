@@ -18,9 +18,4 @@ describe 'file::join' do
   it 'joins file paths' do
     is_expected.to run.with_params('foo', 'bar', 'bak').and_return('foo/bar/bak')
   end
-
-  it 'reports function call to analytics' do
-    expect(executor).to receive(:report_function_call).with('file::join')
-    is_expected.to run.with_params('foo', 'bar', 'bak')
-  end
 end

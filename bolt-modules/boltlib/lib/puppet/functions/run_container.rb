@@ -36,9 +36,7 @@ Puppet::Functions.create_function(:run_container) do
         .from_issue_and_stack(Bolt::PAL::Issues::PLAN_OPERATION_NOT_SUPPORTED_WHEN_COMPILING, action: 'run_container')
     end
 
-    # Send Analytics Report
     executor = Puppet.lookup(:bolt_executor)
-    executor.report_function_call(self.class.name)
 
     options = options.transform_keys { |k| k.sub(/^_/, '').to_sym }
     validate_options(options)

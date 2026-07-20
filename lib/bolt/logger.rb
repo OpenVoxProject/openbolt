@@ -106,10 +106,6 @@ module Bolt
       Logging.logger[name]
     end
 
-    def self.analytics=(analytics)
-      @analytics = analytics
-    end
-
     def self.console_layout(color)
       color_scheme = :bolt if color
       Logging.layouts.pattern(
@@ -242,12 +238,10 @@ module Bolt
     end
 
     private_class_method def self.do_deprecate(msg, id)
-      @analytics&.event('Warn', 'deprecation', label: id)
       do_warn(msg, id)
     end
 
     private_class_method def self.do_deprecate_once(msg, id)
-      @analytics&.event('Warn', 'deprecation', label: id)
       do_warn_once(msg, id)
     end
   end

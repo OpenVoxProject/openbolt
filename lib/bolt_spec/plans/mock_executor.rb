@@ -335,18 +335,6 @@ module BoltSpec
 
       def prompt(_prompt, _options); end
 
-      def report_function_call(_function); end
-
-      def report_bundled_content(_mode, _name); end
-
-      def report_file_source(_plan_function, _source); end
-
-      def report_apply(_statements, _resources); end
-
-      def report_yaml_plan(_plan); end
-
-      def report_noop_mode(_mode); end
-
       def shutdown; end
 
       def subscribe(_subscriber, _types = nil); end

@@ -37,10 +37,6 @@ Puppet::Functions.create_function(:puppetdb_fact) do
 
   def puppetdb_fact_with_instance(certnames, instance)
     puppetdb_client = Puppet.lookup(:bolt_pdb_client)
-    # Bolt executor not expected when invoked from apply block
-    executor = Puppet.lookup(:bolt_executor) { nil }
-    # Send Analytics Report
-    executor&.report_function_call(self.class.name)
 
     puppetdb_client.facts_for_node(certnames, instance)
   end

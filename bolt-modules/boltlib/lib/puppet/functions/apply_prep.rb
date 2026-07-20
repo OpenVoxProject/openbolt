@@ -36,8 +36,6 @@ Puppet::Functions.create_function(:apply_prep) do
     options = options.slice(*%w[_catch_errors _required_modules _run_as])
     targets = inventory.get_targets(target_spec)
 
-    executor.report_function_call(self.class.name)
-
     executor.log_action('install puppet and gather facts', targets) do
       executor.without_default_logging do
         install_results = install_agents(targets, options)

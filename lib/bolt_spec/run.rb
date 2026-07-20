@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require 'bolt/analytics'
 require 'bolt/config'
 require 'bolt/executor'
 require 'bolt/inventory'
@@ -159,7 +158,6 @@ module BoltSpec
         @config_data = config_data || {}
         @inventory_data = inventory_data || {}
         @project_path = project_path
-        @analytics = Bolt::Analytics::NoopClient.new
       end
 
       def config
@@ -194,43 +192,43 @@ module BoltSpec
 
       # Adapted from CLI
       def run_task(task_name, targets, params, noop: false)
-        executor = Bolt::Executor.new(config.concurrency, @analytics, noop)
+        executor = Bolt::Executor.new(config.concurrency, noop)
         pal.run_task(task_name, targets, params, executor, inventory, nil) { |_ev| nil }
       end
 
       # Adapted from CLI does not handle nodes or plan_job reporting
       def run_plan(plan_name, params, noop: false)
-        executor = Bolt::Executor.new(config.concurrency, @analytics, noop)
+        executor = Bolt::Executor.new(config.concurrency, noop)
         pal.run_plan(plan_name, params, executor, inventory, puppetdb_client)
       end
 
       def run_command(command, targets, options)
-        executor = Bolt::Executor.new(config.concurrency, @analytics)
+        executor = Bolt::Executor.new(config.concurrency)
         targets = inventory.get_targets(targets)
         executor.run_command(targets, command, options)
       end
 
       def run_script(script, targets, arguments, options = {})
-        executor = Bolt::Executor.new(config.concurrency, @analytics)
+        executor = Bolt::Executor.new(config.concurrency)
         targets = inventory.get_targets(targets)
         executor.run_script(targets, script, arguments, options)
       end
 
       def download_file(source, dest, targets, options = {})
-        executor = Bolt::Executor.new(config.concurrency, @analytics)
+        executor = Bolt::Executor.new(config.concurrency)
         targets = inventory.get_targets(targets)
         executor.download_file(targets, source, dest, options)
       end
 
       def upload_file(source, dest, targets, options = {})
-        executor = Bolt::Executor.new(config.concurrency, @analytics)
+        executor = Bolt::Executor.new(config.concurrency)
         targets = inventory.get_targets(targets)
         executor.upload_file(targets, source, dest, options)
       end
 
       def apply_manifest(code, targets, filename = nil, noop = false)
         ast = pal.parse_manifest(code, filename)
-        executor = Bolt::Executor.new(config.concurrency, @analytics, noop)
+        executor = Bolt::Executor.new(config.concurrency, noop)
         targets = inventory.get_targets(targets)
 
         pal.in_plan_compiler(executor, inventory, puppetdb_client) do |compiler|

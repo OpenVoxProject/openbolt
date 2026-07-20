@@ -78,9 +78,6 @@ Puppet::Functions.create_function(:puppetdb_command) do
       )
     end
 
-    # Send analytics report.
-    Puppet.lookup(:bolt_executor).report_function_call(self.class.name)
-
     puppetdb_client = Puppet.lookup(:bolt_pdb_client)
 
     # Error if the PDB client does not implement :send_command

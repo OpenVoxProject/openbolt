@@ -112,7 +112,6 @@ describe Bolt::Applicator do
       allow(env_loader).to receive(:load).with(:type, 'applyresult').and_return(double('applyresult'))
       allow(Puppet::Pal).to receive(:assert_type)
       allow(Puppet::Pops::Serialization::ToDataConverter).to receive(:convert).and_return(ast)
-      allow(applicator).to receive(:count_statements)
     end
 
     let(:scope) { double('scope') }
@@ -124,6 +123,7 @@ describe Bolt::Applicator do
         allow(mock_logger).to receive(:level=).with(any_args)
         allow(mock_logger).to receive(:debug).with(any_args)
         allow(mock_logger).to receive(:trace).with(any_args)
+        allow(mock_logger).to receive(:info).with(any_args)
       end
 
       let(:mock_logger) { instance_double("Logging.logger") }
@@ -151,6 +151,8 @@ describe Bolt::Applicator do
         allow(mock_logger).to receive(:[]).and_return(mock_logger)
         allow(mock_logger).to receive(:level=).with(any_args)
         allow(mock_logger).to receive(:debug).with(any_args)
+        allow(mock_logger).to receive(:info).with(any_args)
+        allow(mock_logger).to receive(:trace).with(any_args)
       end
 
       let(:mock_logger) { instance_double("Logging.logger") }

@@ -10,8 +10,7 @@ require 'bolt/inventory'
 describe "Bolt::Executor" do
   include BoltSpec::Task
 
-  let(:analytics) { Bolt::Analytics::NoopClient.new }
-  let(:executor) { Bolt::Executor.new(1, analytics).subscribe(collector) }
+  let(:executor) { Bolt::Executor.new(1).subscribe(collector) }
   let(:collector) { BoltSpec::EventCollector.new }
   let(:command) { "hostname" }
   let(:script) { '/path/to/script.sh' }
@@ -617,7 +616,7 @@ describe "Bolt::Executor" do
       inventory.get_targets(%w[node1 node2 node3])
     }
 
-    let(:executor) { Bolt::Executor.new(2, analytics) }
+    let(:executor) { Bolt::Executor.new(2) }
 
     it "batch_execute only creates 2 threads" do
       value = {
@@ -692,7 +691,7 @@ describe "Bolt::Executor" do
   end
 
   context 'with modified default concurrency' do
-    let(:executor) { Bolt::Executor.new(2, analytics, false, true).subscribe(collector) }
+    let(:executor) { Bolt::Executor.new(2, false, true).subscribe(collector) }
     let(:collector) { BoltSpec::EventCollector.new }
 
     it "doesn't warn if concurrency limit isn't reached" do
@@ -713,65 +712,6 @@ describe "Bolt::Executor" do
 
       executor.run_command(targets, command, {})
       expect(@log_output.readlines).not_to include(/The ulimit is low, which might cause file limit issues/)
-    end
-  end
-
-  context 'reporting analytics data' do
-    let(:targets) {
-      inventory.get_targets(['ssh://node1', 'ssh://node2', 'winrm://node3', 'jail://node4'])
-    }
-
-    it 'reports one event for each transport used' do
-      expect(analytics).to receive(:event).with('Transport', 'initialize', label: 'ssh', value: 2).once
-      expect(analytics).to receive(:event).with('Transport', 'initialize', label: 'winrm', value: 1).once
-      expect(analytics).to receive(:event).with('Transport', 'initialize', label: 'jail', value: 1).once
-
-      executor.batch_execute(targets) {}
-      executor.batch_execute(targets) {}
-    end
-
-    context "#report_function_call" do
-      it 'reports an event for the given function' do
-        expect(analytics).to receive(:event).with('Plan', 'call_function', label: 'add_facts')
-
-        executor.report_function_call('add_facts')
-      end
-    end
-
-    context "#report_bundled_content" do
-      let(:executor) { Bolt::Executor.new(2, analytics) }
-
-      before :each do
-        analytics.bundled_content = %w[canary facts]
-      end
-
-      it 'reports an event when bundled plan is used' do
-        expect(analytics).to receive(:report_bundled_content).with('Plan', 'canary')
-
-        executor.report_bundled_content('Plan', 'canary')
-      end
-
-      it 'reports an event when bundled task is used' do
-        expect(analytics).to receive(:report_bundled_content).with('Task', 'facts')
-
-        executor.report_bundled_content('Task', 'facts')
-      end
-    end
-
-    context "#report_file_source" do
-      let(:executor) { Bolt::Executor.new(2, analytics) }
-
-      it 'reports when a file path is absolute' do
-        expect(analytics).to receive(:event).with('Plan', 'run_script', label: 'absolute')
-
-        executor.report_file_source('run_script', '/foo/bar')
-      end
-
-      it 'reports when a file path is module' do
-        expect(analytics).to receive(:event).with('Plan', 'run_script', label: 'module')
-
-        executor.report_file_source('run_script', 'my_module/my_file')
-      end
     end
   end
 end

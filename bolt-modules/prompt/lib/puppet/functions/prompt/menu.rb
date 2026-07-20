@@ -57,9 +57,6 @@ Puppet::Functions.create_function(:'prompt::menu') do
     options  = options.transform_keys(&:to_sym)
     executor = Puppet.lookup(:bolt_executor)
 
-    # Send analytics report
-    executor.report_function_call(self.class.name)
-
     # Error if there are no options
     if menu.empty?
       raise Bolt::ValidationError, "Menu cannot be empty"

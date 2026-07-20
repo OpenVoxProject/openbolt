@@ -12,9 +12,6 @@ Puppet::Functions.create_function(:'file::delete') do
   end
 
   def delete(filename)
-    # Send Analytics Report
-    Puppet.lookup(:bolt_executor) {}&.report_function_call(self.class.name)
-
     File.delete(filename)
     nil
   end

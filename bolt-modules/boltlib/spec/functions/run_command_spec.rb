@@ -65,18 +65,6 @@ describe 'run_command' do
         .and_return(result_set)
     end
 
-    it 'reports the call to analytics' do
-      expect(executor).to receive(:report_function_call).with('run_command')
-      expect(executor).to receive(:run_command)
-        .with([target], command, {}, [])
-        .and_return(result_set)
-      expect(inventory).to receive(:get_targets).with(hostname).and_return([target])
-
-      is_expected.to run
-        .with_params(command, hostname)
-        .and_return(result_set)
-    end
-
     context 'with description' do
       let(:message) { 'test message' }
 

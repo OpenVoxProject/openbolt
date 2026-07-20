@@ -6,7 +6,6 @@ require 'json'
 require 'logging'
 require 'pathname'
 require 'set'
-require_relative '../bolt/analytics'
 require_relative '../bolt/config'
 require_relative '../bolt/fiber_executor'
 require_relative '../bolt/puppetdb'
@@ -41,13 +40,11 @@ module Bolt
     attr_accessor :run_as
 
     def initialize(concurrency = 1,
-                   analytics = Bolt::Analytics::NoopClient.new,
                    noop = false,
                    modified_concurrency = false,
                    future = {})
       # lazy-load expensive gem code
       require 'concurrent'
-      @analytics = analytics
       @logger = Bolt::Logger.logger(self)
 
       @transports = Bolt::TRANSPORTS.each_with_object({}) do |(key, val), coll|
@@ -61,7 +58,6 @@ module Bolt
                            end
                          end
       end
-      @reported_transports = Set.new
       @subscribers = {}
       @publisher = Concurrent::SingleThreadExecutor.new
       @publisher.post { Thread.current[:name] = 'event-publisher' }
@@ -141,7 +137,6 @@ module Bolt
 
       targets.group_by(&:transport).flat_map do |protocol, protocol_targets|
         transport = transport(protocol)
-        report_transport(transport, protocol_targets.count)
         transport.batches(protocol_targets).flat_map do |batch|
           batch_promises = Array(batch).each_with_object({}) do |target, h|
             h[target] = Concurrent::Promise.new(executor: :immediate)
@@ -226,59 +221,6 @@ module Bolt
       results
     end
 
-    private def report_transport(transport, count)
-      name = transport.class.name.split('::').last.downcase
-      unless @reported_transports.include?(name)
-        @analytics&.event('Transport', 'initialize', label: name, value: count)
-      end
-      @reported_transports.add(name)
-    end
-
-    def report_function_call(function)
-      @analytics&.event('Plan', 'call_function', label: function)
-    end
-
-    def report_bundled_content(mode, name)
-      @analytics.report_bundled_content(mode, name)
-    end
-
-    def report_file_source(plan_function, source)
-      label = Pathname.new(source).absolute? ? 'absolute' : 'module'
-      @analytics&.event('Plan', plan_function, label: label)
-    end
-
-    def report_noop_mode(noop)
-      @analytics&.event('Task', 'noop', label: (!!noop).to_s)
-    end
-
-    def report_apply(statement_count, resource_counts)
-      data = { statement_count: statement_count }
-
-      unless resource_counts.empty?
-        sum = resource_counts.inject(0) { |accum, i| accum + i }
-        # Intentionally rounded to an integer. High precision isn't useful.
-        data[:resource_mean] = sum / resource_counts.length
-      end
-
-      @analytics&.event('Apply', 'ast', **data)
-    end
-
-    def report_yaml_plan(plan)
-      steps = plan.steps.count
-      return_type = case plan.return
-                    when Bolt::PAL::YamlPlan::EvaluableString
-                      'expression'
-                    when nil
-                      nil
-                    else
-                      'value'
-                    end
-
-      @analytics&.event('Plan', 'yaml', plan_steps: steps, return_type: return_type)
-    rescue StandardError => e
-      @logger.trace { "Failed to submit analytics event: #{e.message}" }
-    end
-
     def with_node_logging(description, batch, log_level = :info)
       @logger.send(log_level, "#{description} on #{batch.map(&:safe_name)}")
       publish_event(type: :start_spin)
@@ -306,8 +248,6 @@ module Bolt
       log_action(description, targets) do
         options[:run_as] = run_as if run_as && !options.key?(:run_as)
         options[:script_interpreter] = (future || {}).fetch('script_interpreter', false)
-
-        @analytics&.event('Future', 'script_interpreter', label: options[:script_interpreter].to_s)
 
         batch_execute(targets) do |transport, batch|
           with_node_logging("Running script #{script} with '#{arguments.to_json}'", batch) do

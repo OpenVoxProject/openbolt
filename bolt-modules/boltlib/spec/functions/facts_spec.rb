@@ -22,9 +22,4 @@ describe 'facts' do
   it 'should return an empty hash if no facts are set' do
     is_expected.to run.with_params(target).and_return({})
   end
-
-  it 'reports the call to analytics' do
-    expect(executor).to receive(:report_function_call).with('facts')
-    is_expected.to run.with_params(target)
-  end
 end

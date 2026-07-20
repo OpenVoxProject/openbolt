@@ -52,15 +52,6 @@ describe 'running a plan with write_file' do
         expect(data['value']['stdout']).to match(/#{content}/)
       end
     end
-
-    it 'reports multiple function calls to analytics' do
-      with_tempfile_containing('inventory', YAML.dump(inventory), '.yaml') do |inv|
-        expect_any_instance_of(Bolt::Executor).to receive(:report_function_call).with('write_file')
-        expect_any_instance_of(Bolt::Executor).to receive(:report_function_call).with('file::write')
-        expect_any_instance_of(Bolt::Executor).to receive(:report_function_call).with('upload_file')
-        run_cli_json(%W[plan run write_file -i #{inv.path} -m #{modulepath}] + params)
-      end
-    end
   end
 
   describe 'over ssh', ssh: true do

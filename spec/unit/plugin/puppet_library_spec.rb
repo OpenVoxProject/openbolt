@@ -3,7 +3,6 @@
 require 'spec_helper'
 require 'bolt_spec/files'
 require 'bolt/plugin'
-require 'bolt/analytics'
 require 'bolt_spec/plans'
 
 describe Bolt::Plugin::Module do

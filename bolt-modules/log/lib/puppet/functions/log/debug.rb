@@ -30,7 +30,6 @@ Puppet::Functions.create_function(:'log::debug') do
     end
 
     Puppet.lookup(:bolt_executor).tap do |executor|
-      executor.report_function_call(self.class.name)
       executor.publish_event(type: :log, level: :debug, message: Bolt::Util::Format.stringify(message))
     end
 

@@ -38,12 +38,6 @@ describe 'puppetdb_command' do
       .and_raise_error(/PuppetDB client .* does not implement :send_command/)
   end
 
-  it 'reports the call to analytics' do
-    expect(pdb_client).to receive(:send_command).and_return('uuid')
-    expect(executor).to receive(:report_function_call).with('puppetdb_command')
-    is_expected.to run.with_params(command, version, payload)
-  end
-
   context 'without tasks enabled' do
     let(:tasks) { false }
 

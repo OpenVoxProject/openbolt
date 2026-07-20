@@ -103,9 +103,6 @@ Puppet::Functions.create_function(:download_file, Puppet::Functions::InternalFun
       FileUtils.rm_r(Dir.glob(destination + '*'), secure: true)
     end
 
-    # Send Analytics Report
-    executor.report_function_call(self.class.name)
-
     # Ensure that that given targets are all Target instances
     targets = inventory.get_targets(targets)
     if targets.empty?

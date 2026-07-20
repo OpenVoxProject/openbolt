@@ -23,14 +23,6 @@ describe 'wait' do
     Puppet.pop_context
   end
 
-  it 'reports the function call to analytics' do
-    expect(executor).to receive(:report_function_call).with('wait')
-    expect(executor).to receive(:wait).with([future]).and_return(result)
-
-    is_expected.to(run
-      .with_params(future))
-  end
-
   context 'with no futures' do
     it "passes 'nil' to the executor" do
       expect(executor).to receive(:wait).with(nil).and_return(result)

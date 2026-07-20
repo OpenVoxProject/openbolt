@@ -45,10 +45,5 @@ describe 'get_target' do
     it 'errors on unknown types' do
       is_expected.to run.with_params(double('anything')).and_raise_error(ArgumentError)
     end
-
-    it 'reports the call to analytics' do
-      expect(executor).to receive(:report_function_call).with('get_target')
-      is_expected.to run.with_params(hostname).and_return(target)
-    end
   end
 end

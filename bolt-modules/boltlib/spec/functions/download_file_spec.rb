@@ -180,23 +180,6 @@ describe 'download_file' do
         .and_return(result_set)
     end
 
-    it 'reports the call to analytics' do
-      expect(executor).to receive(:download_file)
-        .with([target], source, project_destination, {}, [])
-        .and_return(result_set)
-
-      allow(inventory).to receive(:get_targets)
-        .with(hostname)
-        .and_return([target])
-
-      expect(executor).to receive(:report_function_call)
-        .with('download_file')
-
-      is_expected.to run
-        .with_params(source, destination, hostname)
-        .and_return(result_set)
-    end
-
     context 'with description' do
       let(:message) { 'test message' }
 

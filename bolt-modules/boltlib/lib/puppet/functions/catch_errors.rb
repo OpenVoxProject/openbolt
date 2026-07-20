@@ -36,10 +36,6 @@ Puppet::Functions.create_function(:catch_errors) do
                               action: self.class.name)
     end
 
-    executor = Puppet.lookup(:bolt_executor)
-    # Send Analytics Report
-    executor.report_function_call(self.class.name)
-
     begin
       yield
     rescue Puppet::PreformattedError => e

@@ -58,17 +58,6 @@ describe 'run_plan' do
       end
     end
 
-    it 'reports the function call to analytics' do
-      expect(executor).to receive(:report_function_call).with('run_plan')
-      expect(executor).to receive(:report_bundled_content).with('Plan', 'test::run_me').once
-      is_expected.to run.with_params('test::run_me').and_return('worked2')
-    end
-
-    it 'skips reporting the function call to analytics if called internally from Bolt' do
-      expect(executor).not_to receive(:report_function_call)
-      is_expected.to run.with_params('test::run_me', '_bolt_api_call' => true).and_return('worked2')
-    end
-
     context 'using the name of the module' do
       it 'the plans/init.pp is found and called' do
         is_expected.to run.with_params('test').and_return('worked4')

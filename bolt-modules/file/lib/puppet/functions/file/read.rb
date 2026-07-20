@@ -16,10 +16,6 @@ Puppet::Functions.create_function(:'file::read', Puppet::Functions::InternalFunc
   end
 
   def read(scope, filename)
-    # Send Analytics Report
-    executor = Puppet.lookup(:bolt_executor) {}
-    executor&.report_function_call(self.class.name)
-
     # Find the file path if it exists, otherwise return nil
     found = Bolt::Util.find_file_from_scope(filename, scope)
     unless found && Puppet::FileSystem.exist?(found)
@@ -27,7 +23,6 @@ Puppet::Functions.create_function(:'file::read', Puppet::Functions::InternalFunc
         Puppet::Pops::Issues::NO_SUCH_FILE_OR_DIRECTORY, file: filename
       )
     end
-    executor&.report_file_source(self.class.name, filename)
     File.read(found)
   end
 end

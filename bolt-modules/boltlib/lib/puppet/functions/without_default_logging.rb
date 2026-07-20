@@ -29,8 +29,6 @@ Puppet::Functions.create_function(:without_default_logging) do
     end
 
     executor = Puppet.lookup(:bolt_executor)
-    # Send Analytics Report
-    executor.report_function_call(self.class.name)
 
     executor.without_default_logging do
       yield

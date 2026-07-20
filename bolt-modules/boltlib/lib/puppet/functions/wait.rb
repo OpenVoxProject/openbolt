@@ -120,7 +120,6 @@ Puppet::Functions.create_function(:wait, Puppet::Functions::InternalFunction) do
     valid[:timeout] = timeout if timeout
 
     executor = Puppet.lookup(:bolt_executor)
-    executor.report_function_call(self.class.name)
 
     # If we get a single Future, make sure it's an array. If we didn't get any
     # futures pass that on to wait so we can continue collecting any futures

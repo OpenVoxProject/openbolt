@@ -22,11 +22,7 @@ describe Bolt::CLI do
     # place.
     allow(Bolt::Logger).to receive(:configure)
 
-    # Disable analytics screen view. It doesn't like doubles. :(
-    allow_any_instance_of(described_class).to receive(:submit_screen_view)
-
     # Stub all the things.
-    allow(Bolt::Analytics).to receive(:build_client).and_return(analytics)
     allow(Bolt::Application).to receive(:new).and_return(application)
     allow(Bolt::Config).to receive(:from_project).and_return(config)
     allow(Bolt::Executor).to receive(:new).and_return(executor)
@@ -44,7 +40,6 @@ describe Bolt::CLI do
   # Allow doubles to receive all messages. Messages to doubles will return the
   # double.
   # https://relishapp.com/rspec/rspec-mocks/docs/basics/null-object-doubles
-  let(:analytics)   { double('analytics').as_null_object }
   let(:application) { double('application').as_null_object }
   let(:config)      { double('config').as_null_object }
   let(:executor)    { double('executor').as_null_object }
@@ -503,66 +498,6 @@ describe Bolt::CLI do
       end
     end
 
-    describe 'analytics' do
-      before(:each) do
-        allow(cli).to receive(:submit_screen_view).and_call_original
-        allow(File).to receive(:exist?).and_return(false)
-      end
-
-      it 'submits a screen view' do
-        allow(analytics).to receive(:screen_view) do |screen, fields|
-          expect(screen).to eq('command_run')
-          expect(fields).to include(
-            output_format:     anything,
-            boltdir_type:      anything,
-            puppet_plan_count: anything,
-            yaml_plan_count:   anything
-          )
-        end
-
-        cli.execute({ subcommand: 'command', action: 'run' })
-      end
-
-      it 'submits a screen view with inventory information' do
-        allow(analytics).to receive(:screen_view) do |screen, fields|
-          expect(screen).to eq('task_run')
-          expect(fields).to include(
-            target_nodes:      anything,
-            inventory_nodes:   anything,
-            inventory_groups:  anything,
-            inventory_version: anything
-          )
-        end
-
-        cli.execute({ subcommand: 'task', action: 'run', targets: [] })
-      end
-
-      it 'counts Puppet language and YAML plans in the project' do
-        with_project do |project|
-          FileUtils.mkdir_p(project.path + 'plans')
-          FileUtils.touch(project.path + 'plans' + 'puppet.pp')
-          FileUtils.touch(project.path + 'plans' + 'yaml.yaml')
-
-          allow(config).to receive(:project).and_return(project)
-          allow(File).to receive(:exist?).and_call_original
-
-          allow(analytics).to receive(:screen_view) do |_screen, fields|
-            expect(fields).to include(
-              puppet_plan_count: 1,
-              yaml_plan_count:   1
-            )
-          end
-
-          cli.execute({})
-        end
-      end
-
-      it 'completes analytics submission' do
-        expect(analytics).to receive(:finish)
-        cli.execute({})
-      end
-    end
-
     describe 'CLI overrides' do
       let(:options) { { transport: 'ssh' } }
 
@@ -603,40 +538,6 @@ describe Bolt::CLI do
         allow(plugin).to receive(:puppetdb_client).and_return(pdb_client)
         expect(pdb_client).to receive(:query_certnames).with(query)
         cli.execute(options)
-      end
-    end
-
-    describe 'bundled content' do
-      before(:each) do
-        allow(pal).to receive(:list_plans).and_return([%w[plan description]])
-        allow(pal).to receive(:list_tasks).and_return([%w[task description]])
-      end
-
-      it 'calculates bundled content for a plan' do
-        expect(analytics).to receive(:bundled_content=) do |content|
-          expect(content['Plan']).not_to be_empty
-          expect(content['Task']).not_to be_empty
-        end
-
-        cli.execute(subcommand: 'plan', action: 'run', object: 'plan')
-      end
-
-      it 'calculates bundled content for a task' do
-        expect(analytics).to receive(:bundled_content=) do |content|
-          expect(content['Plan']).not_to be_empty
-          expect(content['Task']).not_to be_empty
-        end
-
-        cli.execute(subcommand: 'task', action: 'run', object: 'task')
-      end
-
-      it 'does not calculate bundled content for other commands' do
-        expect(analytics).to receive(:bundled_content=) do |content|
-          expect(content['Plan']).to be_empty
-          expect(content['Task']).to be_empty
-        end
-
-        cli.execute(subcommand: 'command', action: 'run', object: 'command')
       end
     end
 

@@ -45,9 +45,6 @@ Puppet::Functions.create_function(:prompt) do
     options  = options.transform_keys(&:to_sym)
     executor = Puppet.lookup(:bolt_executor)
 
-    # Send analytics report
-    executor.report_function_call(self.class.name)
-
     # Require default to be a string value
     if options.key?(:default) && !options[:default].is_a?(String)
       raise Bolt::ValidationError, "Option 'default' must be a string"

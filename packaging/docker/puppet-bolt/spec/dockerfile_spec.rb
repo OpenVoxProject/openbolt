@@ -30,12 +30,6 @@ describe 'puppet-bolt container' do
     teardown_container(container)
   end
 
-  it 'should run a bolt command and analytics should be disabled' do
-    result = run_command("docker run -i #{@image} command run whoami -t localhost --log-level debug 2>&1")
-    expect(result[:stdout]).to match(/root/)
-    expect(result[:stdout]).to match(/Analytics opt-out is set, analytics will be disabled/)
-  end
-
   it 'should support logging UTF-8 characters' do
     result = run_command("docker run -i #{@image} command run 'echo Hello! 😆' -t localhost --log-level debug 2>&1")
     expect(result[:stdout]).to match(/Hello! 😆/)

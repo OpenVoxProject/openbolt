@@ -186,22 +186,6 @@ describe 'run_task_with' do
         .and_return(Bolt::ResultSet.new([])))
     end
 
-    it 'reports the function call and task name to analytics' do
-      expect(executor).to receive(:report_function_call).with('run_task_with')
-      expect(executor).to receive(:report_bundled_content).with('Task', 'Test::Echo').once
-      executable = File.join(tasks_root, 'echo.sh')
-
-      expect(executor).to receive(:run_task_with)
-        .with(target_mapping, mock_task(executable, nil), {}, [])
-        .and_return(result_set)
-      expect(inventory).to receive(:get_targets).with(hosts).and_return(targets)
-
-      is_expected.to(run
-        .with_params('Test::Echo', hosts)
-        .with_lambda { |_| task_params }
-        .and_return(result_set))
-    end
-
     context 'with description' do
       let(:message) { 'test message' }
 

@@ -17,8 +17,6 @@ Puppet::Functions.create_function(:'dir::children', Puppet::Functions::InternalF
   end
 
   def children(scope, dirname)
-    # Send Analytics Report
-    Puppet.lookup(:bolt_executor) {}&.report_function_call(self.class.name)
     modname, subpath = dirname.split(File::SEPARATOR, 2)
     mod_path = scope.compiler.environment.module(modname)&.path
 

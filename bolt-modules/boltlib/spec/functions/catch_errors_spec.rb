@@ -16,12 +16,6 @@ describe 'catch_errors' do
     Puppet.pop_context
   end
 
-  it 'reports the call to analytics' do
-    expect(executor).to receive(:report_function_call).with('catch_errors')
-    is_expected.to(run
-      .with_lambda { 'abcd' })
-  end
-
   context 'without tasks enabled' do
     let(:tasks_enabled) { false }
 

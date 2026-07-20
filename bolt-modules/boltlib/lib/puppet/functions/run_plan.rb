@@ -67,16 +67,6 @@ Puppet::Functions.create_function(:run_plan, Puppet::Functions::InternalFunction
     options, params = args.partition { |k, _v| k.start_with?('_') }.map(&:to_h)
     options = options.transform_keys { |k| k.sub(/^_/, '').to_sym }
 
-    # Bolt calls this function internally to trigger plans from the CLI. We
-    # don't want to count those invocations.
-    unless options[:bolt_api_call]
-      # Send Analytics Report
-      executor.report_function_call(self.class.name)
-    end
-
-    # Send Analytics Report for bundled content, this should capture plans run from both CLI and Plans
-    executor.report_bundled_content('Plan', plan_name)
-
     loaders = closure_scope.compiler.loaders
     # The perspective of the environment is wanted here (for now) to not have to
     # require modules to have dependencies defined in meta data.
@@ -93,9 +83,6 @@ Puppet::Functions.create_function(:run_plan, Puppet::Functions::InternalFunction
     end
 
     closure = func.class.dispatcher.dispatchers[0]
-    if closure.model.is_a?(Bolt::PAL::YamlPlan)
-      executor.report_yaml_plan(closure.model.body)
-    end
 
     # If a TargetSpec parameter is passed, ensure it is in inventory
     inventory = Puppet.lookup(:bolt_inventory)
