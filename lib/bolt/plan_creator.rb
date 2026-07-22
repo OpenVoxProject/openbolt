@@ -113,7 +113,7 @@ module Bolt
     private_class_method def self.yaml_plan(plan_name)
       <<~YAML
         # This is the structure of a simple plan. To learn more about writing
-        # YAML plans, see the documentation: http://pup.pt/bolt-yaml-plans
+        # YAML plans, see the documentation: https://docs.openvoxproject.org/openbolt/latest/writing_yaml_plans.html
 
         # The description sets the description of the plan that will appear
         # in 'bolt plan show' output.
@@ -146,7 +146,7 @@ module Bolt
     private_class_method def self.yaml_script_plan(script)
       <<~YAML
         # This is the structure of a simple plan. To learn more about writing
-        # YAML plans, see the documentation: http://pup.pt/bolt-yaml-plans
+        # YAML plans, see the documentation: https://docs.openvoxproject.org/openbolt/latest/writing_yaml_plans.html
 
         # The description sets the description of the plan that will appear
         # in 'bolt plan show' output.
@@ -177,7 +177,7 @@ module Bolt
     private_class_method def self.puppet_plan(plan_name)
       <<~PUPPET
         # This is the structure of a simple plan. To learn more about writing
-        # Puppet plans, see the documentation: http://pup.pt/bolt-puppet-plans
+        # Puppet plans, see the documentation: https://docs.openvoxproject.org/openbolt/latest/writing_plans.html
 
         # The summary sets the description of the plan that will appear
         # in 'bolt plan show' output. Bolt uses puppet-strings to parse the
@@ -202,7 +202,7 @@ module Bolt
     private_class_method def self.puppet_script_plan(plan_name, script)
       <<~PUPPET
         # This is the structure of a simple plan. To learn more about writing
-        # Puppet plans, see the documentation: http://pup.pt/bolt-puppet-plans
+        # Puppet plans, see the documentation: https://docs.openvoxproject.org/openbolt/latest/writing_plans.html
 
         # The summary sets the description of the plan that will appear
         # in 'bolt plan show' output. Bolt uses puppet-strings to parse the

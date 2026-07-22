@@ -82,16 +82,8 @@ module Bolt
       if File.exist?(filename)
         Bolt::Util.read_optional_yaml_hash(filename, 'analytics')
       else
-        # Remove || true if we fix this for Vox analytics
-        unless ENV['BOLT_DISABLE_ANALYTICS'] || true
-          msg = <<~ANALYTICS
-            Bolt collects data about how you use it. You can opt out of providing this data.
-            To learn how to disable data collection, or see what data Bolt collects and why,
-            see http://pup.pt/bolt-analytics
-          ANALYTICS
-          Bolt::Logger.warn_once('analytics_opt_out', msg)
-        end
-
+        # Analytics are disabled in this fork, so there is nothing to opt out of.
+        # If analytics are revived for Vox, restore an opt-out notice here.
         {}
       end
     end

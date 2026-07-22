@@ -179,7 +179,7 @@ module Bolt
             'dotted_fact_name',
             "Target '#{safe_name}' includes dotted fact names: '#{dotted.join("', '")}'. Dotted fact " \
             "names are deprecated and Bolt does not automatically convert facts with dotted names to " \
-            "structured facts. For more information, see https://pup.pt/bolt-dotted-facts"
+            "structured facts. For more information, see https://docs.openvoxproject.org/openbolt/latest/developer_updates.html#deprecating-dotted-fact-names"
           )
         end
       end

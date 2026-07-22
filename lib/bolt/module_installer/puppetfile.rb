@@ -72,7 +72,7 @@ module Bolt
         File.open(path, 'w') do |file|
           if moduledir
             file.puts "# This Puppetfile is managed by Bolt. Do not edit."
-            file.puts "# For more information, see https://pup.pt/bolt-modules"
+            file.puts "# For more information, see https://docs.openvoxproject.org/openbolt/latest/modules.html"
             file.puts
             file.puts "# The following directive installs modules to the managed moduledir."
             file.puts "moduledir '#{moduledir.basename}'"

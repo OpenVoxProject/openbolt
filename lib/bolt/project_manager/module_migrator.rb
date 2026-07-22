@@ -23,7 +23,7 @@ module Bolt
           @outputter.print_action_step(
             "Project has a non-default configured modulepath, unable to automatically " \
             "migrate project modules. To migrate project modules manually, see " \
-            "http://pup.pt/bolt-modules"
+            "https://docs.openvoxproject.org/openbolt/latest/modules.html"
           )
           true
         # Migrate modules from Puppetfile

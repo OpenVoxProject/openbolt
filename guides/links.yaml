@@ -1,12 +1,21 @@
 ---
 topic: links
 guide: |
-    Bolt documentation          https://bolt.guide
-    Ask a question in #bolt     https://slack.puppet.com/
-    Contribute at               https://github.com/puppetlabs/bolt/
-    Getting Started Guide       https://pup.pt/bolt-getting-started
-    Reference Documentation     https://pup.pt/bolt-reference
-    Troubleshooting Bolt        https://pup.pt/bolt-troubleshooting
-    Bolt Developer Updates      https://pup.pt/bolt-dev-updates
-    Bolt Changelog              https://pup.pt/bolt-changelog
-    Bolt Examples               https://pup.pt/bolt-examples
+    OpenBolt documentation
+      https://docs.openvoxproject.org/openbolt/latest/
+    Getting Started Guide
+      https://docs.openvoxproject.org/openbolt/latest/getting_started_with_bolt.html
+    Configuration Reference
+      https://docs.openvoxproject.org/openbolt/latest/configuring_bolt.html
+    Troubleshooting OpenBolt
+      https://docs.openvoxproject.org/openbolt/latest/troubleshooting.html
+    OpenBolt Developer Updates
+      https://docs.openvoxproject.org/openbolt/latest/developer_updates.html
+    OpenBolt Release Notes
+      https://docs.openvoxproject.org/openbolt/latest/release_notes.html
+    OpenBolt Examples
+      https://docs.openvoxproject.org/openbolt/latest/bolt_examples.html
+    Ask a question in #sig-openbolt
+      https://voxpupuli.org/connect/
+    Contribute at
+      https://github.com/OpenVoxProject/openbolt

@@ -8,7 +8,7 @@ module Bolt
   class ProjectManager
     INVENTORY_TEMPLATE = <<~INVENTORY
       # This is an example inventory.yaml
-      # To read more about inventory files, see https://pup.pt/bolt-inventory
+      # To read more about inventory files, see https://docs.openvoxproject.org/openbolt/latest/inventory_files.html
       #
       # groups:
       #   - name: linux
