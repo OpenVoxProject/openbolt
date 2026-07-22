@@ -19,7 +19,7 @@ mod 'puppetlabs-pwshlib', '2.0.1'
 # Core types and providers for Puppet 6
 mod 'puppetlabs-augeas_core', '2.0.1'
 mod 'puppetlabs-host_core', '2.0.1'
-mod 'puppetlabs-scheduled_task', '4.0.3'
+mod 'puppetlabs-scheduled_task', '5.0.0'
 mod 'puppetlabs-sshkeys_core', '3.0.1'
 mod 'puppetlabs-zfs_core', '2.0.1'
 mod 'puppetlabs-cron_core', '2.0.2'
