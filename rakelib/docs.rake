@@ -148,6 +148,16 @@ begin
       $stdout.puts "Generated packaged modules at:\n\t#{filepath}"
     end
 
+    # CLI help text carries full docs URLs, because it is printed to a terminal
+    # where a relative link has nothing to resolve against. Inside the docs
+    # collection the same text must use relative links, so that a locally served
+    # build works offline and a page in an older collection does not silently
+    # follow '/latest/' across a version boundary.
+    docs_url = %r{https://docs\.openvoxproject\.org/openbolt/latest/(\S+?\.html(?:\#[\w-]+)?)}
+    relative_docs_links = lambda do |text|
+      text.gsub(docs_url) { "[#{Regexp.last_match(1)}](#{Regexp.last_match(1)})" }
+    end
+
     desc "Generate markdown docs for Bolt shell commands"
     task :command_reference do
       require 'bolt/bolt_option_parser'
@@ -172,11 +182,11 @@ begin
               short: switch.short.first,
               long: switch.long.first,
               arg: switch.arg,
-              desc: switch.desc.map { |d| d.gsub("<", "&lt;") }.join("<p>")
+              desc: relative_docs_links.call(switch.desc.map { |d| d.gsub("<", "&lt;") }.join("<p>"))
             }
           end
 
-          desc  = matches[:desc].split("\n").map(&:strip).join("\n")
+          desc  = relative_docs_links.call(matches[:desc].split("\n").map(&:strip).join("\n"))
           usage = matches[:usage].strip
 
           @commands[command] = {
