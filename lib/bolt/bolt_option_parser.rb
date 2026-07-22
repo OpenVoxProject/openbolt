@@ -245,7 +245,7 @@ module Bolt
           Apply Puppet manifest code on the specified targets.
 
       #{colorize(:cyan, 'Documentation')}
-          For documentation see http://pup.pt/bolt-apply.
+          For documentation see https://docs.openvoxproject.org/openbolt/latest/applying_manifest_blocks.html.
 
       #{colorize(:cyan, 'Examples')}
           bolt apply manifest.pp -t target
@@ -263,7 +263,7 @@ module Bolt
           Run a command on the specified targets.
 
       #{colorize(:cyan, 'Documentation')}
-          For documentation see http://pup.pt/bolt-commands.
+          For documentation see https://docs.openvoxproject.org/openbolt/latest/running_bolt_commands.html.
 
       #{colorize(:cyan, 'Actions')}
           run         Run a command on the specified targets.
@@ -281,7 +281,7 @@ module Bolt
           Run a command on the specified targets.
 
       #{colorize(:cyan, 'Documentation')}
-          For documentation see http://pup.pt/bolt-commands.
+          For documentation see https://docs.openvoxproject.org/openbolt/latest/running_bolt_commands.html.
 
       #{colorize(:cyan, 'Examples')}
           bolt command run 'uptime' -t target1,target2
@@ -298,7 +298,7 @@ module Bolt
           Copy files and directories between the controller and targets.
 
       #{colorize(:cyan, 'Documentation')}
-          For documentation see http://pup.pt/bolt-commands.
+          For documentation see https://docs.openvoxproject.org/openbolt/latest/running_bolt_commands.html.
 
       #{colorize(:cyan, 'Actions')}
           download      Download a file or directory to the controller
@@ -322,7 +322,7 @@ module Bolt
           subdirectory of the project directory.
 
       #{colorize(:cyan, 'Documentation')}
-          For documentation see http://pup.pt/bolt-commands.
+          For documentation see https://docs.openvoxproject.org/openbolt/latest/running_bolt_commands.html.
 
       #{colorize(:cyan, 'Examples')}
           bolt file download /etc/ssh_config ssh_config -t all
@@ -340,7 +340,7 @@ module Bolt
           Upload a local file or directory.
 
       #{colorize(:cyan, 'Documentation')}
-          For documentation see http://pup.pt/bolt-commands.
+          For documentation see https://docs.openvoxproject.org/openbolt/latest/running_bolt_commands.html.
 
       #{colorize(:cyan, 'Examples')}
           bolt file upload /tmp/source /etc/profile.d/login.sh -t target1
@@ -445,7 +445,7 @@ module Bolt
           Look up a value with Hiera.
 
       #{colorize(:cyan, 'Documentation')}
-          Learn more about using Hiera with Bolt at https://pup.pt/bolt-hiera.
+          Learn more about using Hiera with Bolt at https://docs.openvoxproject.org/openbolt/latest/hiera.html.
 
       #{colorize(:cyan, 'Examples')}
           bolt lookup password --targets servers
@@ -551,7 +551,7 @@ module Bolt
           Convert, create, show, and run Bolt plans.
 
       #{colorize(:cyan, 'Documentation')}
-          Learn more about Bolt plans at https://pup.pt/bolt-plans.
+          Learn more about Bolt plans at https://docs.openvoxproject.org/openbolt/latest/plans.html.
 
       #{colorize(:cyan, 'Actions')}
           convert       Convert a YAML plan to a Bolt plan
@@ -576,7 +576,7 @@ module Bolt
           functionality. Note that the converted plan is not written to a file.
 
       #{colorize(:cyan, 'Documentation')}
-          Learn more about Bolt plans at https://pup.pt/bolt-plans.
+          Learn more about Bolt plans at https://docs.openvoxproject.org/openbolt/latest/plans.html.
 
       #{colorize(:cyan, 'Examples')}
           bolt plan convert myproject::myplan
@@ -594,7 +594,7 @@ module Bolt
           Create a new plan in the current project.
 
       #{colorize(:cyan, 'Documentation')}
-          Learn more about Bolt plans at https://pup.pt/bolt-plans.
+          Learn more about Bolt plans at https://docs.openvoxproject.org/openbolt/latest/plans.html.
 
       #{colorize(:cyan, 'Examples')}
           bolt plan new myproject::myplan
@@ -611,7 +611,7 @@ module Bolt
           Run a plan on the specified targets.
 
       #{colorize(:cyan, 'Documentation')}
-          Learn more about Bolt plans at https://pup.pt/bolt-plans.
+          Learn more about Bolt plans at https://docs.openvoxproject.org/openbolt/latest/plans.html.
 
       #{colorize(:cyan, 'Examples')}
           bolt plan run canary --targets target1,target2 command=hostname
@@ -634,7 +634,7 @@ module Bolt
           the plan, including a list of available parameters.
 
       #{colorize(:cyan, 'Documentation')}
-          Learn more about Bolt plans at https://pup.pt/bolt-plans.
+          Learn more about Bolt plans at https://docs.openvoxproject.org/openbolt/latest/plans.html.
 
       #{colorize(:cyan, 'Examples')}
           Display a list of available plans
@@ -654,7 +654,7 @@ module Bolt
           Show available plugins.
 
       #{colorize(:cyan, 'Documentation')}
-          Learn more about Bolt plugins at https://pup.pt/bolt-plugins.
+          Learn more about Bolt plugins at https://docs.openvoxproject.org/openbolt/latest/using_plugins.html.
 
       #{colorize(:cyan, 'Actions')}
           show          Show available plugins
@@ -671,7 +671,7 @@ module Bolt
           Show available plugins.
 
       #{colorize(:cyan, 'Documentation')}
-          Learn more about Bolt plugins at https://pup.pt/bolt-plugins.
+          Learn more about Bolt plugins at https://docs.openvoxproject.org/openbolt/latest/using_plugins.html.
     HELP
 
     POLICY_HELP = <<~HELP
@@ -791,7 +791,7 @@ module Bolt
           Run a script on the specified targets.
 
       #{colorize(:cyan, 'Documentation')}
-          Learn more about running scripts at https://pup.pt/bolt-commands.
+          Learn more about running scripts at https://docs.openvoxproject.org/openbolt/latest/running_bolt_commands.html.
 
       #{colorize(:cyan, 'Actions')}
           run         Run a script on the specified targets.
@@ -813,7 +813,7 @@ module Bolt
           be quoted.
 
       #{colorize(:cyan, 'Documentation')}
-          Learn more about running scripts at https://pup.pt/bolt-commands.
+          Learn more about running scripts at https://docs.openvoxproject.org/openbolt/latest/running_bolt_commands.html.
 
       #{colorize(:cyan, 'Examples')}
           bolt script run myscript.sh 'echo hello' --targets target1,target2
@@ -830,7 +830,7 @@ module Bolt
           Create encryption keys and encrypt and decrypt values.
 
       #{colorize(:cyan, 'Documentation')}
-          Learn more about secrets plugins at http://pup.pt/bolt-plugins.
+          Learn more about secrets plugins at https://docs.openvoxproject.org/openbolt/latest/using_plugins.html.
 
       #{colorize(:cyan, 'Actions')}
           createkeys           Create new encryption keys
@@ -849,7 +849,7 @@ module Bolt
           Create new encryption keys.
 
       #{colorize(:cyan, 'Documentation')}
-          Learn more about secrets plugins at http://pup.pt/bolt-plugins.
+          Learn more about secrets plugins at https://docs.openvoxproject.org/openbolt/latest/using_plugins.html.
     HELP
 
     SECRET_DECRYPT_HELP = <<~HELP
@@ -863,7 +863,7 @@ module Bolt
           Decrypt a value.
 
       #{colorize(:cyan, 'Documentation')}
-          Learn more about secrets plugins at http://pup.pt/bolt-plugins.
+          Learn more about secrets plugins at https://docs.openvoxproject.org/openbolt/latest/using_plugins.html.
     HELP
 
     SECRET_ENCRYPT_HELP = <<~HELP
@@ -877,7 +877,7 @@ module Bolt
           Encrypt a value.
 
       #{colorize(:cyan, 'Documentation')}
-          Learn more about secrets plugins at http://pup.pt/bolt-plugins.
+          Learn more about secrets plugins at https://docs.openvoxproject.org/openbolt/latest/using_plugins.html.
     HELP
 
     TASK_HELP = <<~HELP
@@ -891,7 +891,7 @@ module Bolt
           Show and run Bolt tasks.
 
       #{colorize(:cyan, 'Documentation')}
-          Learn more about Bolt tasks at http://pup.pt/bolt-tasks.
+          Learn more about Bolt tasks at https://docs.openvoxproject.org/openbolt/latest/tasks.html.
 
       #{colorize(:cyan, 'Actions')}
           run          Run a Bolt task
@@ -912,7 +912,7 @@ module Bolt
           Parameters take the form parameter=value.
 
       #{colorize(:cyan, 'Documentation')}
-          Learn more about Bolt tasks at http://pup.pt/bolt-tasks.
+          Learn more about Bolt tasks at https://docs.openvoxproject.org/openbolt/latest/tasks.html.
 
       #{colorize(:cyan, 'Examples')}
           bolt task run package --targets target1,target2 action=status name=bash
@@ -935,7 +935,7 @@ module Bolt
           the task, including a list of available parameters.
 
       #{colorize(:cyan, 'Documentation')}
-          Learn more about Bolt tasks at http://pup.pt/bolt-tasks.
+          Learn more about Bolt tasks at https://docs.openvoxproject.org/openbolt/latest/tasks.html.
 
       #{colorize(:cyan, 'Examples')}
           Display a list of available tasks
@@ -1183,7 +1183,7 @@ module Bolt
         if File.exist?(path) || Pathname.new(path).absolute? ||
            !%w[scripts files].include?(path.split(File::SEPARATOR)[1])
           raise Bolt::CLIError, "The script must be a detailed Puppet file reference, " \
-            "for example 'mymodule/scripts/myscript.sh'. See http://pup.pt/bolt-scripts for " \
+            "for example 'mymodule/scripts/myscript.sh'. See https://docs.openvoxproject.org/openbolt/latest/bolt_running_scripts.html for " \
             "more information on detailed Puppet file references."
         end
 

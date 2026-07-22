@@ -17,5 +17,5 @@ guide: |
     of a project.
 
 documentation:
-  - https://pup.pt/bolt-projects
-  - https://pup.pt/bolt-project-reference
+  - https://docs.openvoxproject.org/openbolt/latest/projects.html
+  - https://docs.openvoxproject.org/openbolt/latest/bolt_project_reference.html

@@ -57,7 +57,7 @@ module Bolt
           Invalid module specification:
           #{hash.to_yaml.lines.drop(1).join.chomp}
 
-          To read more about specifying modules, see https://pup.pt/bolt-module-specs
+          To read more about specifying modules, see https://docs.openvoxproject.org/openbolt/latest/bolt_installing_modules.html#manually-specify-modules-in-a-bolt-project
         MESSAGE
       end
 

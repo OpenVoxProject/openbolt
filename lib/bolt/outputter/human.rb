@@ -645,7 +645,7 @@ module Bolt
         info << indent(2, "#{modulepath.join(File::PATH_SEPARATOR)}\n\n")
 
         info << colorize(:cyan, "Additional information\n")
-        info << indent(2, "For more information about using plugins see https://pup.pt/bolt-plugins")
+        info << indent(2, "For more information about using plugins see https://docs.openvoxproject.org/openbolt/latest/using_plugins.html")
 
         @stream.puts info.chomp
       end
