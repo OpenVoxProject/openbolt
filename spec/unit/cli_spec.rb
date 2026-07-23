@@ -606,6 +606,36 @@ describe Bolt::CLI do
       end
     end
 
+    describe 'target processing' do
+      let(:options) { { subcommand: 'command', action: 'run', object: 'whoami', targets: targets } }
+
+      it 'parses a JSON array from targets' do
+        expect(application).to receive(:run_command).with(anything, [%w[host1 host2]])
+        cli.execute({ subcommand: 'command', action: 'run', object: 'whoami',
+                      targets: ['["host1","host2"]'] })
+      end
+
+      it 'parses a bolt result JSON with items' do
+        expect(application).to receive(:run_command)
+          .with(anything, [%w[host1 host2]])
+        cli.execute({ subcommand: 'command', action: 'run', object: 'whoami',
+                      targets: ['{"items":[{"target":"host1"},{"target":"host2"}]}'] })
+      end
+
+      it 'passes unrecognized JSON through as raw string' do
+        expect(application).to receive(:run_command).with(anything, ['42'])
+        cli.execute({ subcommand: 'command', action: 'run', object: 'whoami',
+                      targets: ['42'] })
+      end
+
+      it 'errors when JSON is an object without items' do
+        expect do
+          cli.execute({ subcommand: 'command', action: 'run', object: 'whoami',
+                        targets: ['{"foo":"bar"}'] })
+        end.to raise_error(Bolt::Error, /Expected a JSON array or an object/)
+      end
+    end
+
     describe 'bundled content' do
       before(:each) do
         allow(pal).to receive(:list_plans).and_return([%w[plan description]])
