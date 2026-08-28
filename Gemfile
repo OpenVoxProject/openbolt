@@ -24,7 +24,7 @@ gemspec
 # for all platforms.
 # https://www.rubyonmac.dev/certificate-verify-failed-unable-to-get-certificate-crl-openssl-ssl-sslerror
 # openssl 4 raises some errors that need to be investigated
-gem 'openssl', '~> 3' unless `uname -o`.chomp == 'Cygwin'
+gem 'openssl', '~> 4' unless `uname -o`.chomp == 'Cygwin'
 
 # Optional paint gem for rainbow outputter
 gem "paint", "~> 2.2"
