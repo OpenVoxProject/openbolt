@@ -675,7 +675,8 @@ module Bolt
     end
 
     # Process the target list by turning a PuppetDB query or rerun mode into a
-    # list of target names.
+    # list of target names. Try to parse each options[:targets] entry as JSON
+    # Array/Hash, return the value as-is if failed.
     #
     # @param plugins [Bolt::Plugin] The Plugin instance.
     # @param rerun [Bolt::Rerun] The Rerun instance.
@@ -688,7 +689,25 @@ module Bolt
       elsif options[:rerun]
         rerun.get_targets(options[:rerun])
       elsif options[:targets]
-        options[:targets]
+        options[:targets].map do |target|
+          parsed = JSON.parse(target)
+          case parsed
+          when Array
+            parsed
+          when Hash
+            items = parsed['items']
+            if items.is_a?(Array)
+              items.map { |item| item['target'] }
+            else
+              raise Bolt::Error.new("Expected a JSON array or an object with an 'items' array, got #{parsed.class}",
+                                    'bolt/invalid-targets')
+            end
+          else
+            target
+          end
+        rescue JSON::ParserError
+          target
+        end
       end
     end
 
