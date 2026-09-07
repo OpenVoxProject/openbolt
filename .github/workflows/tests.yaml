@@ -33,7 +33,7 @@ jobs:
       - name: Run Rubocop
         run: bundle exec rake rubocop
       - id: ruby
-        uses: voxpupuli/ruby-version@656370e339050da63b86b1c631f5f88a3f4c0803 # 1.0.1
+        uses: voxpupuli/ruby-version@v2
 
   cache_modules_linux:
     name: 'Linux: Generate module cache'
