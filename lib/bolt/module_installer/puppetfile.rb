@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'fileutils'
+
 require_relative '../../bolt/error'
 require_relative 'puppetfile/forge_module'
 require_relative 'puppetfile/git_module'
@@ -69,6 +71,7 @@ module Bolt
       # modules.
       #
       def write(path, moduledir = nil)
+        FileUtils.mkdir_p(File.dirname(path))
         File.open(path, 'w') do |file|
           if moduledir
             file.puts "# This Puppetfile is managed by Bolt. Do not edit."

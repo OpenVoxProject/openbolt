@@ -57,6 +57,22 @@ describe 'installing modules' do
     end
   end
 
+  context 'with a puppetfile override in bolt-project.yaml' do
+    let(:project_config) { { 'puppetfile' => 'custom/Puppetfile' } }
+
+    it 'writes the puppetfile at the override path and not the default' do
+      output = run_cli_json(%w[module add puppetlabs-yaml], project: project)
+      expect(output['puppetfile']).to eq((project.path + 'custom' + 'Puppetfile').to_s)
+      expect(output['success']).to be
+
+      expect(File.exist?(project.path + 'custom' + 'Puppetfile')).to be true
+      expect(File.exist?(project.path + 'Puppetfile')).to be false
+
+      puppetfile_content = File.read(project.path + 'custom' + 'Puppetfile')
+      expect(puppetfile_content.lines).to include(%r{mod 'puppetlabs/yaml'})
+    end
+  end
+
   context 'with install configuration' do
     let(:base_config) do
       {
