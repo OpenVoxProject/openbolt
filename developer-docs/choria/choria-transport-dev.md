@@ -4,7 +4,8 @@ This document orients developers to the Choria transport codebase. It covers
 architecture, design patterns, threading, and data flow. For function-level
 detail, see the code comments in each file.
 
-For user-facing documentation, see [choria-transport.md](choria-transport.md).
+For user-facing documentation, see the
+[Choria transport user guide](https://docs.openvoxproject.org/openbolt/latest/choria-transport.html).
 For the project roadmap, see [choria-transport-plan.md](choria-transport-plan.md).
 For test environment setup, see [choria-transport-testing.md](choria-transport-testing.md).
 

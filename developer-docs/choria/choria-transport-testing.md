@@ -3,7 +3,8 @@
 A guide for setting up a Choria test environment alongside an existing OpenVox
 Puppet installation, and verifying all Choria transport functionality in OpenBolt.
 
-For configuration reference, see [choria-transport.md](choria-transport.md).
+For configuration reference, see the
+[Choria transport user guide](https://docs.openvoxproject.org/openbolt/latest/choria-transport.html).
 For the project roadmap, see [choria-transport-plan.md](choria-transport-plan.md).
 For developer documentation, see [choria-transport-dev.md](choria-transport-dev.md).
 
@@ -128,8 +129,8 @@ This requires a permissive `certname_whitelist` on the Choria servers
 (e.g. `/.*/`) since the host's FQDN does not match the default
 `\.mcollective$` pattern. In production, use a more restrictive pattern
 such as `/.*\.example\.com$/` to limit which certnames are accepted. See
-[choria-transport.md](../../documentation/choria-transport.md#non-root-certname)
-for details.
+[Non-root certname](https://docs.openvoxproject.org/openbolt/latest/choria-transport.html#non-root-certname)
+in the user guide for details.
 
 ### Set up `~/.choriarc`
 
@@ -229,8 +230,8 @@ in the inventory.
 
 Target URIs must use the exact Choria identity (typically the FQDN shown by
 `choria ping`). Mismatched names cause timeout errors. See
-[choria-transport.md](choria-transport.md#target-names-must-match-choria-identities)
-for details and workarounds using `name` with `host` config.
+[Target names must match Choria identities](https://docs.openvoxproject.org/openbolt/latest/choria-transport.html#target-names-must-match-choria-identities)
+in the user guide for details and workarounds using `name` with `host` config.
 
 ## Setting up Choria infrastructure via Puppet
 
