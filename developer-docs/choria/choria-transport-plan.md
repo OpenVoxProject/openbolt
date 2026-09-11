@@ -4,7 +4,8 @@ This document describes the project plan and roadmap for the Choria transport
 in OpenBolt. It covers the phased implementation approach, current progress,
 and future work.
 
-For user-facing documentation, see [choria-transport.md](choria-transport.md).
+For user-facing documentation, see the
+[Choria transport user guide](https://docs.openvoxproject.org/openbolt/latest/choria-transport.html).
 For developer documentation, see [choria-transport-dev.md](choria-transport-dev.md).
 For test environment setup, see [choria-transport-testing.md](choria-transport-testing.md).
 
@@ -24,8 +25,8 @@ which Choria agents are available on the remote nodes:
 |-------|----------------|-------------------|
 | Phase 1 | bolt_tasks (ships with Choria+Puppet) | `run_task` (OpenVox/Puppet Server tasks only) |
 | Phase 2 | shell >= 1.2.1 (separate install) | `run_command`, `run_script`, `run_task` (local tasks) |
-| Phase 3 | bolt_tasks | [foreman_openbolt](https://github.com/overlookinfra/foreman_openbolt) and [smart_proxy_openbolt](https://github.com/overlookinfra/smart_proxy_openbolt) Choria transport support (bolt_tasks only) |
-| Phase 4 | file-transfer (new, to be written) | `upload`, `download` (any size, chunked) |
+| Phase 3 | bolt_tasks (shell optional for local tasks) | [foreman_openbolt](https://github.com/overlookinfra/foreman_openbolt) and [smart_proxy_openbolt](https://github.com/overlookinfra/smart_proxy_openbolt) run tasks over the Choria transport |
+| Phase 4 | file_transfer (new, to be written) | `upload`, `download` (any size, chunked) |
 | Phase 5 | (all above) | Full plan support including apply blocks |
 
 ---
@@ -143,36 +144,105 @@ What shipped:
 
 ## Phase 3: Foreman OpenBolt Support
 
-**Status: Not started**
+**Status: Complete**
 
-### Goal
+Phase 3 delivers the Choria transport in
+[foreman_openbolt](https://github.com/overlookinfra/foreman_openbolt) and
+[smart_proxy_openbolt](https://github.com/overlookinfra/smart_proxy_openbolt).
 
-Update [foreman_openbolt](https://github.com/overlookinfra/foreman_openbolt) and
-[smart_proxy_openbolt](https://github.com/overlookinfra/smart_proxy_openbolt)
-to support the Choria transport. This integration will only support the
-bolt_tasks agent path (task execution via OpenVox/Puppet Server file downloads), not
-the shell agent. Eventually, when plan support is introduced to these components,
-and Phase 5 of this project is complete, the Foreman integration will have full
-OpenBolt support.
+What shipped:
+- Choria as a selectable transport for running tasks
+- Task agent selection (bolt_tasks or shell)
+- Choria options with a `choria-` prefix, passed to OpenBolt as CLI flags
+- Zero-config client defaults in the proxy (bundled client config, SSL
+  settings and certname derived from the proxy certificate)
 
-### Scope
-
-- Foreman OpenBolt will be able to run tasks on Choria-managed nodes via
-  bolt_tasks
-- No `run_command`, `run_script`, or shell agent support
-- Configuration will be limited to the bolt_tasks-compatible options
+Plan support in the Foreman integration follows Phase 5. See
+[Follow-up Work](#follow-up-work).
 
 ---
 
 ## Phase 4: File Transfer Agent
 
-**Status: Not started**
+**Status: In progress**
 
 ### Goal
 
-Implement `upload` and `download` support via a new `file-transfer` Choria
-agent that efficiently sends and receives large files, chunked to stay under
-the NATS message size limit.
+Implement `upload` and `download` via a new `file_transfer` Choria agent that
+sends and receives files of any size, chunked to stay under the NATS message
+size limit. There is no upper bound on file size. Both sides stream one chunk
+at a time, so memory use is bounded by the chunk size, not the file size. The
+task paths also use this agent to deliver task arguments that exceed their
+agents' input limits as a file on the target, which apply blocks in Phase 5
+require.
+
+Transferring files this way is nowhere near as efficient as a download from a
+file server. Every chunk is a signed, base64-encoded RPC round trip. The agent
+is intended for moving smaller files around a fleet. Gigabytes belong on a
+file server, not on Choria, and the user guide says so.
+
+### Requirements
+
+- Any file size, with memory bounded by the chunk size on both sides
+- Fleet scale: a few MB to 10,000 nodes, or from 10,000 nodes, across several
+  collectives and through federated brokers
+- Windows targets
+- Apply in Phase 5 runs without the shell agent, so the bolt_tasks path uses
+  this agent for large task arguments
+
+### Constraints
+
+- The Choria broker's NATS payload limit is 1 MiB and has no Choria
+  configuration key. Every transfer is chunked, and the request envelope
+  (identity filter, federation headers) shares that budget with the data.
+- The client base64-encodes the action input, then base64-encodes the whole
+  signed request again at the transport layer with line breaks that JSON
+  escapes, so raw chunk bytes expand by over 80 percent on the wire.
+- The Choria server starts a new process for every request to a Ruby or
+  external agent. A Ruby agent run through the MCollective shim loads
+  MCollective on each request (about half a second). An external agent
+  written in Ruby loads only the JSON library (about 25 ms).
+- A request that exceeds the agent's DDL timeout gets no reply at all, so
+  transfers are short per-chunk actions, never one long action.
+- Fleet nodes on a broker in JWT mode may only use the RPC request and reply
+  subjects. They get no custom subjects, no Object Store, and no Key-Value
+  access, which rules out any direct NATS or JetStream data path.
+- The Ruby client publishes one copy of every request per target, since the
+  direct addressing the transport uses never takes the library's broadcast
+  path, and the whole per-target publish loop runs inside a publish timeout
+  that defaults to 2 seconds. It queues replies without bound and drops
+  replies once a subscription buffer of 64MB overflows.
+- The shell agent DDL caps the `command` input at 10,240 characters, so the
+  current base64 upload path carries at most about 7.5KB of raw content per
+  call.
+- The bolt_tasks agent caps task input at 100KB and only runs task files it
+  fetches from an OpenVox/Puppet Server. Apply passes the catalog and a
+  plugin tarball as task arguments, which run to hundreds of KB.
+
+### Decisions
+
+- Approach: Option A, chunked transfer over standard Choria RPC
+- The agent is a Choria external agent written in Ruby. It ships as an
+  executable plus DDL in the same Puppet module layout as the shell agent,
+  and it needs Ruby on the node, which every bolt_tasks node has.
+- Agent name `file_transfer`, repository `file_transfer-agent`, Puppet module
+  and class `mcollective_agent_file_transfer`, following the `<agent>-agent`
+  and `mcollective_agent_<agent>` convention of the other Choria plugin agents
+- Options B and C are rejected. Fleet nodes cannot reach the subjects they
+  need, and the Ruby NATS client OpenBolt uses has no JetStream support.
+- Temporary storage on a node is addressed by a session UUID and a relative
+  name, never by a path the controller computes. The agent owns the temp
+  root through its own setting, and there is no general delete action.
+- Authorization stays with Choria. The agent has no allowlist of its own.
+  Action policies gate callers and actions, and the rego provider gates
+  paths, since it sees the action arguments.
+
+### Investigation Needed
+
+- External agent execution on a Windows Choria server
+- An upstream Choria broker setting for the NATS payload limit. NATS allows
+  up to 8MB, which would cut the chunk count up to eightfold, and the
+  transport's runtime sizing would use it without changes.
 
 ### Background: NATS and Choria Constraints
 
@@ -183,8 +253,11 @@ boolean, array, and hash -- no binary type. This means binary file data cannot
 be sent as-is through Choria RPC action inputs; it must be encoded (typically
 base64) to survive JSON serialization.
 
-NATS has a configurable max message size (default 1MB, max 64MB). The Choria
-broker inherits this as `plugin.choria.network.client_max_payload`.
+NATS has a configurable max message size (default 1MB, up to 64MB, with
+values over 8MB discouraged). The Choria broker exposes no setting for it, so
+Choria broker deployments run at 1MB. Only a deployment on a standalone NATS
+server can raise it. The server advertises the limit to every client in the
+`INFO` message at connect time.
 
 NATS JetStream (called "Choria Streams" in Choria) is available but not
 enabled by default -- it requires `plugin.choria.network.stream.store` to be
@@ -194,8 +267,7 @@ binary storage, though Choria does not use it today.
 
 ### Approach Options
 
-The final approach will be chosen when this phase begins. Three options are
-documented here with their tradeoffs.
+Option A was chosen. Options B and C are kept for reference.
 
 #### Option A: Compressed + Base64 via Choria RPC
 
@@ -203,8 +275,8 @@ The simplest approach. File data is optionally gzip-compressed, then base64-enco
 sent as string action inputs through standard Choria RPC calls. The agent
 decompresses and writes to disk.
 
-This works entirely within the existing Choria RPC framework using a Ruby
-agent, which aligns with the OpenBolt community's expertise.
+This works entirely within the existing Choria RPC framework and keeps the
+agent in Ruby.
 
 **Pros:**
 - Works with any Choria deployment (no JetStream, no special config)
@@ -212,22 +284,62 @@ agent, which aligns with the OpenBolt community's expertise.
 - Simple protocol, uses standard RPC request/reply
 
 **Cons:**
-- Base64 encoding adds ~33% size overhead (on the compressed data)
+- Base64 is applied twice, on the action input and again on the whole signed
+  request at the transport layer, so raw bytes expand by over 80 percent
 - Each chunk is a full RPC round-trip with JSON serialization overhead
   (four nested JSON layers plus base64 at the transport level)
-- Chunk size limited by NATS max message size minus RPC overhead
+- Chunk size limited by NATS max message size minus the request envelope
 
-**Chunk size calculation:**
+**Chunk size:**
+
+The chunk's base64 text sits inside the signed request, which is then
+base64-encoded again, so roughly:
 ```
-max_chunk_bytes = (message_size_limit - overhead_estimate) * 3 / 4
+request_json_budget = (max_payload - transport_wrapper) * 3 / 4
+chunk_base64_budget = request_json_budget - envelope - margin
+raw_chunk_bytes     = chunk_base64_budget * 3 / 4
 ```
 
-With the default 1MB message limit:
-- RPC overhead (headers, JSON keys, etc.): ~4,096 bytes
-- Available for base64 payload: 1,044,480 bytes
-- Raw data per chunk (before compression): 1,044,480 * 3 / 4 = 783,360
-  bytes (~765 KB)
-- Conservative default: 512 KB chunks (leaves generous headroom)
+With the 1MB limit and a small batch that is roughly 555KB of raw data per
+chunk. The envelope carries the identity filter, so it grows with the batch,
+and at 10,000 targets the raw chunk falls to roughly 270KB. The default
+`chunk-size` is 512KB, under the small-batch ceiling with headroom. Larger
+batches get a smaller computed chunk.
+
+The transport computes the chunk for each batch at run time, never from
+stored measurements, so a new Choria or client library version needs no
+retest:
+- It reads `max_payload` from the NATS `INFO` the client received at connect
+- It computes the envelope for the batch by serializing the request without
+  a chunk through the installed client, a local calculation with no network
+  involved, so the filter, credentials, signature, protocol version, and
+  encoding are counted as the installed version produces them
+- The chunk is the smaller of `chunk-size` and that budget minus a reserve
+  for what the controller cannot observe: headers federation brokers add in
+  flight, and the reply envelope the node's server builds around a download
+  chunk
+- A size guard at the wrapper's publish method compares every outgoing
+  message, as serialized, against the limit before it is sent. An oversized
+  request never leaves the controller. The guard raises immediately with the
+  exact overshoot, and the transport shrinks the chunk by that amount plus a
+  small cushion and resends.
+- Downloads cannot get that signal, because an oversized reply fails on the
+  node and never reaches the controller. The request tells the agent the
+  maximum reply size, derived from the same budget minus the reserve, and
+  chunk requests use a short timeout derived from observed chunk latency. A
+  whole group going silent on the same chunk size is treated as a sizing
+  failure. The transport reduces the chunk by 20 percent for that group and
+  retries, down to a floor, before reporting the targets as failed.
+- Every reduction is a prominent warning to the user, not a silent retry. It
+  names the cause (a guard rejection with the overshoot in bytes, or a group
+  that went silent), the limit the broker advertised, the chunk size before
+  and after, the affected targets, and the remedy: lower `chunk-size` to
+  avoid the retries, or raise the broker's payload limit. It is emitted once
+  per cause per run with a count, not once per chunk, and the transfer still
+  completes.
+- If a future client version removes the publish hook, the transport falls
+  back to a conservative fraction of the limit and logs a warning naming the
+  cause
 
 Compression reduces actual wire size significantly for compressible files
 (text, configs, scripts, catalogs). For already-compressed files (zip, tar.gz,
@@ -239,7 +351,7 @@ Uses Choria RPC for coordination (setup, teardown, status) and a separate
 direct NATS connection for the binary data transfer. This avoids JSON
 serialization and base64 encoding on the data path entirely.
 
-The file-transfer agent would need to be written in Go, since Go agents have
+The agent would need to be written in Go, since Go agents have
 clean access to the raw NATS connection via `Instance.Connector().Nats()`.
 The Ruby side (OpenBolt client) would open a second `NATS::IO::Client`
 instance for the data channel, since the existing `NatsWrapper` feeds all
@@ -280,53 +392,115 @@ not expose JetStream Object Store APIs.
 - Adds a deployment prerequisite that other phases do not have
 - Object Store is not used anywhere else in Choria today
 
-### Common Design (All Approaches)
+### Design
 
-Regardless of approach, the file-transfer agent needs these filesystem
-operations:
+The agent's DDL, semantics, and specs live in the
+[file_transfer-agent](https://github.com/overlookinfra/file_transfer-agent)
+repository. This section records what the transport depends on.
 
-| Action | Description | Inputs | Outputs |
-|--------|-------------|--------|---------|
-| `mkdir` | Create directory | `path`, `mode` | `created` |
-| `stat` | Get file/dir metadata | `path` | `exists`, `size`, `type`, `mode`, `mtime` |
-| `delete` | Remove file/directory | `path`, `recursive` | `deleted` |
+**Actions.** Every string input carries a validation regex and a byte
+limit. The client checks them before sending and the Choria server checks
+them before running the agent.
 
-The chunk transfer actions will vary by approach but the transfer protocol
-follows the same pattern:
+| Action | Purpose | Inputs | Outputs |
+|--------|---------|--------|---------|
+| `mktemp` | Create a session directory, sweep stale sessions | `session` | `path`, `swept` |
+| `put` | Write one chunk into a session, verify and move on the last | `session`, `name`, `offset`, `data`, `compressed`, `final`, `sha256`, `destination`, `mode` | `bytes`, `size`, `sha256` |
+| `cleanup` | Remove a session directory | `session` | `removed` |
+| `get` | Read one chunk | `path`, `offset`, `max_bytes`, `compress` | `data`, `bytes`, `compressed`, `eof`, `size` |
+| `stat` | Describe a path | `path`, `checksum` | `exists`, `type`, `symlink`, `size`, `mode`, `mtime`, `sha256` |
+| `list` | List one page of a directory | `path`, `offset`, `limit` | `entries`, `total` |
+| `mkdir` | Create a directory and missing parents | `path`, `mode` | `created` |
 
-**Upload (OpenBolt to remote node):**
-1. `stat` the destination to check if it exists (optional, for overwrite
-   semantics)
-2. `mkdir` parent directories if needed
-3. Read local file, compress (if beneficial), and send in chunks
-4. Agent writes chunks to a temp file, renames on completion
-5. Return result with bytes transferred
+**Sessions.** Temporary storage on a node is addressed only by `session`, a
+lowercase UUID the controller generates per run and batch, and `name`, a
+relative path that cannot leave the session. The agent maps the session to
+`<tmpdir>/file_transfer-<uuid>` under its own `tmpdir` setting, which
+defaults to the Ruby temp dir and is set per node where `/tmp` is noexec.
+The controller never computes a remote temp path. Every action checks with
+`lstat` that the session directory and each component inside it is a real
+directory owned by the agent's user, creates files 0600 and directories
+0700, and opens with `O_NOFOLLOW`. The only removals are `cleanup` of one
+session and the sweep inside `mktemp` of sessions untouched for
+`stale_after` seconds. That setting defaults to one day and must exceed the
+longest task timeout used against the node.
 
-**Download (remote node to OpenBolt):**
-1. `stat` the remote file to get size
-2. Request chunks until the full file is received
-3. Decompress (if compressed) and write each chunk to local file
-4. Return result with bytes transferred
+**Upload.** Agent detection, `stat` of the destination (an existing
+directory receives the file inside it), `mktemp`, then `put` per chunk with
+a running SHA-256. The last chunk carries `final`, `sha256`, `destination`,
+and the source mode. The agent verifies the digest, applies the mode, and
+renames the file onto the destination, copying beside it first when the
+session is on another filesystem. `cleanup` runs in an ensure block on every
+target where `mktemp` succeeded, gated by that target's `cleanup` option.
+Directory uploads walk the local tree following links, `mkdir` per
+directory, and reuse the one session.
 
-**Directory transfers:**
-- For upload: walk the local directory tree, transfer each file
-- For download: use `stat` to detect directory, then walk remote tree
+**Download.** Agent detection, `stat` with checksum, then `get` by offset in
+groups of `download-group-size` targets. Each reply is written to the local
+file as it arrives through the block form of the RPC call. A target leaves
+its group at `eof`. The local digest is compared with the one from `stat`.
+Directory downloads `list` recursively and skip directories reached through
+links. Downloads create no session.
+
+**Chunk sizing.** Computed per batch from the broker's advertised
+`max_payload`, the envelope size of a locally serialized empty request, and
+the per-byte expansion from a second serialization, minus a 5 percent
+reserve, capped by `chunk-size`. A guard on the client's publish compares
+every payload with the limit before it leaves the controller. The reply
+budget for downloads starts at a quarter of the request budget and is
+measured from the first round's replies. Every reduction, after a guard hit,
+a silent group, or a broker reconnect, is a prominent warning naming the
+cause, the limit, the sizes before and after, the targets, and the remedy.
+
+**Failures.** Status code 1 from the agent is a failure for that target on
+every call. A target that fails a chunk or misses a chunk timeout gets an
+error and is dropped from the rest of that transfer. Later chunks wait three
+times the slowest chunk seen so far, bounded by `rpc-timeout`.
+
+**Task arguments and files.** When task files or stdin arguments exceed the
+shell agent's command limit, the shell path delivers them into a session
+with `put` and runs the task from the session path. Small tasks keep the
+inline path. The bolt_tasks path uses the same delivery only for OpenBolt's
+apply helpers in Phase 5.
+
+**Windows.** The DDL and protocol are platform neutral. Running a Ruby
+script as an external agent needs a launcher on Windows, and the session
+checks need an ACL equivalent to the mode checks. Parked until a Windows
+Choria node is available.
 
 ### Config Changes
 
 New options:
-- `chunk-size` (Integer, default: 524288 = 512KB) - Size of file transfer
-  chunks in bytes
+- `chunk-size` (Integer, default: 524288 = 512KB, minimum 16384) - Upper
+  bound on the raw bytes per chunk. The effective size per batch is the
+  payload limit minus the request envelope, capped by this value.
+- `download-group-size` (Integer, default: 32, minimum 1) - Targets per
+  download RPC round, which bounds reply volume to group size times chunk
+  size
+
+The `tmpdir` option keeps its meaning only for the shell path without the
+file_transfer agent.
 
 ### Testing Strategy
 
-1. Unit tests mocking the file-transfer agent responses
-2. Chunk boundary conditions (exactly 1 chunk, multiple chunks, empty file)
-3. Compression behavior (compressible files, already-compressed files, empty
-   files)
-4. Directory traversal (nested dirs, empty dirs, symlinks)
-5. Resume/retry on chunk failure
-6. Integration tests against a real Choria cluster with the agent
+1. Agent specs in its repository run the script as a subprocess against a
+   temp root: every action's outcomes, session checks against links, foreign
+   directories, and planted names, the sweep, exclusive creates, gaps,
+   compression round trips, verify and move including across filesystems,
+   and the final chunk retry
+2. Transport unit tests with the stubbed RPC client: one session per batch
+   with cleanup in the ensure path, chunk boundaries (empty, one chunk, many
+   chunks), directory walks, grouping and dropping, results, and agent
+   detection failing fast from the CLI and plan paths
+3. Chunk sizing against a fake client wrapper: budget, guard overshoot,
+   reply measurement, reductions, and warnings
+4. One spec that loads the bundled DDL and validates a full-size chunk and
+   the rejection cases through the client's validator
+5. Integration tests against a real Choria cluster: a multi-GB file, a
+   fleet-wide upload, a grouped download, a directory both ways, a
+   destination on another filesystem than the temp root, an interrupted
+   upload followed by a sweep, a `tmpdir` setting on a noexec host, and a
+   policy denial
 
 ---
 
@@ -354,36 +528,49 @@ because they delegate to the transport's public methods:
 - `upload_file()` via transport.upload
 - `download_file()` via transport.download
 
+### Requirements
+
+- Apply must not require the shell agent. It runs through the bolt_tasks
+  agent and the Phase 4 file_transfer agent.
+
 ### What Needs Work: Apply Blocks
 
 Apply blocks compile a Puppet catalog on the controller and apply it on the
-target. This requires:
+target. Every step crosses the transport as a `run_task` call:
 
-1. **Puppet library on the target.** The `puppet_library` plugin hook
-   installs Puppet on the target if needed.
-2. **Catalog application.** The compiled catalog is sent to the target and
-   applied via `libexec/apply_catalog.rb`.
+1. `apply_prep` runs the `puppet_library` hook task on targets without a
+   Puppet agent, then the `apply_helpers::custom_facts` task with a plugin
+   tarball argument.
+2. `apply` runs the `apply_helpers::apply_catalog` task with the catalog and
+   the plugin tarball as arguments. `get_resources` runs
+   `apply_helpers::query_resources` the same way.
 
-The apply mechanism works by:
-1. Compiling the catalog locally (controller-side, OpenBolt handles this)
-2. Uploading the catalog, plugins, and the apply helper script to the target
-3. Running the apply helper script on the target
+The helper tasks ship with OpenBolt in `libexec`. The bolt_tasks agent only
+runs task files it downloads from the OpenVox/Puppet Server and verifies them
+against the SHA-256 that OpenBolt supplies, so the helpers must also be served
+by the server as the `apply_helpers` module with content identical to the
+installed OpenBolt version. Task arguments above the bolt_tasks input limit
+(the catalog and the plugin tarball) travel through the file_transfer agent,
+and the helpers read them from that file.
 
-With Phases 2+4, steps 2 and 3 should work:
-- Phase 4's `upload` sends the catalog and plugin files
-- Phase 2's `run_command`/`run_script` executes the apply helper
+Apply issues one batch per target because every target gets its own catalog,
+and the transport serializes RPC calls. At fleet scale the transport must
+broadcast the shared plugin tarball once, upload the catalogs per target, and
+run and poll the helper task as one group. Otherwise apply on 10,000 nodes
+serializes into hours.
 
 ### Investigation Needed
 
-- **Apply prep:** How does `Bolt::ApplyPrep` work? Does it use specific
-  transport methods, or does it go through the standard
-  run_task/upload/run_command path?
-- **Plugin sync:** How are Puppet plugins synced to the target? Is this a
-  separate transport call or part of the apply mechanism?
-- **Hiera data:** How is Hiera data sent to the target for apply?
-- **puppet_library hook:** How does this interact with the Choria transport? 
-  The default bootstrap hook installs Puppet via a task, which should work
-  with Phase 2. But we are also probably assuming all nodes have OpenVox/Puppet installed already.
+- How the `apply_helpers` module is published and versioned with OpenBolt
+  releases.
+- Whether the bolt_tasks agent needs the task metadata from the server in
+  addition to the implementation files.
+- Hiera lookups happen during catalog compilation on the controller. Confirm
+  in testing.
+- The `puppet_library` hook through bolt_tasks requires the
+  `openvox_bootstrap` module on the OpenVox/Puppet Server.
+- Confirm the Windows apply path fits within the PowerShell command length
+  once arguments move to files.
 
 ### Testing Strategy
 
@@ -393,3 +580,10 @@ With Phases 2+4, steps 2 and 3 should work:
 4. Plan with mixed steps (run_command + run_task + apply)
 5. Error handling in plans (catch_errors around Choria operations)
 6. Parallel execution within plans
+
+---
+
+## Follow-up Work
+
+Plan support in the Foreman integration follows Phase 5, once the plugins
+gain plan execution.
