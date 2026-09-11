@@ -4,7 +4,8 @@ This document orients developers to the Choria transport codebase. It covers
 architecture, design patterns, threading, and data flow. For function-level
 detail, see the code comments in each file.
 
-For user-facing documentation, see [choria-transport.md](choria-transport.md).
+For user-facing documentation, see the
+[Choria transport user guide](https://docs.openvoxproject.org/openbolt/latest/choria-transport.html).
 For the project roadmap, see [choria-transport-plan.md](choria-transport-plan.md).
 For test environment setup, see [choria-transport-testing.md](choria-transport-testing.md).
 
@@ -430,10 +431,13 @@ handles its own concurrency: `batches()` groups targets by collective
   for shared settings (timeout, tmpdir, cleanup). Per-target option differences
   within a batch are silently ignored. This is inherent to the batch execution
   model.
-- **Base64 upload size:** The `upload_file_content` method sends files
-  in a single NATS message. After base64 encoding (~33% expansion) and RPC
-  overhead, the max raw file size is roughly 700-750KB with the default 1MB
-  message limit. This will be addressed in Phase 4 with chunked file transfer.
+- **Base64 upload size:** `upload_file_content` embeds base64 file content in
+  a `shell.run` command. The shell agent DDL caps `command` at 10,240
+  characters and the RPC client validates inputs before sending, so each call
+  carries about 7.5KB of raw content on POSIX targets and less on Windows,
+  where the PowerShell wrapper re-encodes the command as UTF-16 base64. Stdin
+  task arguments share the limit. Phase 4 replaces this path with chunked
+  transfer.
 
 ## Testing
 
