@@ -38,7 +38,7 @@ mod 'puppetlabs-powershell_task_helper', '0.1.0'
 mod 'puppetlabs-ruby_task_helper', '1.0.0'
 mod 'puppetlabs-ruby_plugin_helper', '0.3.0'
 mod 'puppetlabs-python_task_helper', '0.6.0'
-mod 'puppetlabs-bash_task_helper', '2.2.0'
+mod 'puppetlabs-bash_task_helper', '2.3.0'
 
 # Plugin modules
 mod 'puppetlabs-aws_inventory', '0.8.0'
