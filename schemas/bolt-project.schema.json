@@ -67,6 +67,9 @@
     "puppetdb-instances": {
       "$ref": "#/definitions/puppetdb-instances"
     },
+    "puppetfile": {
+      "$ref": "#/definitions/puppetfile"
+    },
     "rerunfile": {
       "$ref": "#/definitions/rerunfile"
     },
@@ -599,6 +602,17 @@
               }
             ]
           }
+        },
+        {
+          "$ref": "#/definitions/_plugin"
+        }
+      ]
+    },
+    "puppetfile": {
+      "description": "The path to the project's Puppetfile, used by `bolt module install` and related commands. Relative paths are resolved from the project directory; absolute paths are used as-is. Defaults to `Puppetfile` in the project directory.",
+      "oneOf": [
+        {
+          "type": "string"
         },
         {
           "$ref": "#/definitions/_plugin"
