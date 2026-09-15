@@ -608,6 +608,16 @@
                 }
               ]
             },
+            "message-data-size": {
+              "oneOf": [
+                {
+                  "$ref": "#/transport_definitions/message-data-size"
+                },
+                {
+                  "$ref": "#/definitions/_plugin"
+                }
+              ]
+            },
             "puppet-environment": {
               "oneOf": [
                 {
@@ -682,6 +692,16 @@
               "oneOf": [
                 {
                   "$ref": "#/transport_definitions/tmpdir"
+                },
+                {
+                  "$ref": "#/definitions/_plugin"
+                }
+              ]
+            },
+            "upload-batch-size": {
+              "oneOf": [
+                {
+                  "$ref": "#/transport_definitions/upload-batch-size"
                 },
                 {
                   "$ref": "#/definitions/_plugin"
@@ -1876,6 +1896,30 @@
     },
     "rpc-timeout": {
       "description": "How long to wait in seconds for nodes to respond to an RPC request. Used for lightweight operations like agent discovery, shell.start, and shell.list polling. Distinct from command-timeout and task-timeout which govern the overall duration of commands and tasks.",
+      "oneOf": [
+        {
+          "type": "integer",
+          "minimum": 1
+        },
+        {
+          "$ref": "#/definitions/_plugin"
+        }
+      ]
+    },
+    "message-data-size": {
+      "description": "The data one Choria RPC message carries, in kibibytes, which is the file content of an upload or download request and the most a directory listing may weigh. Without it, half the broker's message size limit, which is 512 at the NATS default of 1 MiB and more where the limit is higher. An upload request over the limit fails the target with bolt/choria-payload-too-large, and a download reply over it never arrives, so the target shows as bolt/choria-no-response.",
+      "oneOf": [
+        {
+          "type": "integer",
+          "minimum": 16
+        },
+        {
+          "$ref": "#/definitions/_plugin"
+        }
+      ]
+    },
+    "upload-batch-size": {
+      "description": "How many targets one chunk request is published to at once. The controller holds a copy of the request per target until it is sent, so without a size the batch is the largest number of targets that keeps one batch's copies under 256 MiB at the broker's message size limit.",
       "oneOf": [
         {
           "type": "integer",

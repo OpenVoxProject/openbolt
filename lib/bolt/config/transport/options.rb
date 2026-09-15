@@ -101,6 +101,28 @@ module Bolt
             _default: 30,
             _example: 60
           },
+          "message-data-size" => {
+            type: Integer,
+            description: "The data one Choria RPC message carries, in kibibytes, which is the file content of an " \
+                         "upload or download request and the most a directory listing may weigh. Without it, half " \
+                         "the broker's message size limit, which is 512 at the NATS default of 1 MiB and more where " \
+                         "the limit is higher. An upload request over the limit fails the target with " \
+                         "bolt/choria-payload-too-large, and a download reply over it never arrives, so the target " \
+                         "shows as bolt/choria-no-response.",
+            minimum: 16,
+            _plugin: true,
+            _example: 256
+          },
+          "upload-batch-size" => {
+            type: Integer,
+            description: "How many targets one chunk request is published to at once. The controller holds " \
+                         "a copy of the request per target until it is sent, so without a size the batch is " \
+                         "the largest number of targets that keeps one batch's copies under 256 MiB at the " \
+                         "broker's message size limit.",
+            minimum: 1,
+            _plugin: true,
+            _example: 100
+          },
           "connect-timeout" => {
             type: Integer,
             description: "How long to wait in seconds when establishing connections. Set this value higher if you " \
