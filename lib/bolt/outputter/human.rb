@@ -51,7 +51,6 @@ module Bolt
 
         @spinning = false
         @spin_thread.terminate
-        @stream.print("\b")
       end
 
       def remove_trail(string)
