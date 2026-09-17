@@ -84,7 +84,7 @@ module Bolt
         "plugin_hooks" => {
           description: "Configuration for the Puppet library plugin used to install the " \
                        "Puppet agent on the target. For more information, see " \
-                       "https://docs.openvoxproject.org/openbolt/latest/writing_plugins.html",
+                       "[plugin hooks](writing_plugins.md#plugin-hooks).",
           type: Hash,
           properties: {
             "puppet_library" => {
