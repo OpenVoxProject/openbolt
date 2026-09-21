@@ -546,9 +546,10 @@ handles its own concurrency: `batches()` groups targets by collective
   (to allow retry), so each operation re-queries offline nodes. At 10,000
   targets with many offline, this adds discovery overhead.
 - **Per-target options in batches:** Batch methods use `targets.first.options`
-  for shared settings (timeout, tmpdir, cleanup). Per-target option differences
-  within a batch are silently ignored. This is inherent to the batch execution
-  model.
+  for shared settings such as timeouts and the shell tmpdir base. Per-target
+  differences in those settings within a batch are silently ignored, which is
+  inherent to the batch execution model. The `cleanup` option is the
+  exception, which the shell tmpdir removal honors per target.
 - **Inline shell uploads:** `upload_file_content` embeds base64 file content
   in a `shell.run` command. The shell agent DDL caps `command` at 10,240
   characters, so each call carries about 7.5KB of raw content on POSIX

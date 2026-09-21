@@ -125,15 +125,19 @@ module Bolt
       # @param targets [Array<Bolt::Target>] Targets to clean up on
       # @param tmpdir [String] Absolute path to the temporary directory to remove
       def cleanup_tmpdir(targets, tmpdir)
-        return unless targets.first.options.fetch('cleanup', true)
-
-        unless File.basename(tmpdir).start_with?('bolt-choria-')
+        # A Windows target's tmpdir is joined with backslashes, which
+        # File.basename does not split on when the controller runs on Linux.
+        unless tmpdir.split(%r{[/\\]}).last.to_s.start_with?('bolt-choria-')
           logger.warn { "Refusing to delete unexpected tmpdir path: #{tmpdir}" }
           return
         end
 
+        to_clean, to_keep = targets.partition { |target| target.options.fetch('cleanup', true) }
+        to_keep.each { |target| logger.warn { "Leaving #{tmpdir} on #{target.safe_name} because its cleanup option is off" } }
+        return if to_clean.empty?
+
         begin
-          failures = shell_run(targets, cleanup_dir_command(targets.first, tmpdir),
+          failures = shell_run(to_clean, cleanup_dir_command(to_clean.first, tmpdir),
                                description: 'cleanup tmpdir')
           failures.each do |target, failure|
             logger.warn { "Cleanup failed on #{target.safe_name}. Task data may remain in #{tmpdir}. #{failure[:error]}" }
