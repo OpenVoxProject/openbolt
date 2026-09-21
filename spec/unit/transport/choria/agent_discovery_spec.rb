@@ -42,6 +42,23 @@ describe Bolt::Transport::Choria do
       expect(transport.has_agent?(target, 'shell')).to be false
     end
 
+    it 'excludes a file_transfer agent below 1.0.0 and keeps one at it' do
+      result = make_rpc_result(sender: target, data: {
+                                 agents: [{ 'agent' => 'file_transfer', 'version' => '0.9.0' }]
+                               })
+      result2 = make_rpc_result(sender: target2, data: {
+                                  agents: [{ 'agent' => 'file_transfer', 'version' => '1.0.0' }]
+                                })
+
+      fact_results = [make_rpc_result(sender: target, data: { value: 'RedHat' }),
+                      make_rpc_result(sender: target2, data: { value: 'RedHat' })]
+      allow(mock_rpc_client).to receive_messages(agent_inventory: [result, result2], get_fact: fact_results)
+
+      transport.discover_agents([target, target2])
+      expect(transport.has_agent?(target, 'file_transfer')).to be false
+      expect(transport.has_agent?(target2, 'file_transfer')).to be true
+    end
+
     it 'treats agents with unparseable version strings as unavailable' do
       result = make_rpc_result(sender: target, data: {
                                  agents: [{ 'agent' => 'rpcutil' },
