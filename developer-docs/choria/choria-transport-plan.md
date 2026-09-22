@@ -26,7 +26,7 @@ which Choria agents are available on the remote nodes:
 | Phase 1 | bolt_tasks (ships with Choria+Puppet) | `run_task` (OpenVox/Puppet Server tasks only) |
 | Phase 2 | shell >= 1.2.1 (separate install) | `run_command`, `run_script`, `run_task` (local tasks) |
 | Phase 3 | bolt_tasks (shell optional for local tasks) | [foreman_openbolt](https://github.com/overlookinfra/foreman_openbolt) and [smart_proxy_openbolt](https://github.com/overlookinfra/smart_proxy_openbolt) run tasks over the Choria transport |
-| Phase 4 | file_transfer (new, to be written) | `upload`, `download` (any size, chunked) |
+| Phase 4 | file_transfer >= 1.0.0 (separate install) | `upload`, `download` (any size, chunked) |
 | Phase 5 | (all above) | Full plan support including apply blocks |
 
 ---
@@ -171,10 +171,10 @@ Plan support in the Foreman integration follows Phase 5. See
 Implement `upload` and `download` via a new `file_transfer` Choria agent that
 sends and receives files of any size, chunked to stay under the NATS message
 size limit. There is no upper bound on file size. Both sides stream one chunk
-at a time, so memory use is bounded by the chunk size, not the file size. The
-task paths also use this agent to deliver task arguments that exceed their
-agents' input limits as a file on the target, which apply blocks in Phase 5
-require.
+at a time, so memory use is bounded by the chunk size, not the file size. In
+Phase 5 the bolt_tasks path also uses this agent to deliver the apply
+helpers' arguments, which exceed that agent's input limit, as a file on the
+target.
 
 Transferring files this way is nowhere near as efficient as a download from a
 file server. Every chunk is a signed, base64-encoded RPC round trip. The agent
@@ -228,11 +228,17 @@ file server, not on Choria, and the user guide says so.
 - Agent name `file_transfer`, repository `file_transfer-agent`, Puppet module
   and class `mcollective_agent_file_transfer`, following the `<agent>-agent`
   and `mcollective_agent_<agent>` convention of the other Choria plugin agents
+- The client side of the protocol is a library in the same module,
+  `MCollective::Util::FileTransfer`, installed on client hosts as an
+  MCollective util plugin (`client => true`). The transport is an adapter
+  over it, so any Choria client can use the agent and OpenBolt carries none
+  of the protocol.
 - Options B and C are rejected. Fleet nodes cannot reach the subjects they
   need, and the Ruby NATS client OpenBolt uses has no JetStream support.
-- Temporary storage on a node is addressed by a session UUID and a relative
-  name, never by a path the controller computes. The agent owns the temp
-  root through its own setting, and there is no general delete action.
+- Temporary storage on a node is one file beside the destination,
+  `.file_transfer-<token>`, named by a token the controller chooses per
+  file. The agent has no settings and no general delete action, only
+  `abort` for that one file.
 - Authorization stays with Choria. The agent has no allowlist of its own.
   Action policies gate callers and actions, and the rego provider gates
   paths, since it sees the action arguments.
@@ -269,11 +275,15 @@ binary storage, though Choria does not use it today.
 
 Option A was chosen. Options B and C are kept for reference.
 
-#### Option A: Compressed + Base64 via Choria RPC
+#### Option A: Base64 via Choria RPC
 
-The simplest approach. File data is optionally gzip-compressed, then base64-encoded, and
-sent as string action inputs through standard Choria RPC calls. The agent
-decompresses and writes to disk.
+The simplest approach. File data is base64-encoded and sent as string
+action inputs through standard Choria RPC calls. The agent decodes and
+writes to disk. Compression was part of this option until 2026-09-22. Per
+chunk it cut wire bytes but not round trips, and compressing a whole file
+first cannot work for downloads, since each agent call is a fresh process
+with no state. A user compresses a file before sending it when its size
+matters.
 
 This works entirely within the existing Choria RPC framework and keeps the
 agent in Ruby.
@@ -300,50 +310,33 @@ chunk_base64_budget = request_json_budget - envelope - margin
 raw_chunk_bytes     = chunk_base64_budget * 3 / 4
 ```
 
-With the 1MB limit and a small batch that is roughly 555KB of raw data per
-chunk. The envelope carries the identity filter, so it grows with the batch,
-and at 10,000 targets the raw chunk falls to roughly 270KB. The default
-`chunk-size` is 512KB, under the small-batch ceiling with headroom. Larger
-batches get a smaller computed chunk.
+The chunk is half the broker's advertised limit by default,
+`message-data-size` in kibibytes to set it. The agent's design document
+derives every layer of a request from the gem's code: with a 1 MiB limit
+the largest content that fits is 568 KB on a single broker and 539 KB
+through a federation broker with 200 targets of 253 byte names, so half
+leaves room for longer identities and certificates, and more room at a
+higher limit, since the fixed part of the envelope does not grow with
+it. A direct request carries no identity list, so on a single broker the
+envelope does not grow with the batch. The exact per-request computation
+is parked on the agent repository's `exact-chunk-sizing` branch.
 
-The transport computes the chunk for each batch at run time, never from
-stored measurements, so a new Choria or client library version needs no
-retest:
-- It reads `max_payload` from the NATS `INFO` the client received at connect
-- It computes the envelope for the batch by serializing the request without
-  a chunk through the installed client, a local calculation with no network
-  involved, so the filter, credentials, signature, protocol version, and
-  encoding are counted as the installed version produces them
-- The chunk is the smaller of `chunk-size` and that budget minus a reserve
-  for what the controller cannot observe: headers federation brokers add in
-  flight, and the reply envelope the node's server builds around a download
-  chunk
+The client library reads the broker's advertised limit at run time:
+- It reads `max_payload` from the NATS `INFO` the client received at
+  connect, and assumes 1MB with a warning when the wrapper does not expose
+  it
 - A size guard at the wrapper's publish method compares every outgoing
   message, as serialized, against the limit before it is sent. An oversized
-  request never leaves the controller. The guard raises immediately with the
-  exact overshoot, and the transport shrinks the chunk by that amount plus a
-  small cushion and resends.
+  request never leaves the controller. The targets of that call fail with
+  `bolt/choria-payload-too-large` and a message naming a lower
+  `message-data-size` as the remedy, and nothing is resent.
 - Downloads cannot get that signal, because an oversized reply fails on the
   node and never reaches the controller. The request tells the agent the
-  maximum reply size, derived from the same budget minus the reserve, and
-  chunk requests use a short timeout derived from observed chunk latency. A
-  whole group going silent on the same chunk size is treated as a sizing
-  failure. The transport reduces the chunk by 20 percent for that group and
-  retries, down to a floor, before reporting the targets as failed.
-- Every reduction is a prominent warning to the user, not a silent retry. It
-  names the cause (a guard rejection with the overshoot in bytes, or a group
-  that went silent), the limit the broker advertised, the chunk size before
-  and after, the affected targets, and the remedy: lower `chunk-size` to
-  avoid the retries, or raise the broker's payload limit. It is emitted once
-  per cause per run with a count, not once per chunk, and the transfer still
-  completes.
-- If a future client version removes the publish hook, the transport falls
-  back to a conservative fraction of the limit and logs a warning naming the
-  cause
-
-Compression reduces actual wire size significantly for compressible files
-(text, configs, scripts, catalogs). For already-compressed files (zip, tar.gz,
-images, binaries), compression is skipped to avoid wasting CPU.
+  maximum reply size, the content a request could carry, since a reply
+  carrying the same content weighs less than the request measured for it,
+  and chunk requests use a short timeout derived from observed chunk
+  latency. A target that does not answer is reported as not responding,
+  without a retry.
 
 #### Option B: Hybrid RPC + Direct NATS Binary Channel
 
@@ -359,7 +352,7 @@ subscriptions into a single shared receive queue that would conflict with
 RPC traffic.
 
 **Pros:**
-- Zero encoding overhead on the data path (raw compressed bytes over NATS)
+- Zero encoding overhead on the data path (raw bytes over NATS)
 - Efficient use of the full NATS message size for data
 - Binary-safe without any serialization workarounds
 
@@ -404,103 +397,113 @@ them before running the agent.
 
 | Action | Purpose | Inputs | Outputs |
 |--------|---------|--------|---------|
-| `mktemp` | Create a session directory, sweep stale sessions | `session` | `path`, `swept` |
-| `put` | Write one chunk into a session, verify and move on the last | `session`, `name`, `offset`, `data`, `compressed`, `final`, `sha256`, `destination`, `mode` | `bytes`, `size`, `sha256` |
-| `cleanup` | Remove a session directory | `session` | `removed` |
-| `get` | Read one chunk | `path`, `offset`, `max_bytes`, `compress` | `data`, `bytes`, `compressed`, `eof`, `size` |
+| `put` | Write one chunk under a temporary name beside the destination, verify and rename on the last | `destination`, `token`, `offset`, `data`, `final`, `sha256`, `mode` | `bytes`, `size`, `sha256` |
+| `abort` | Remove the temporary file of an upload that will not finish | `destination`, `token` | `removed` |
+| `get` | Read one chunk | `path`, `offset`, `max_bytes` | `data`, `bytes`, `size` |
 | `stat` | Describe a path | `path`, `checksum` | `exists`, `type`, `symlink`, `size`, `mode`, `mtime`, `sha256` |
-| `list` | List one page of a directory | `path`, `offset`, `limit` | `entries`, `total` |
-| `mkdir` | Create a directory and missing parents | `path`, `mode` | `created` |
+| `list` | List every entry under a directory | `path`, `max_bytes` | `entries` |
+| `mkdir` | Create a directory and missing parents | `path`, `mode` | none |
 
-**Sessions.** Temporary storage on a node is addressed only by `session`, a
-lowercase UUID the controller generates per run and batch, and `name`, a
-relative path that cannot leave the session. The agent maps the session to
-`<tmpdir>/file_transfer-<uuid>` under its own `tmpdir` setting, which
-defaults to the Ruby temp dir and is set per node where `/tmp` is noexec.
-The controller never computes a remote temp path. Every action checks with
-`lstat` that the session directory and each component inside it is a real
-directory owned by the agent's user, creates files 0600 and directories
-0700, and opens with `O_NOFOLLOW`. The only removals are `cleanup` of one
-session and the sweep inside `mktemp` of sessions untouched for
-`stale_after` seconds. That setting defaults to one day and must exceed the
-longest task timeout used against the node.
+**Temporary names.** A file arrives on a node chunk by chunk under
+`.file_transfer-<token>` beside its destination, the token being sixteen
+hex characters the controller chooses per file, until its final chunk
+verifies it and renames it into place. The agent has no settings and no
+temp root. The first chunk creates the file exclusively at 0600, a later
+chunk reopens it with `O_NOFOLLOW`, a put that fails after creating or
+opening it removes it, and `abort` removes it for a controller that gave
+up on the target. The only removal on a node is that one file.
 
 **Upload.** Agent detection, `stat` of the destination (an existing
-directory receives the file inside it), `mktemp`, then `put` per chunk with
-a running SHA-256. The last chunk carries `final`, `sha256`, `destination`,
-and the source mode. The agent verifies the digest, applies the mode, and
-renames the file onto the destination, copying beside it first when the
-session is on another filesystem. `cleanup` runs in an ensure block on every
-target where `mktemp` succeeded, gated by that target's `cleanup` option.
-Directory uploads walk the local tree following links, `mkdir` per
-directory, and reuse the one session.
+directory receives the file inside it), then `put` per chunk with the
+destination and the token, once per distinct destination, with a running
+SHA-256. The last chunk carries `final`, `sha256` and the source mode. The
+agent verifies the digest through the open handle, applies the mode, and
+renames the file onto the destination, which is beside it, so never a
+copy. From an ensure the library sends `abort` to every target that was
+sent a chunk and did not finish, skipping one whose agent refused a chunk
+and removed the file itself. Directory uploads walk the local tree,
+skipping links to directories, `mkdir` per directory, and a token per
+file.
 
 **Download.** Agent detection, `stat` with checksum, then `get` by offset in
-groups of `download-group-size` targets. Each reply is written to the local
-file as it arrives through the block form of the RPC call. A target leaves
-its group at `eof`. The local digest is compared with the one from `stat`.
-Directory downloads `list` recursively and skip directories reached through
-links. Downloads create no session.
+rounds of as many targets as keep their replies under the broker's backlog.
+Each reply is written to a temporary file beside its destination when its
+round returns. A target is asked while the size its `stat` reported has
+bytes beyond the offset, so the rounds end by that size alone. A reply
+reaching past that size is cut at it, so a file that grew in the meantime
+still verifies as the file that its `stat` described. The digest of what
+was written is compared with the one from `stat`, and a copy that matches
+gets the mode `stat` reported, with the owner's bits added, and is renamed
+onto its destination, while one that does not is removed. A directory
+download lists each target's whole tree, in rounds, under
+`message-data-size`, makes each directory with the mode the target listed,
+and skips directories reached through links. Downloads make nothing on the
+nodes and no staging directory on the controller.
 
-**Chunk sizing.** Computed per batch from the broker's advertised
-`max_payload`, the envelope size of a locally serialized empty request, and
-the per-byte expansion from a second serialization, minus a 5 percent
-reserve, capped by `chunk-size`. A guard on the client's publish compares
-every payload with the limit before it leaves the controller. The reply
-budget for downloads starts at a quarter of the request budget and is
-measured from the first round's replies. Every reduction, after a guard hit,
-a silent group, or a broker reconnect, is a prominent warning naming the
-cause, the limit, the sizes before and after, the targets, and the remedy.
+**Message data size.** Half the broker's advertised limit of file content
+per request by default, `message-data-size` in kibibytes to set it. The
+request's signed envelope, two base64 passes, and transport headers fit
+beside that under the limit, which the agent's design document accounts
+for at 1 MiB. A guard on the client's publish compares every payload with
+the limit before it leaves the controller and fails the targets of a
+refused call with the remedy in the message. A download round asks for
+the same content, since a reply weighs less than a request, and so does a
+directory listing, which the node refuses when its tree lists larger.
 
 **Failures.** Status code 1 from the agent is a failure for that target on
-every call. A target that fails a chunk or misses a chunk timeout gets an
-error and is dropped from the rest of that transfer. Later chunks wait three
-times the slowest chunk seen so far, bounded by `rpc-timeout`.
+every call. A target that fails a chunk or misses its reply window gets an
+error and is dropped from the rest of that transfer. Every call waits
+`rpc-timeout`, and never less than the agent's DDL timeout, within which a
+target's server stops any request.
 
-**Task arguments and files.** When task files or stdin arguments exceed the
-shell agent's command limit, the shell path delivers them into a session
-with `put` and runs the task from the session path. Small tasks keep the
-inline path. The bolt_tasks path uses the same delivery only for OpenBolt's
-apply helpers in Phase 5.
+**Task arguments and files.** The shell path does not use this agent. Its
+task files and stdin arguments travel inside shell commands and stay bounded
+by the shell agent's command limit, so each agent works on its own where a
+deployment allows only one of them. The bolt_tasks path delivers OpenBolt's
+apply helper arguments with a plain upload in Phase 5.
 
 **Windows.** The DDL and protocol are platform neutral. Running a Ruby
-script as an external agent needs a launcher on Windows, and the session
-checks need an ACL equivalent to the mode checks. Parked until a Windows
-Choria node is available.
+script as an external agent needs a launcher on Windows, which the module
+ships as `file_transfer.bat`, and the last component of a destination is
+held to Windows name rules. A run on a Windows node is still owed.
 
 ### Config Changes
 
 New options:
-- `chunk-size` (Integer, default: 524288 = 512KB, minimum 16384) - Upper
-  bound on the raw bytes per chunk. The effective size per batch is the
-  payload limit minus the request envelope, capped by this value.
-- `download-group-size` (Integer, default: 32, minimum 1) - Targets per
-  download RPC round, which bounds reply volume to group size times chunk
-  size
+- `message-data-size` (Integer, no default, minimum 16) - The data one RPC
+  call carries in kibibytes, the file content of a chunk and the most a
+  directory listing may weigh. Without it, half the broker's message size
+  limit, 512 at the NATS default of 1 MiB.
+- `upload-batch-size` (Integer, no default, minimum 1) - Targets one chunk
+  request is published to at once. Without it, the largest number that
+  keeps one batch's copies under 256 MiB on the controller at the
+  broker's limit.
+
+A download round asks the largest number of targets that keeps one round
+of replies under three quarters of the 64 MiB backlog the broker holds for
+the controller's connection before closing it, with no option to change it.
 
 The `tmpdir` option keeps its meaning only for the shell path without the
 file_transfer agent.
 
 ### Testing Strategy
 
-1. Agent specs in its repository run the script as a subprocess against a
-   temp root: every action's outcomes, session checks against links, foreign
-   directories, and planted names, the sweep, exclusive creates, gaps,
-   compression round trips, verify and move including across filesystems,
-   and the final chunk retry
-2. Transport unit tests with the stubbed RPC client: one session per batch
-   with cleanup in the ensure path, chunk boundaries (empty, one chunk, many
-   chunks), directory walks, grouping and dropping, results, and agent
-   detection failing fast from the CLI and plan paths
-3. Chunk sizing against a fake client wrapper: budget, guard overshoot,
-   reply measurement, reductions, and warnings
+1. Agent specs in its repository run the script as a subprocess: every
+   action's outcomes, the exclusive create beside the destination, the
+   `O_NOFOLLOW` reopen, gaps, verify and rename, the removal on failure
+   and through `abort`, and the Windows name rule in process
+2. Transport unit tests with the stubbed RPC client: a token per file with
+   abort for the targets that did not finish, chunk boundaries (empty, one
+   chunk, many chunks), directory walks, grouping and dropping, results,
+   and agent detection failing fast from the CLI and plan paths
+3. Chunk sizing against a fake client wrapper: budget, guard refusal, and
+   the warning for an unknown limit
 4. One spec that loads the bundled DDL and validates a full-size chunk and
    the rejection cases through the client's validator
 5. Integration tests against a real Choria cluster: a multi-GB file, a
    fleet-wide upload, a grouped download, a directory both ways, a
-   destination on another filesystem than the temp root, an interrupted
-   upload followed by a sweep, a `tmpdir` setting on a noexec host, and a
-   policy denial
+   destination whose parent is missing, an interrupted upload leaving
+   `.file_transfer-<token>` beside the destination, and a policy denial
 
 ---
 
@@ -532,6 +535,28 @@ because they delegate to the transport's public methods:
 
 - Apply must not require the shell agent. It runs through the bolt_tasks
   agent and the Phase 4 file_transfer agent.
+
+### Targets Without the Agent
+
+A node that runs only the Choria server can execute nothing. The built-in
+Go agents are read-only or configure the server, and every Ruby agent,
+bolt_tasks and file_transfer included, needs the OpenVox agent's Ruby and
+is installed by Choria's Puppet modules. `apply_prep` therefore cannot
+install the agent through this transport.
+
+Decision: a Choria target must already run the OpenVox agent and Choria's
+Ruby agents. The transport detects the agent through discovery, skips the
+install hook when it is present, and fails early with a message naming
+the prerequisite when it is not. This is a documented parity exception,
+and the file_transfer agent gets no execute action.
+
+If users need `apply_prep` to install the agent, the path is a separate
+`openvox_bootstrap` agent: a POSIX shell external agent with one hardcoded
+action that installs the `openvox-agent` package from parameters, and a
+status action, placed on the node outside Puppet (image, provisioning, or
+a small noarch package). It needs a second piece before `apply_prep` can
+finish: Choria's Ruby agents must appear after the install, shipped with
+the agent by packaging or installed by the node's first Puppet run.
 
 ### What Needs Work: Apply Blocks
 

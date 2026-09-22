@@ -237,7 +237,9 @@ in the user guide for details and workarounds using `name` with `host` config.
 
 The `choria` Puppet module manages the Choria server, broker, and MCO Ruby
 compatibility layer on your nodes. The `bolt_tasks` and `shell` agents are
-Ruby MCollective agents that run through Choria's MCO compatibility shim.
+Ruby MCollective agents that run through Choria's MCO compatibility shim. The
+`file_transfer` agent is a Choria external agent, a Ruby script the server
+runs directly with Puppet's Ruby.
 
 ### Puppetfile
 
@@ -251,11 +253,17 @@ mod 'choria-mcollective_choria', :latest
 mod 'mcollective_agent_shell',
   git: 'https://github.com/choria-plugins/shell-agent',
   ref: '1.2.1'
+mod 'mcollective_agent_file_transfer',
+  git: 'https://github.com/overlookinfra/file_transfer-agent',
+  ref: 'main'
 ```
 
 The shell agent requires version 1.2.1 or later (for the batched `statuses`
-action). The `bolt_tasks` agent is included in a standard Choria install and
-does not need a separate Puppetfile entry.
+action). The file_transfer agent requires version 1.0.0 or later, and its
+module also has to be applied on the OpenBolt controller with
+`client => true`, since it carries the client library the transport uses.
+The `bolt_tasks` agent is included in a standard Choria install and does not
+need a separate Puppetfile entry.
 
 Deploy with r10k:
 
@@ -323,6 +331,7 @@ mcollective::client_config:
 mcollective::plugin_classes:
   - mcollective_agent_bolt_tasks
   - mcollective_agent_shell
+  - mcollective_agent_file_transfer
 ```
 
 Per-node data for the primary (enables the NATS broker):
@@ -370,12 +379,23 @@ Verify agents are loaded:
 choria rpc rpcutil agent_inventory -I nodeA.example.com
 ```
 
-The agent list should include `bolt_tasks` and `shell`.
+The agent list includes `bolt_tasks`, `shell`, and `file_transfer`. The
+file_transfer entry carries `provider: external`.
 
-**Client-side DDLs:** The `bolt_tasks` DDL comes from the
-`choria-mcorpc-support` gem (included in OpenBolt 5.4.0). The `shell` DDL is
-bundled with OpenBolt and preloaded automatically. No manual DDL installation
-is needed on the OpenBolt controller.
+**Client-side DDLs and the file_transfer client library:** The `bolt_tasks`
+DDL comes from the `choria-mcorpc-support` gem and the `shell` DDL is
+bundled with OpenBolt. The `file_transfer` DDL and the client library the
+transport uses come from the agent module: apply
+`mcollective_agent_file_transfer` with `client => true` on the OpenBolt
+controller, which installs them under the Choria libdir. Without them
+`upload`, `download`, and large shell-path tasks fail with
+`bolt/choria-file-transfer-library` naming the module.
+
+**Policies:** the module writes `policies/file_transfer.policy` from the site
+policies above. A read-only grant lists only `stat list get` in `actions`.
+Per-path restrictions need the rego authorization provider and the
+`mcollective_agent_file_transfer::rego_policy_source` parameter. Without any
+policy file the Choria server denies every request to the agent.
 
 ### Removing agents for testing
 
@@ -384,6 +404,7 @@ remove agents from `mcollective::plugin_classes` in Hiera and set absent:
 
 ```yaml
 mcollective_agent_shell::ensure: absent
+mcollective_agent_file_transfer::ensure: absent
 ```
 
 Run Puppet on the node, then restart Choria server:
@@ -453,14 +474,15 @@ The 'bolt_tasks' agent is not available on nodeA.example.com.
 Install either the bolt_tasks or shell agent on target nodes to run tasks via Choria.
 ```
 
-**upload/download (not yet supported)**
+**upload/download (needs file_transfer agent)**
 
 ```bash
 bolt file upload /tmp/test.sh /tmp/test_remote.sh --targets nodeA.example.com
 bolt file download /etc/hostname /tmp/downloaded/ --targets nodeA.example.com
 ```
 
-Expected: Both fail with `The Choria transport does not yet support upload/download.`
+Expected: Both fail with `bolt/choria-agent-not-available` naming the
+`file_transfer` agent, before anything is sent.
 
 ### bolt_tasks agent only
 
@@ -642,14 +664,14 @@ bolt task run choria_test::hello --targets nodeA.example.com,nodeB.example.com -
 
 All should succeed on both nodes.
 
-**upload/download still unsupported**
+**upload/download still need the file_transfer agent**
 
 ```bash
 bolt file upload /tmp/test.sh /tmp/test_remote.sh --targets nodeA.example.com
-bolt file download /etc/hostname /tmp/downloaded/ --targets nodeA.example.com
 ```
 
-Still fails with `bolt/choria-unsupported-operation`, regardless of agents.
+Still fails with `bolt/choria-agent-not-available` until the file_transfer
+agent is installed, see the file_transfer section below.
 
 **Multiple targets**
 
@@ -692,6 +714,162 @@ ssh nodeA.example.com 'ls -la /tmp/bolt-choria-*'
 ssh nodeA.example.com 'rm -rf /tmp/bolt-choria-*'
 ```
 
+### file_transfer agent installed
+
+Install the file_transfer agent on both nodes through
+`mcollective::plugin_classes` as above, and its client files on the
+controller with `client => true`. The transport needs it for `upload` and
+`download`. Transfers through Choria are meant for smaller files.
+Every chunk is a signed RPC round trip, so gigabytes belong on a file server.
+
+**Upload a file**
+
+```bash
+head -c 3000000 /dev/urandom > /tmp/three_mb.bin
+bolt file upload /tmp/three_mb.bin /tmp/uploaded.bin --targets nodeA.example.com,nodeB.example.com --log-level debug 2>&1 | \
+  grep -i "bytes of data\|Uploaded"
+ssh nodeA.example.com 'sha256sum /tmp/uploaded.bin; stat -c %a /tmp/uploaded.bin'
+sha256sum /tmp/three_mb.bin
+```
+
+Expected: the debug log names the bytes each message carries, both nodes report success,
+the digests match, and the mode matches the source. No
+`.file_transfer-` file is left beside the destination on either node.
+
+**Upload into an existing directory**
+
+```bash
+bolt file upload /tmp/three_mb.bin /var/tmp --targets nodeA.example.com
+ssh nodeA.example.com 'ls -l /var/tmp/three_mb.bin'
+```
+
+Expected: the file lands inside the directory under its own name, as `mv`
+would place it.
+
+**Upload a directory**
+
+```bash
+mkdir -p /tmp/tree/sub && echo top > /tmp/tree/top.txt && echo inner > /tmp/tree/sub/inner.txt && chmod 750 /tmp/tree/sub
+bolt file upload /tmp/tree /tmp/tree_remote --targets nodeA.example.com
+ssh nodeA.example.com 'find /tmp/tree_remote -printf "%m %p\n"'
+```
+
+Expected: both files and both directories arrive with their modes.
+
+**Upload a directory holding symbolic links**
+
+```bash
+mkdir -p /tmp/tree2/releases/one && echo app > /tmp/tree2/releases/one/app.rb
+ln -s /tmp/tree2/releases/one /tmp/tree2/current
+ln -s /tmp/tree2/releases/one/app.rb /tmp/tree2/app_link.rb
+bolt file upload /tmp/tree2 /tmp/tree2_remote --targets nodeA.example.com
+ssh nodeA.example.com 'find /tmp/tree2_remote -type f'
+```
+
+Expected: `releases/one/app.rb` and `app_link.rb` arrive as regular files,
+and `current` is skipped with a warning naming it as a link to a directory.
+
+**Download a file from several targets**
+
+```bash
+bolt file download /var/log/messages /tmp/downloaded --targets nodeA.example.com,nodeB.example.com
+ls -l /tmp/downloaded/*/messages
+```
+
+Expected: one copy per target under `/tmp/downloaded/<target>/`, each
+matching `sha256sum` on its node.
+
+**Download a directory**
+
+```bash
+bolt file download /etc/choria /tmp/downloaded --targets nodeA.example.com
+```
+
+Expected: the tree arrives under `/tmp/downloaded/<target>/choria/`. A
+symbolic link to a directory inside the tree is skipped with a warning.
+
+**Download a directory that differs between targets**
+
+```bash
+ssh nodeA.example.com 'mkdir -p /tmp/mixed && echo a > /tmp/mixed/a.txt && echo b > /tmp/mixed/b.txt'
+ssh nodeB.example.com 'mkdir -p /tmp/mixed && echo b > /tmp/mixed/b.txt'
+bolt file download /tmp/mixed /tmp/downloaded --targets nodeA.example.com,nodeB.example.com
+find /tmp/downloaded -type f
+```
+
+Expected: both targets succeed. nodeA delivers both files and nodeB delivers
+`b.txt` alone. A file only one target holds is stat-ed and fetched only on
+that target, so the other is not failed for not having it.
+
+**A timeout of five seconds**
+
+```bash
+mco file_transfer upload /tmp/three_mb.bin /tmp/five_seconds.bin \
+  -I nodeA.example.com -I unreachable.example.com --timeout 5
+```
+
+Expected: nodeA reports its landing path, the unreachable identity reports
+no response to the stat call about five seconds after the command starts,
+and the exit code is 2. The identity filter skips discovery, so the
+library's own calls are what wait. The gem replaces a client timeout of
+exactly 5 with the agent's DDL timeout plus the discovery timeout, and the
+library sets the timeout after building the client to keep the value
+given. A target OpenBolt cannot reach fails during agent discovery with
+`bolt/choria-agent-not-available` before the library runs, so the bolt
+command cannot show this case.
+
+**Checksum change during a download**
+
+Start a download of a large file and append to it on the node while the
+transfer runs:
+
+```bash
+ssh nodeA.example.com 'head -c 200000000 /dev/urandom > /tmp/big.bin'
+bolt file download /tmp/big.bin /tmp/downloaded --targets nodeA.example.com &
+ssh nodeA.example.com 'echo more >> /tmp/big.bin'
+wait
+```
+
+Expected: the target fails with `bolt/choria-checksum-mismatch` naming both
+digests, and nothing is left under `/tmp/downloaded/<target>/`.
+
+**Upload to a missing directory**
+
+Upload a file to a destination whose parent directory does not exist on
+the node. Expected: the target fails at the first chunk with
+`Errno::ENOENT` naming the directory, and nothing is left on the node.
+
+**Interrupted upload**
+
+Interrupt an upload of a large file with Ctrl-C. Expected under OpenBolt,
+whose Ctrl-C handler exits at once: `.file_transfer-<token>` beside the
+destination on each target, to remove by hand. Expected under
+`mco file_transfer`, which finishes the call it is in: the library's
+`abort` removes the file where it reaches the node.
+
+**Policy denial**
+
+Replace the site policy allow line with one that grants only `stat list get`
+to the OpenBolt certname and run an upload. Expected: every target fails at
+the first `put` with an authorization error from the Choria server, and nothing is
+written. A download still works.
+
+**Payload limit warnings**
+
+Lower `message-data-size`, which is in kibibytes, below the minimum and above it:
+
+```bash
+bolt file upload /tmp/three_mb.bin /tmp/uploaded.bin --targets nodeA.example.com \
+  --transport-config '{"choria": {"message-data-size": 64}}' --log-level debug 2>&1 | grep "bytes of data"
+```
+
+Expected: `Each message carries up to 65536 bytes of data`. Without the
+option the line names half the broker's limit, 524288 at the NATS default.
+A `message-data-size` under 16 is refused by config validation. A request
+the broker's limit refuses fails its targets with
+`bolt/choria-payload-too-large` and a message naming a lower
+`message-data-size` as the remedy.
+
 ## Debug logging
 
 Add `--log-level debug` to any OpenBolt command to see detailed transport traces:
@@ -707,7 +885,10 @@ Add `--log-level debug` to any OpenBolt command to see detailed transport traces
 - `Poll round N: M targets still pending` (poll loop progress)
 - `shell.list on <host>: handle ... status: stopped` (per-target poll result)
 - `Fetching shell.statuses for N targets` (batched output fetch)
-- `Uploading N bytes to <path> on M targets` (file upload)
+- `Uploading N bytes to <path> on M targets` (inline shell upload of a task file)
+- `Each message carries up to B bytes of data` (message sizing, half the broker's limit unless set)
+- `Upload of <source> to <destination> on N nodes` (file_transfer upload start)
+- `Upload chunks go to N nodes per request` (the file_transfer upload batch size)
 - `Checking connectivity for N targets` (connectivity check)
 - `Timed out after Ns with M targets still pending, killing processes` (timeout)
 - `Killing timed-out processes on N targets` (kill start)
@@ -761,6 +942,9 @@ OpenBolt caches agent lists per target for the transport's lifetime. Start a fre
 | run_command | agent error    | agent error     | works                     | works (shell)                        |
 | run_script  | agent error    | agent error     | works                     | works (shell)                        |
 | run_task    | no-agent error | works (bt)      | works (--choria-task-agent sh) | works (bt default, sh if configured) |
-| upload      | unsupported    | unsupported     | unsupported               | unsupported                          |
-| download    | unsupported    | unsupported     | unsupported               | unsupported                          |
+| upload      | agent error    | agent error     | agent error               | agent error (needs file_transfer)    |
+| download    | agent error    | agent error     | agent error               | agent error (needs file_transfer)    |
 | connected?  | works          | works           | works                     | works                                |
+
+With the file_transfer agent installed as well, `upload` and `download` work
+on every target that has it. The two agents do not depend on each other.
