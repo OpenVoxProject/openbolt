@@ -132,22 +132,6 @@ describe Bolt::Transport::Choria do
     end
   end
 
-  describe '#upload' do
-    it 'raises an unsupported operation error' do
-      expect { transport.upload(target, '/src', '/dst') }.to raise_error(
-        Bolt::Error, /does not yet support upload/
-      )
-    end
-  end
-
-  describe '#download' do
-    it 'raises an unsupported operation error' do
-      expect { transport.download(target, '/src', '/dst') }.to raise_error(
-        Bolt::Error, /does not yet support download/
-      )
-    end
-  end
-
   describe '#batches' do
     include_context 'choria multi-target'
 

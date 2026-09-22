@@ -29,7 +29,11 @@ module Bolt
     #     To run local tasks via the shell agent, set task-agent to 'shell'
     #     in project config or specify --choria-task-agent shell.
     #
-    #   Upload, download, and plans are not yet supported.
+    #   file_transfer agent installed (>= 1.0.0): upload and download work.
+    #     The controller needs the agent module's client files, which carry
+    #     the client library the transport uses.
+    #
+    #   Plans are not yet supported.
     class Choria < Base
       def initialize
         super
@@ -180,25 +184,16 @@ module Bolt
         false
       end
 
-      def upload(_target, _source, _destination, _options = {}, _position = [])
-        raise Bolt::Error.new(
-          'The Choria transport does not yet support upload.',
-          'bolt/choria-unsupported-operation'
-        )
-      end
-
-      def download(_target, _source, _destination, _options = {}, _position = [])
-        raise Bolt::Error.new(
-          'The Choria transport does not yet support download.',
-          'bolt/choria-unsupported-operation'
-        )
-      end
-
       # Returns the Choria node identity for a target. Uses the transport
       # 'host' config if set, falling back to target.host (which Bolt
       # derives from the URI or target name).
       def choria_identity(target)
         target.options['host'] || target.host
+      end
+
+      # The distinct identities behind the targets, in target order.
+      def identities_of(targets)
+        targets.map { |target| choria_identity(target) }.uniq
       end
 
       # Returns the collective for a target, used by batches() to group
@@ -214,5 +209,6 @@ require_relative 'choria/agent_discovery'
 require_relative 'choria/bolt_tasks'
 require_relative 'choria/client'
 require_relative 'choria/command_builders'
+require_relative 'choria/file_transfer'
 require_relative 'choria/helpers'
 require_relative 'choria/shell'
