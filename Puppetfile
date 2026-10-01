@@ -6,7 +6,7 @@ moduledir File.join(File.dirname(__FILE__), 'modules')
 
 # Core modules used by 'apply'
 mod 'puppetlabs-service', '4.0.0'
-mod 'puppet-openvox_bootstrap', '1.4.0'
+mod 'puppet-openvox_bootstrap', '1.5.0'
 mod 'puppetlabs-facts', '1.8.1'
 
 # Other core Puppet modules
