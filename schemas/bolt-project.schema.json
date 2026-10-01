@@ -278,7 +278,7 @@
       }
     },
     "modules": {
-      "description": "A list of module dependencies for the project. Each dependency is a map of data specifying the module to install. To install the project's module dependencies, run the `bolt module install` command. For more information about specifying modules, see [the documentation](https://docs.openvoxproject.org/openbolt/latest/bolt_installing_modules.html#manually-specify-modules-in-a-bolt-project).",
+      "description": "A list of module dependencies for the project. Each dependency is a map of data specifying the module to install. To install the project's module dependencies, run the `bolt module install` command. For more information about specifying modules, see [the documentation](bolt_installing_modules.md#manually-specify-modules-in-a-bolt-project).",
       "type": "array",
       "items": {
         "type": [
