@@ -59,7 +59,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency "net-scp", ">= 1.2", "< 5.0"
   spec.add_dependency "net-ssh", ">= 4.0", "< 8.0"
   spec.add_dependency "net-ssh-krb", "~> 0.5"
-  spec.add_dependency "openvox", "~> 8.0"
+  spec.add_dependency "openvox", ">= 8", "< 10"
   spec.add_dependency "openvox-strings", '>= 5.0', '< 8'
   spec.add_dependency "puppetfile-resolver", ">= 0.6.2", "< 1.0"
   spec.add_dependency "puppet-resource_api", ">= 1.8.1"
