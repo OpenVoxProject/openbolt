@@ -33,7 +33,7 @@ jobs:
       - name: Run Rubocop
         run: bundle exec rake rubocop
       - id: ruby
-        uses: voxpupuli/ruby-version@656370e339050da63b86b1c631f5f88a3f4c0803 # 1.0.1
+        uses: voxpupuli/ruby-version@be0467ce7366d206b2e87f5b7a032a030120b7cb # 2.0.0
 
   cache_modules_linux:
     name: 'Linux: Generate module cache'
@@ -363,7 +363,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby: ['3.2', '3.3']
+        ruby: ['3.2', '3.3', '4.0']
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
