@@ -256,7 +256,7 @@ describe 'Bolt::Transport::Choria bolt_tasks' do
 
         result = transport.batch_task([target], task, {}).first
         expect(result.ok?).to be false
-        expect(result.error_hash['msg']).to match(/failed to download task files/)
+        expect(result.error_hash['msg']).to match(/failed to download task files: Could not download task files from puppet server/)
       end
 
       it 'returns error when download returns no response' do
@@ -339,6 +339,44 @@ describe 'Bolt::Transport::Choria bolt_tasks' do
         expect(error_results.length).to eq(1)
         expect(error_results.first.target).to eq(target2)
         expect(error_results.first.error_hash['msg']).to match(/The bolt_tasks\.download call on .+ returned RPC error: Puppet server unreachable/)
+      end
+
+      # rpc_request files a statuscode 1 reply under :responded, and such
+      # a reply to run_no_wait carries no task_id.
+      it 'reports a target whose run_no_wait failed with statuscode 1 and polls the rest with the task_id that another target answered' do
+        stub_agents([target, target2], %w[rpcutil bolt_tasks])
+        refused = make_rpc_result(sender: target, statuscode: 1, statusmsg: 'Could not spawn task mymod::mytask', data: {})
+        polled = nil
+        allow(mock_rpc_client).to receive_messages(
+          download: [make_download_result(target), make_download_result(target2)],
+          run_no_wait: [refused, make_task_run_result(target2)]
+        )
+        allow(mock_rpc_client).to receive(:task_status) do
+          polled = mock_rpc_client.options[:filter]['identity'].dup
+          [make_task_status_result(target2)]
+        end
+
+        results = transport.batch_task([target, target2], task, {})
+
+        refused_result = results.find { |result| result.target == target }
+        expect(refused_result.ok?).to be false
+        expect(refused_result.error_hash['kind']).to eq('bolt/choria-task-start-failed')
+        expect(refused_result.error_hash['msg'])
+          .to match(/The bolt_tasks\.run_no_wait call on .+ failed to start the task: Could not spawn task mymod::mytask/)
+        expect(results.find { |result| result.target == target2 }.ok?).to be true
+        expect(polled).to eq(['node2.example.com'])
+      end
+
+      it 'reports a lone target whose run_no_wait failed with statuscode 1 and polls nothing' do
+        refused = make_rpc_result(sender: target, statuscode: 1, statusmsg: 'Could not spawn task mymod::mytask', data: {})
+        allow(mock_rpc_client).to receive(:run_no_wait).and_return([refused])
+        allow(mock_rpc_client).to receive(:task_status) { raise 'polled a task that never started' }
+
+        results = transport.batch_task([target], task, {})
+
+        expect(results.length).to eq(1)
+        expect(results.first.error_hash['kind']).to eq('bolt/choria-task-start-failed')
+        expect(results.first.error_hash['msg']).to include('failed to start the task: Could not spawn task mymod::mytask')
       end
     end
   end
