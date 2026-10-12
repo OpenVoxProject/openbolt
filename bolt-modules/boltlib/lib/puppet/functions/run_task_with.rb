@@ -13,8 +13,6 @@ require 'bolt/task'
 # This function does nothing if the list of targets is empty.
 #
 # > **Note:** Not available in apply block
-#
-# > **Note:** Not available to targets using the pcp transport
 Puppet::Functions.create_function(:run_task_with) do
   # Run a task with target-specific parameters.
   # @param task_name The task to run.
@@ -97,21 +95,13 @@ Puppet::Functions.create_function(:run_task_with) do
       return Bolt::ResultSet.new([])
     end
 
-    # If all targets use the 'pcp' transport, use a fake task instead of loading the local definition
-    # Otherwise, load the local task definition
-    if (pcp_only = targets.all? { |t| t.transport == 'pcp' })
-      task = Bolt::Task.new(task_name,
-                            { 'supports_noop' => true },
-                            [{ 'name' => '', 'path' => '' }])
-    else
-      task_signature = Puppet::Pal::ScriptCompiler.new(closure_scope.compiler).task_signature(task_name)
+    task_signature = Puppet::Pal::ScriptCompiler.new(closure_scope.compiler).task_signature(task_name)
 
-      if task_signature.nil?
-        raise Bolt::Error.unknown_task(task_name)
-      end
-
-      task = Bolt::Task.from_task_signature(task_signature)
+    if task_signature.nil?
+      raise Bolt::Error.unknown_task(task_name)
     end
+
+    task = Bolt::Task.from_task_signature(task_signature)
 
     # Map the targets to their specific parameters and merge with the defaults
     target_mapping = targets.each_with_object({}) do |target, mapping|
@@ -130,19 +120,17 @@ Puppet::Functions.create_function(:run_task_with) do
 
       # If parameters are mismatched, create a failing result for the target that will later
       # be added to the ResultSet.
-      unless pcp_only
-        # Set the default value for any params that have one and were not provided or are undef
-        params = task.parameter_defaults.merge(params) do |_, default, passed|
-          passed.nil? ? default : passed
-        end
-
-        type_match = task_signature.runnable_with?(params) do |mismatch_message|
-          exception = with_stack(:TYPE_MISMATCH, mismatch_message)
-          error_set << Bolt::Result.from_exception(target, exception, action: 'task')
-        end
-
-        next unless type_match
+      # Set the default value for any params that have one and were not provided or are undef
+      params = task.parameter_defaults.merge(params) do |_, default, passed|
+        passed.nil? ? default : passed
       end
+
+      type_match = task_signature.runnable_with?(params) do |mismatch_message|
+        exception = with_stack(:TYPE_MISMATCH, mismatch_message)
+        error_set << Bolt::Result.from_exception(target, exception, action: 'task')
+      end
+
+      next unless type_match
 
       # If there is a type mismatch between the type Data and the type of the params, create
       # a failing result for the target that will later be added to the ResultSet.

@@ -215,20 +215,6 @@ module Bolt
             _example: { "rb" => ["/usr/bin/ruby", "-r", "puppet"],
                         ".py" => "/usr/bin/python3" }
           },
-          "job-poll-interval" => {
-            type: Integer,
-            description: "The interval, in seconds, to poll orchestrator for job status.",
-            minimum: 1,
-            _plugin: true,
-            _example: 2
-          },
-          "job-poll-timeout" => {
-            type: Integer,
-            description: "The time, in seconds, to wait for orchestrator job status.",
-            minimum: 1,
-            _plugin: true,
-            _example: 2000
-          },
           "kex-algorithms" => {
             type: Array,
             description: "A list of key exchange algorithms to use when establishing a connection " \
@@ -345,13 +331,6 @@ module Bolt
             _plugin: true,
             _default: "production",
             _example: "staging"
-          },
-          "read-timeout" => {
-            type: Integer,
-            description: "How long to wait in seconds when making requests to the Orchestrator.",
-            minimum: 1,
-            _plugin: true,
-            _example: 15
           },
           "realm" => {
             type: String,
@@ -486,13 +465,6 @@ module Bolt
             _plugin: true,
             _example: "p@$$w0rd!"
           },
-          "task-environment" => {
-            type: String,
-            description: "The environment the orchestrator loads task code from.",
-            _plugin: true,
-            _default: "production",
-            _example: "development"
-          },
           "task-timeout" => {
             type: Integer,
             description: "How long to wait in seconds for tasks to complete when using the Choria transport.",
@@ -506,12 +478,6 @@ module Bolt
             description: "The directory to upload and execute temporary files on the target.",
             _plugin: true,
             _example: "/tmp/bolt"
-          },
-          "token-file" => {
-            type: String,
-            description: "The path to the token file.",
-            _plugin: true,
-            _example: "~/.puppetlabs/puppet/token.pem"
           },
           "tty" => {
             type: [TrueClass, FalseClass],
