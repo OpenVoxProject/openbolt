@@ -239,7 +239,7 @@ describe 'Bolt::Transport::Choria bolt_tasks' do
 
         result = transport.batch_task([target], task, {}).first
         expect(result.ok?).to be false
-        expect(result.error_hash['msg']).to match(/bolt_tasks\.download on .+ returned RPC error: Download error/)
+        expect(result.error_hash['msg']).to match(/The bolt_tasks\.download call on .+ returned RPC error: Download error/)
       end
 
       it 'catches download failure reported via statuscode 1 (reply.fail!)' do
@@ -281,7 +281,7 @@ describe 'Bolt::Transport::Choria bolt_tasks' do
 
         result = transport.batch_task([target], task, {}).first
         expect(result.ok?).to be false
-        expect(result.error_hash['msg']).to match(/bolt_tasks\.run_no_wait on .+ returned RPC error: Agent rejected task/)
+        expect(result.error_hash['msg']).to match(/The bolt_tasks\.run_no_wait call on .+ returned RPC error: Agent rejected task/)
       end
 
       it 'returns error when run_no_wait returns success but no task_id' do
@@ -301,7 +301,7 @@ describe 'Bolt::Transport::Choria bolt_tasks' do
         expect(results.length).to eq(2)
         results.each do |result|
           expect(result.ok?).to be false
-          expect(result.error_hash['msg']).to match(/bolt_tasks\.download failed on .+: connection reset/)
+          expect(result.error_hash['msg']).to match(/The bolt_tasks\.download call failed on .+: connection reset/)
         end
       end
 
@@ -316,7 +316,7 @@ describe 'Bolt::Transport::Choria bolt_tasks' do
         expect(results.length).to eq(2)
         results.each do |result|
           expect(result.ok?).to be false
-          expect(result.error_hash['msg']).to match(/bolt_tasks\.run_no_wait failed on .+: broker disconnected/)
+          expect(result.error_hash['msg']).to match(/The bolt_tasks\.run_no_wait call failed on .+: broker disconnected/)
         end
       end
 
@@ -338,7 +338,7 @@ describe 'Bolt::Transport::Choria bolt_tasks' do
         expect(ok_results.first.target).to eq(target)
         expect(error_results.length).to eq(1)
         expect(error_results.first.target).to eq(target2)
-        expect(error_results.first.error_hash['msg']).to match(/bolt_tasks\.download on .+ returned RPC error: Puppet server unreachable/)
+        expect(error_results.first.error_hash['msg']).to match(/The bolt_tasks\.download call on .+ returned RPC error: Puppet server unreachable/)
       end
     end
   end

@@ -66,7 +66,7 @@ module Bolt
 
         begin
           remote_path = join_path(first_target, tmpdir, File.basename(script))
-          active_targets = shell_targets.dup
+          active_targets = shell_targets
 
           # Create a temp directory with restricted permissions
           failures = shell_run(active_targets,
@@ -132,7 +132,7 @@ module Bolt
           return
         end
 
-        to_clean, to_keep = targets.partition { |target| target.options.fetch('cleanup', true) }
+        to_clean, to_keep = targets.partition { |target| target.options['cleanup'] }
         to_keep.each { |target| logger.warn { "Leaving #{tmpdir} on #{target.safe_name} because its cleanup option is off" } }
         return if to_clean.empty?
 
@@ -176,10 +176,8 @@ module Bolt
 
           # Poll all handles in one loop. Unlike bolt_tasks (which needs
           # separate polls per task_id), shell handles are interchangeable.
-          unless all_pending.empty?
-            timeout = targets.first.options['task-timeout']
-            results += emit_results(wait_for_shell_results(all_pending, timeout), **result_opts, &callback)
-          end
+          timeout = targets.first.options['task-timeout']
+          results += emit_results(wait_for_shell_results(all_pending, timeout), **result_opts, &callback)
         ensure
           cleanup_entries.each { |entry| cleanup_tmpdir(entry[:targets], entry[:tmpdir]) }
         end
@@ -215,7 +213,7 @@ module Bolt
         end
 
         failed_results = []
-        active_targets = targets.dup
+        active_targets = targets
         task_dir = tmpdir
 
         # Create the tmpdir
@@ -270,7 +268,7 @@ module Bolt
 
         # Start the task asynchronously
         pending = {}
-        if active_targets.any? && remote_task_path
+        if active_targets.any?
           full_cmd = build_task_command(first_target, remote_task_path, arguments, input_method,
                                         first_target.options['interpreters'])
           pending, start_failures = shell_start(active_targets, full_cmd)
@@ -286,12 +284,11 @@ module Bolt
       #
       # @param targets [Array<Bolt::Target>] Targets to run the command on
       # @param command [String] Shell command to execute
-      # @param description [String, nil] Human-readable label for logging (defaults to command)
+      # @param description [String] Human-readable label for logs and error messages
       # @return [Hash{Bolt::Target => Hash}] Failures only; empty hash means all succeeded
-      def shell_run(targets, command, description: nil)
-        label = description || command
+      def shell_run(targets, command, description:)
         command = powershell_cmd(command) if windows_target?(targets.first)
-        response = rpc_request('shell', targets, label) do |client|
+        response = rpc_request('shell', targets, description) do |client|
           client.run(command: command)
         end
 
@@ -300,11 +297,11 @@ module Bolt
         failures = response[:errors]
         response[:responded].each do |target, data|
           data ||= {}
-          exitcode = exitcode_from(data, target, label)
+          exitcode = exitcode_from(data, target, description)
           next if exitcode.zero?
 
           failures[target] = error_output(
-            "#{label} failed on #{target.safe_name} (exit code #{exitcode}): #{data[:stderr]}",
+            "The #{description} step failed on #{target.safe_name} (exit code #{exitcode}): #{data[:stderr]}",
             'bolt/choria-operation-failed',
             stdout: data[:stdout], stderr: data[:stderr], exitcode: exitcode
           )
@@ -349,7 +346,7 @@ module Bolt
         pending.each { |target, data| logger.debug { "Started command on #{target.safe_name}, handle: #{data[:handle]}" } }
 
         no_handle.each_key do |target|
-          failures[target] = error_output("shell.start on #{target.safe_name} returned success but no handle",
+          failures[target] = error_output("The shell.start call on #{target.safe_name} returned success but no handle",
                                           'bolt/choria-missing-handle')
         end
 
@@ -363,11 +360,9 @@ module Bolt
       # @param timeout [Numeric] Maximum seconds to wait before killing remaining processes
       # @return [Hash{Bolt::Target => Hash}] Output hash for every target (success and error)
       def wait_for_shell_results(pending, timeout)
-        return {} if pending.empty?
-
         poll_result = poll_with_retries(pending, timeout, 'shell.list') do |remaining|
           completed, rpc_failed = shell_list(remaining)
-          next { rpc_failed: true, done: {} } if rpc_failed
+          next { rpc_failed: true } if rpc_failed
 
           done = {}
           fetch_targets = {}
@@ -383,10 +378,7 @@ module Bolt
             logger.debug { "Fetching output from #{target_count(fetch_targets)}" }
             fetched = shell_statuses(fetch_targets)
             fetch_targets.each_key do |target|
-              done[target] = fetched[target] || error_output(
-                "Command completed on #{target.safe_name} but output could not be fetched",
-                'bolt/choria-result-processing-error'
-              )
+              done[target] = fetched[target]
             end
           end
 
@@ -431,11 +423,11 @@ module Bolt
         return [{}, true] if response[:rpc_failed]
 
         done = response[:errors]
-        logger.debug { "shell.list: #{target_count(response[:responded])} responded, #{target_count(done)} failed" } unless done.empty?
+        logger.debug { "The shell.list call had #{target_count(response[:responded])} respond and #{target_count(done)} fail" } unless done.empty?
 
         response[:responded].each do |target, data|
           if data.nil?
-            done[target] = error_output("shell.list on #{target.safe_name} returned success but no data",
+            done[target] = error_output("The shell.list call on #{target.safe_name} returned success but no data",
                                         'bolt/choria-missing-data')
             next
           end
@@ -446,7 +438,7 @@ module Bolt
           unless job
             logger.debug {
               job_handles = data[:jobs]&.keys || []
-              "shell.list on #{target.safe_name}: handle #{handle} not found, " \
+              "The shell.list call on #{target.safe_name} did not list handle #{handle}, " \
               "available handles: #{job_handles.inspect}"
             }
             done[target] = error_output(
@@ -458,7 +450,7 @@ module Bolt
           end
 
           status = job['status']&.to_s
-          logger.debug { "shell.list on #{target.safe_name}: handle #{handle} status: #{status}" }
+          logger.debug { "The shell.list call on #{target.safe_name} reports handle #{handle} as #{status}" }
           done[target] = remaining[target] if SHELL_DONE_STATUSES.include?(status)
         end
 
@@ -472,7 +464,7 @@ module Bolt
       # @return [Hash{Bolt::Target => Hash}] Output hash for each target
       def shell_statuses(targets)
         handles = targets.transform_values { |data| data[:handle] }
-        logger.debug { "Fetching shell.statuses for #{target_count(targets.keys)}" }
+        logger.debug { "Fetching shell.statuses for #{target_count(targets)}" }
 
         results = {}
         response = rpc_request('shell', targets.keys, 'shell.statuses') do |client|
@@ -489,7 +481,7 @@ module Bolt
 
           unless statuses
             results[target] = error_output(
-              "shell.statuses on #{target.safe_name} returned no data",
+              "The shell.statuses call on #{target.safe_name} returned no data",
               'bolt/choria-missing-data'
             )
             next
@@ -498,7 +490,7 @@ module Bolt
           status_data = statuses[handle]
           unless status_data
             results[target] = error_output(
-              "shell.statuses on #{target.safe_name} did not include handle #{handle}",
+              "The shell.statuses call on #{target.safe_name} did not include handle #{handle}",
               'bolt/choria-missing-data'
             )
             next
@@ -518,7 +510,7 @@ module Bolt
             results[target] = error_output(
               "Process failed on #{target.safe_name}: #{stderr}",
               'bolt/choria-process-failed',
-              stdout: stdout, stderr: stderr, exitcode: 1
+              stdout: stdout, stderr: stderr
             )
           else
             exitcode = exitcode_from(status_data, target, 'shell.statuses')
@@ -548,11 +540,12 @@ module Bolt
       def kill_timed_out_processes(targets)
         logger.debug { "Killing timed-out processes on #{target_count(targets)}" }
         targets.each do |target, state|
-          rpc_request('shell', target, 'shell.kill') do |client|
+          response = rpc_request('shell', target, 'shell.kill') do |client|
             client.kill(handle: state[:handle])
           end
-        rescue StandardError => e
-          logger.warn { "Failed to kill process on #{target.safe_name}: #{e.message}" }
+          response[:errors].each_value do |output|
+            logger.warn { "Failed to kill process on #{target.safe_name}: #{output[:error]}" }
+          end
         end
       end
     end

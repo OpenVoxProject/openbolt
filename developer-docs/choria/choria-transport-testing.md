@@ -883,7 +883,7 @@ Add `--log-level debug` to any OpenBolt command to see detailed transport traces
 - `Task <name> routing: agent: bolt_tasks, N capable / M incapable` (agent routing decision)
 - `Started command on <host>, handle: ...` (shell agent start)
 - `Poll round N: M targets still pending` (poll loop progress)
-- `shell.list on <host>: handle ... status: stopped` (per-target poll result)
+- `The shell.list call on <host> reports handle ... as stopped` (per-target poll result)
 - `Fetching shell.statuses for N targets` (batched output fetch)
 - `Uploading N bytes to <path> on M targets` (inline shell upload of a task file)
 - `Each message carries up to B bytes of data` (message sizing, half the broker's limit unless set)
