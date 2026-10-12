@@ -22,8 +22,8 @@ component 'openbolt-runtime' do |pkg, settings, platform|
                       # ... weird, and we need to be able to use cygwin environment variable use
                       # so cmd.exe was not working as expected.
                       [
-                        "gunzip -c #{tarball_name} | tar -k -C /cygdrive/c/ -xf -",
-                        "chmod 755 #{settings[:ruby_bindir].sub('C:', '/cygdrive/c')}/*"
+                        "gunzip -c #{tarball_name} | tar -k -C /c/ -xf -",
+                        "chmod 755 #{settings[:ruby_bindir].sub('C:', '/c')}/*"
                       ]
                     elsif platform.is_macos?
                       # We can't untar into '/' because of SIP on macOS; Just copy the contents
