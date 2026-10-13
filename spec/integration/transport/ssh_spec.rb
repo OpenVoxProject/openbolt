@@ -152,13 +152,16 @@ describe Bolt::Transport::SSH, ssh: true do
     end
 
     it "catches EMFILE error and raises helpful message" do
-      allow(Thread).to receive(:new)
-        .and_raise(Errno::EMFILE)
+      # Connect before stubbing, Socket.tcp resolves hostnames on threads of its own
+      ssh.with_connection(target) do |conn|
+        allow(Thread).to receive(:new)
+          .and_raise(Errno::EMFILE)
 
-      expect_node_error(
-        Bolt::Error, nil,
-        /Too many open files. This might be resolved by increasing your user limit with 'ulimit -n 1024'/
-      ) { ssh.run_command(target, 'ls') }
+        expect_node_error(
+          Bolt::Error, nil,
+          /Too many open files. This might be resolved by increasing your user limit with 'ulimit -n 1024'/
+        ) { conn.shell.run_command('ls') }
+      end
     end
   end
 
