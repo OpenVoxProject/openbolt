@@ -139,6 +139,17 @@ describe Bolt::Transport::SSH, ssh: true do
         ssh.with_connection(target) {}
       end
     end
+
+    it "returns the same Node::ConnectError if Socket.tcp reports the timeout" do
+      allow(Net::SSH)
+        .to receive(:start)
+        .and_raise(IO::TimeoutError, "user specified timeout for #{hostname}:#{port}")
+      expect_node_error(Bolt::Node::ConnectError,
+                        'CONNECT_ERROR',
+                        /Timeout after \d+ seconds connecting to/) do
+        ssh.with_connection(target) {}
+      end
+    end
   end
 
   context "when execution fails" do
