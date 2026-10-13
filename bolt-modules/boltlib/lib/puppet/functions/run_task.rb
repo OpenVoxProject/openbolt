@@ -81,31 +81,23 @@ Puppet::Functions.create_function(:run_task) do
       return Bolt::ResultSet.new([])
     end
 
-    # If all targets use the PCP transport, create a fake task instead of
-    # loading the actual task definition.
-    if targets.all? { |t| t.transport == 'pcp' }
-      task = Bolt::Task.new(task_name,
-                            { 'supports_noop' => true },
-                            [{ 'name' => '', 'path' => '' }])
-    else
-      # TODO: use the compiler injection once PUP-8237 lands
-      task_signature = Puppet::Pal::ScriptCompiler.new(closure_scope.compiler).task_signature(task_name)
-      if task_signature.nil?
-        raise Bolt::Error.unknown_task(task_name)
-      end
-
-      task = Bolt::Task.from_task_signature(task_signature)
-
-      # Set the default value for any params that have one and were not provided
-      # or are undef.
-      params = task.parameter_defaults.merge(params) do |_, default, passed|
-        passed.nil? ? default : passed
-      end
-
-      task_signature.runnable_with?(params) do |mismatch_message|
-        raise with_stack(:TYPE_MISMATCH, mismatch_message)
-      end || (raise with_stack(:TYPE_MISMATCH, 'Task parameters do not match'))
+    # TODO: use the compiler injection once PUP-8237 lands
+    task_signature = Puppet::Pal::ScriptCompiler.new(closure_scope.compiler).task_signature(task_name)
+    if task_signature.nil?
+      raise Bolt::Error.unknown_task(task_name)
     end
+
+    task = Bolt::Task.from_task_signature(task_signature)
+
+    # Set the default value for any params that have one and were not provided
+    # or are undef.
+    params = task.parameter_defaults.merge(params) do |_, default, passed|
+      passed.nil? ? default : passed
+    end
+
+    task_signature.runnable_with?(params) do |mismatch_message|
+      raise with_stack(:TYPE_MISMATCH, mismatch_message)
+    end || (raise with_stack(:TYPE_MISMATCH, 'Task parameters do not match'))
 
     # Generate a helpful error message about the type-mismatch between the type
     # Data and the actual type of params.

@@ -139,7 +139,8 @@ module Bolt
             "Host key verification failed for #{target.safe_name}: #{e.message}",
             'HOST_KEY_ERROR'
           )
-        rescue Net::SSH::ConnectionTimeout
+        # Socket.tcp raises IO::TimeoutError for a connect timeout since Ruby 4.0
+        rescue Net::SSH::ConnectionTimeout, IO::TimeoutError
           raise Bolt::Node::ConnectError.new(
             "Timeout after #{target.options['connect-timeout']} seconds connecting to #{target.safe_name}",
             'CONNECT_ERROR'
