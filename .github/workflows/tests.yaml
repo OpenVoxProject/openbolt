@@ -454,6 +454,13 @@ jobs:
         with:
           ruby-version: 3.2
           bundler-cache: true
+      # The Docker service sometimes fails to come up at runner boot, actions/runner-images#13729
+      - name: Start Docker if it is not running
+        if: runner.os == 'Windows'
+        run: |
+          if ((Get-Service -Name docker).Status -ne 'Running') {
+            Start-Service -Name docker
+          }
       - name: Run module tests
         run: bundle exec rake ci:modules
 
