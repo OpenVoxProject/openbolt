@@ -805,18 +805,19 @@ that target, so the other is not failed for not having it.
 
 ```bash
 mco file_transfer upload /tmp/three_mb.bin /tmp/five_seconds.bin \
-  -I nodeA.example.com -I unreachable.example.com --timeout 5
+  -I nodeA.example.com -I unreachable.example.com --rpc-timeout 5
 ```
 
 Expected: nodeA reports its landing path, the unreachable identity reports
 no response to the stat call about five seconds after the command starts,
 and the exit code is 2. The identity filter skips discovery, so the
-library's own calls are what wait. The gem replaces a client timeout of
-exactly 5 with the agent's DDL timeout plus the discovery timeout, and the
-library sets the timeout after building the client to keep the value
-given. A target OpenBolt cannot reach fails during agent discovery with
-`bolt/choria-agent-not-available` before the library runs, so the bolt
-command cannot show this case.
+library's own calls are what wait. The command's `--rpc-timeout` is the
+library's wait; mco's own `--timeout` has no effect on this command, since
+the gem replaces a client timeout of exactly 5 with the agent's DDL
+timeout plus the discovery timeout, and the library sets its own timeout
+after building the client to keep the value given. A target OpenBolt cannot
+reach fails during agent discovery with `bolt/choria-agent-not-available`
+before the library runs, so the bolt command cannot show this case.
 
 **Checksum change during a download**
 

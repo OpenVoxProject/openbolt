@@ -29,11 +29,20 @@ describe Bolt::Config::Transport::Choria do
       end
     end
 
-    %w[command-timeout broker-timeout rpc-timeout task-timeout message-data-size upload-batch-size].each do |opt|
+    %w[command-timeout broker-timeout rpc-timeout file-transfer-timeout task-timeout message-data-size upload-batch-size].each do |opt|
       it "#{opt} rejects non-integer value" do
         data[opt] = 'not_an_integer'
         expect { transport.new(data) }.to raise_error(Bolt::ValidationError)
       end
+    end
+
+    it 'file-transfer-timeout has no default, so the library\'s own wait applies' do
+      expect(transport.new(data)['file-transfer-timeout']).to be_nil
+    end
+
+    it 'file-transfer-timeout rejects zero' do
+      data['file-transfer-timeout'] = 0
+      expect { transport.new(data) }.to raise_error(Bolt::ValidationError, /minimum of 1/)
     end
 
     it 'message-data-size rejects values below 16 kibibytes' do

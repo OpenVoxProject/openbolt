@@ -101,6 +101,16 @@ module Bolt
             _default: 30,
             _example: 60
           },
+          "file-transfer-timeout" => {
+            type: Integer,
+            description: "How long to wait in seconds for targets to respond to one file transfer request, and to " \
+                         "publish it to every target. Without it, the library's 300 seconds. The wait is never shorter " \
+                         "than the agent's DDL timeout, 120 seconds, within which a target's server stops any request. " \
+                         "Distinct from rpc-timeout, which the shell and bolt_tasks requests use.",
+            minimum: 1,
+            _plugin: true,
+            _example: 600
+          },
           "message-data-size" => {
             type: Integer,
             description: "The data one Choria RPC message carries, in kibibytes, which is the file content of an " \

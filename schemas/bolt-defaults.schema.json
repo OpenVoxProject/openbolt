@@ -578,6 +578,16 @@
                 }
               ]
             },
+            "file-transfer-timeout": {
+              "oneOf": [
+                {
+                  "$ref": "#/transport_definitions/file-transfer-timeout"
+                },
+                {
+                  "$ref": "#/definitions/_plugin"
+                }
+              ]
+            },
             "host": {
               "oneOf": [
                 {
@@ -1896,6 +1906,18 @@
     },
     "rpc-timeout": {
       "description": "How long to wait in seconds for nodes to respond to an RPC request. Used for lightweight operations like agent discovery, shell.start, and shell.list polling. Distinct from command-timeout and task-timeout which govern the overall duration of commands and tasks.",
+      "oneOf": [
+        {
+          "type": "integer",
+          "minimum": 1
+        },
+        {
+          "$ref": "#/definitions/_plugin"
+        }
+      ]
+    },
+    "file-transfer-timeout": {
+      "description": "How long to wait in seconds for targets to respond to one file transfer request, and to publish it to every target. Without it, the library's 300 seconds. The wait is never shorter than the agent's DDL timeout, 120 seconds, within which a target's server stops any request. Distinct from rpc-timeout, which the shell and bolt_tasks requests use.",
       "oneOf": [
         {
           "type": "integer",

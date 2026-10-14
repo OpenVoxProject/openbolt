@@ -453,8 +453,11 @@ directory listing, which the node refuses when its tree lists larger.
 **Failures.** Status code 1 from the agent is a failure for that target on
 every call. A target that fails a chunk or misses its reply window gets an
 error and is dropped from the rest of that transfer. Every call waits
-`rpc-timeout`, and never less than the agent's DDL timeout, within which a
-target's server stops any request.
+`file-transfer-timeout`, 300 seconds unless set, and never less than the
+agent's DDL timeout, within which a target's server stops any request. The
+wait ends a call on a target that will never answer, and one wait covers a
+whole batch of chunk requests, so a slow link needs a longer wait or a
+smaller batch.
 
 **Task arguments and files.** The shell path does not use this agent. Its
 task files and stdin arguments travel inside shell commands and stay bounded

@@ -241,8 +241,8 @@ Every chunk is one RPC call whatever the target count, but the client
 publishes one copy per target, so the controller's connection carries N
 times the chunk. The call goes out to `upload-batch-size` targets at a
 time through MCollective's batched requests, each batch with its own
-publish and reply windows, so `rpc-timeout` has to cover one batch on the
-wire rather than the whole fleet. A directory adds one `mkdir` per
+publish and reply windows, so `file-transfer-timeout` has to cover one
+batch on the wire rather than the whole fleet. A directory adds one `mkdir` per
 directory and the loop above per file. A link to a file is sent as the
 file it points at, and a link to a directory is skipped with a warning, so
 the walk cannot loop.
@@ -438,8 +438,9 @@ outcomes back:
   transport logger, `warn_once` to `Bolt::Logger.warn_once`, which the
   library uses for a warning that would otherwise repeat on every transfer
   of a run, such as a broker limit it could not read.
-- **Options** from the batch's first target (`rpc-timeout`, `message-data-size`,
-  `upload-batch-size`).
+- **Options** from the batch's first target (`file-transfer-timeout`,
+  `message-data-size`, `upload-batch-size`), each left to the library's
+  default when unset.
 
 An outcome per identity becomes a `Bolt::Result` per target, with the
 library's failure kinds mapped onto the transport's error kinds
@@ -559,7 +560,8 @@ handles its own concurrency: `batches()` groups targets by collective
 - **One publish per target:** the client publishes every request once per
   target, so a chunk to 1,000 targets leaves the controller 1,000 times.
   Uploads to a large fleet are bounded by the controller's connection to the
-  broker, and `publish_timeout` is raised to `rpc-timeout` for those calls.
+  broker, and `publish_timeout` is raised to `file-transfer-timeout` for
+  those calls.
   The copies wait in nats-pure's outbound queue, bounded by count and not
   by bytes, until its flusher writes them, so a chunk goes to
   `upload-batch-size` targets at a time, by default the largest number

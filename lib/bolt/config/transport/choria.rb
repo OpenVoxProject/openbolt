@@ -12,6 +12,7 @@ module Bolt
           collective
           command-timeout
           config-file
+          file-transfer-timeout
           host
           interpreters
           mcollective-certname

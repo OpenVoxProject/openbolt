@@ -106,17 +106,15 @@ module Bolt
       # A library client for the targets, with the batch's options. The
       # library builds its connection from the options this transport's own
       # clients get and the RPC mutex every other call in the process takes.
+      # A timeout or size the batch does not set is left to the library's
+      # default.
       def file_transfer_client(targets)
         load_file_transfer_library
         options = targets.first.options
-        MCollective::Util::FileTransfer::Client.new(
-          client_options(targets),
-          mutex: @rpc_mutex,
-          logger: FileTransferLogger.new(logger),
-          rpc_timeout: options['rpc-timeout'],
-          message_data_size: options['message-data-size'],
-          upload_batch_size: options['upload-batch-size']
-        )
+        settings = { rpc_timeout: options['file-transfer-timeout'], message_data_size: options['message-data-size'],
+                     upload_batch_size: options['upload-batch-size'] }
+        MCollective::Util::FileTransfer::Client.new(client_options(targets), mutex: @rpc_mutex, logger: FileTransferLogger.new(logger),
+                                                    **settings.compact)
       end
 
       # The library is a client file of the agent's Puppet module under the

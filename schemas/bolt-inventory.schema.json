@@ -144,6 +144,18 @@
                         }
                       ]
                     },
+                    "file-transfer-timeout": {
+                      "description": "How long to wait in seconds for targets to respond to one file transfer request, and to publish it to every target. Without it, the library's 300 seconds. The wait is never shorter than the agent's DDL timeout, 120 seconds, within which a target's server stops any request. Distinct from rpc-timeout, which the shell and bolt_tasks requests use.",
+                      "oneOf": [
+                        {
+                          "type": "integer",
+                          "minimum": 1
+                        },
+                        {
+                          "$ref": "#/definitions/_plugin"
+                        }
+                      ]
+                    },
                     "host": {
                       "description": "The target's hostname.",
                       "oneOf": [

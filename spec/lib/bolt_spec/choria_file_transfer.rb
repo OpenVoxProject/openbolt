@@ -60,7 +60,7 @@ module BoltSpec
 
       # The arguments the library's client takes at this version, so a
       # keyword it does not know is refused here as it would be there.
-      def initialize(options, mutex: nil, logger: nil, rpc_timeout: 30, message_data_size: nil, upload_batch_size: nil)
+      def initialize(options, mutex: nil, logger: nil, rpc_timeout: 300, message_data_size: nil, upload_batch_size: nil)
         @arguments = { options: options, mutex: mutex, logger: logger, rpc_timeout: rpc_timeout, message_data_size: message_data_size,
                        upload_batch_size: upload_batch_size }
         @uploads = []

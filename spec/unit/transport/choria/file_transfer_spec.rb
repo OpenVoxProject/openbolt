@@ -49,7 +49,7 @@ describe Bolt::Transport::Choria do
     it 'builds the client with the batch options' do
       inventory.set_config(target, %w[choria message-data-size], 65_536)
       inventory.set_config(target, %w[choria upload-batch-size], 100)
-      inventory.set_config(target, %w[choria rpc-timeout], 45)
+      inventory.set_config(target, %w[choria file-transfer-timeout], 45)
 
       transport.batch_upload([target, target2], source, destination)
 
@@ -59,10 +59,12 @@ describe Bolt::Transport::Choria do
       expect(arguments[:logger]).to be_a(Bolt::Transport::Choria::FileTransferLogger)
     end
 
-    it 'passes no sizes without the options, so the library sizes messages from the broker limit' do
+    it 'passes no sizes and no timeout without the options, so the library\'s own defaults apply' do
+      inventory.set_config(target, %w[choria rpc-timeout], 45)
+
       transport.batch_upload([target], source, destination)
 
-      expect(library.clients.last.arguments).to include(message_data_size: nil, upload_batch_size: nil)
+      expect(library.clients.last.arguments).to include(rpc_timeout: 300, message_data_size: nil, upload_batch_size: nil)
     end
 
     it 'fires node_start and node_result for every target' do
