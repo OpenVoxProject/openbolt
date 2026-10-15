@@ -1,6 +1,6 @@
 <%
   require 'bolt/version'
-  version = Bolt::VERSION
+  version, prerelease = Bolt::VERSION.split('-', 2)
 -%>
 @{
   RootModule        = 'PuppetBolt.psm1'
@@ -20,6 +20,9 @@
   AliasesToExport   = @()
   PrivateData       = @{
     PSData = @{
+      <%- if prerelease -%>
+      Prerelease   = '<%= prerelease %>'
+      <%- end -%>
       Tags = @(
         'Puppet',
         'bolt',
