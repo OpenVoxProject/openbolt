@@ -64,7 +64,7 @@ describe Bolt::Transport::Choria do
 
       transport.batch_upload([target], source, destination)
 
-      expect(library.clients.last.arguments).to include(rpc_timeout: 300, message_data_size: nil, upload_batch_size: nil)
+      expect(library.clients.last.arguments).to include(rpc_timeout: nil, message_data_size: nil, upload_batch_size: nil)
     end
 
     it 'fires node_start and node_result for every target' do

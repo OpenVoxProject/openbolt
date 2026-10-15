@@ -801,18 +801,19 @@ Expected: both targets succeed. nodeA delivers both files and nodeB delivers
 `b.txt` alone. A file only one target holds is stat-ed and fetched only on
 that target, so the other is not failed for not having it.
 
-**A timeout of five seconds**
+**A short timeout**
 
 ```bash
-mco file_transfer upload /tmp/three_mb.bin /tmp/five_seconds.bin \
+mco file_transfer upload /tmp/three_mb.bin /tmp/short_timeout.bin \
   -I nodeA.example.com -I unreachable.example.com --rpc-timeout 5
 ```
 
 Expected: nodeA reports its landing path, the unreachable identity reports
-no response to the stat call about five seconds after the command starts,
-and the exit code is 2. The identity filter skips discovery, so the
-library's own calls are what wait. The command's `--rpc-timeout` is the
-library's wait; mco's own `--timeout` has no effect on this command, since
+no response to the stat call about two minutes after the command starts,
+since the wait is never shorter than the agent's DDL timeout of 120
+seconds, and the exit code is 2. The identity filter skips discovery, so
+the library's own calls are what wait. The command's `--rpc-timeout` is
+the library's wait, and mco's own `--timeout` has no effect on this command, since
 the gem replaces a client timeout of exactly 5 with the agent's DDL
 timeout plus the discovery timeout, and the library sets its own timeout
 after building the client to keep the value given. A target OpenBolt cannot
@@ -821,13 +822,14 @@ before the library runs, so the bolt command cannot show this case.
 
 **Checksum change during a download**
 
-Start a download of a large file and append to it on the node while the
-transfer runs:
+Start a download of a large file and overwrite bytes inside it on the node
+while the transfer runs. An append would not do, since the download reads
+only up to the size the stat reported:
 
 ```bash
 ssh nodeA.example.com 'head -c 200000000 /dev/urandom > /tmp/big.bin'
 bolt file download /tmp/big.bin /tmp/downloaded --targets nodeA.example.com &
-ssh nodeA.example.com 'echo more >> /tmp/big.bin'
+ssh nodeA.example.com 'printf changed | dd of=/tmp/big.bin bs=1 seek=190000000 conv=notrunc'
 wait
 ```
 

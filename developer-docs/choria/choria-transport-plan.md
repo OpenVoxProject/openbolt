@@ -420,8 +420,9 @@ SHA-256. The last chunk carries `final`, `sha256` and the source mode. The
 agent verifies the digest through the open handle, applies the mode, and
 renames the file onto the destination, which is beside it, so never a
 copy. From an ensure the library sends `abort` to every target that was
-sent a chunk and did not finish, skipping one whose agent refused a chunk
-and removed the file itself. Directory uploads walk the local tree,
+sent a chunk and did not finish, a refused chunk included, since a
+status 1 reply can come from the target's server. Directory uploads walk
+the local tree,
 skipping links to directories, `mkdir` per directory, and a token per
 file.
 
@@ -433,11 +434,14 @@ bytes beyond the offset, so the rounds end by that size alone. A reply
 reaching past that size is cut at it, so a file that grew in the meantime
 still verifies as the file that its `stat` described. The digest of what
 was written is compared with the one from `stat`, and a copy that matches
-gets the mode `stat` reported, with the owner's bits added, and is renamed
+gets the permission bits `stat` reported, with the owner's bits added
+under the umask and without the setuid, setgid and sticky bits, and is
+renamed
 onto its destination, while one that does not is removed. A directory
 download lists each target's whole tree, in rounds, under
-`message-data-size`, makes each directory with the mode the target listed,
-and skips directories reached through links. Downloads make nothing on the
+`message-data-size`, makes each directory with the permission bits the
+target listed under the umask, special bits stripped, and skips
+directories reached through links. Downloads make nothing on the
 nodes and no staging directory on the controller.
 
 **Message data size.** Half the broker's advertised limit of file content

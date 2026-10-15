@@ -59,8 +59,10 @@ module BoltSpec
       attr_reader :arguments, :uploads, :downloads
 
       # The arguments the library's client takes at this version, so a
-      # keyword it does not know is refused here as it would be there.
-      def initialize(options, mutex: nil, logger: nil, rpc_timeout: 300, message_data_size: nil, upload_batch_size: nil)
+      # keyword it does not know is refused here as it would be there. Every
+      # setting defaults to nil here, so a spec can tell one the adapter
+      # passed from one it left to the library.
+      def initialize(options, mutex: nil, logger: nil, rpc_timeout: nil, message_data_size: nil, upload_batch_size: nil)
         @arguments = { options: options, mutex: mutex, logger: logger, rpc_timeout: rpc_timeout, message_data_size: message_data_size,
                        upload_batch_size: upload_batch_size }
         @uploads = []

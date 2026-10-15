@@ -242,7 +242,9 @@ publishes one copy per target, so the controller's connection carries N
 times the chunk. The call goes out to `upload-batch-size` targets at a
 time through MCollective's batched requests, each batch with its own
 publish and reply windows, so `file-transfer-timeout` has to cover one
-batch on the wire rather than the whole fleet. A directory adds one `mkdir` per
+batch on the wire rather than the whole fleet. Every request carries that
+wait as its TTL, since a target drops a request older than its TTL and the
+copies at the end of a batch arrive last. A directory adds one `mkdir` per
 directory and the loop above per file. A link to a file is sent as the
 file it points at, and a link to a directory is skipped with a warning, so
 the walk cannot loop.
@@ -262,13 +264,14 @@ batch_download(N targets, source, destination)
 
 Each reply is written to a temporary file beside its destination under
 `<destination>/<target>/`, which is renamed into place only after the
-digest matches and gets the mode the target reported with the owner's
-bits added, as net-scp gives a downloaded file. A copy that fails is
+digest matches and gets the permission bits the target reported with the
+owner's bits added under the umask, as net-scp gives a downloaded file,
+and without the setuid, setgid and sticky bits. A copy that fails is
 removed, and a directory already standing at the destination is a
 per-target error rather than somewhere to hide the file. A directory
 source is listed recursively first, then fetched file
-by file from the targets that have it, each directory made with the mode
-the target listed.
+by file from the targets that have it, each directory made with the
+permission bits the target listed under the umask, special bits stripped.
 
 What the node says about a download is checked before it is used. A reply
 larger than the round asked for fails that target, a reply reaching past the
@@ -281,7 +284,9 @@ stat then describes something else fails that target. A directory is
 listed in download batches of targets, each answering its whole tree under
 `message-data-size`, and a target whose tree lists larger fails with the
 agent's message. A reply that is not the shape the DDL promises fails
-that one target and not the batch.
+that one target and not the batch, except one the gem itself cannot
+convert, with null or a string for data, which fails the whole call as
+any exception in it does.
 
 ## Platform Support
 
