@@ -20,12 +20,6 @@ ENV['BOLT_GEM'] = 'true'
 
 gemspec
 
-# Need to update the openssl gem on MacOS to avoid SSL errors. Doesn't hurt to have the newest
-# for all platforms.
-# https://www.rubyonmac.dev/certificate-verify-failed-unable-to-get-certificate-crl-openssl-ssl-sslerror
-# openssl 4 raises some errors that need to be investigated
-gem 'openssl', '~> 3' unless `uname -o`.chomp == 'Cygwin'
-
 # Only until the new version of the gem is released so
 # that tests will pass on Ruby 4
 gem 'choria-mcorpc-support', git: 'https://github.com/choria-io/choria-mcorpc-support', branch: 'main'
