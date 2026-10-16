@@ -2,7 +2,30 @@
 
 All notable changes to this project will be documented in this file.
 
-## [5.6.0](https://github.com/openvoxproject/openbolt/tree/5.6.0) (2026-06-10)
+## [9.0.0-rc1](https://github.com/openvoxproject/openbolt/tree/9.0.0-rc1) (2026-10-15)
+
+[Full Changelog](https://github.com/openvoxproject/openbolt/compare/5.6.0...9.0.0-rc1)
+
+**Security fixes:**
+
+- Promote puppet-runtime 2026.09.02.1 [\#292](https://github.com/OpenVoxProject/openbolt/pull/292) ([OpenVoxProjectBot](https://github.com/OpenVoxProjectBot))
+
+**Closed issues:**
+
+- Replace dead pup.pt short links with docs.openvoxproject.org URLs [\#277](https://github.com/OpenVoxProject/openbolt/issues/277)
+- Transport plugin for choria [\#180](https://github.com/OpenVoxProject/openbolt/issues/180)
+
+**Merged pull requests:**
+
+- Put the prerelease label in the PowerShell manifest's PSData [\#335](https://github.com/OpenVoxProject/openbolt/pull/335) ([nmburgan](https://github.com/nmburgan))
+- Promote puppet-runtime 2026.10.15.1 [\#333](https://github.com/OpenVoxProject/openbolt/pull/333) ([OpenVoxProjectBot](https://github.com/OpenVoxProjectBot))
+- Changes for OpenBolt 9 [\#332](https://github.com/OpenVoxProject/openbolt/pull/332) ([nmburgan](https://github.com/nmburgan))
+- Fix spinner related first character 'truncation' [\#315](https://github.com/OpenVoxProject/openbolt/pull/315) ([davids-uta-edu](https://github.com/davids-uta-edu))
+- Remove setup.ps1 Cygwin setup script [\#284](https://github.com/OpenVoxProject/openbolt/pull/284) ([Sharpie](https://github.com/Sharpie))
+- Replace dead pup.pt short links with docs.openvoxproject.org URLs [\#279](https://github.com/OpenVoxProject/openbolt/pull/279) ([miharp](https://github.com/miharp))
+- Clarify description of workflow "branch" input [\#268](https://github.com/OpenVoxProject/openbolt/pull/268) ([Sharpie](https://github.com/Sharpie))
+
+## [5.6.0](https://github.com/openvoxproject/openbolt/tree/5.6.0) (2026-06-11)
 
 [Full Changelog](https://github.com/openvoxproject/openbolt/compare/5.5.0...5.6.0)
 
