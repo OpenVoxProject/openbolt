@@ -16,13 +16,13 @@ on:
         default: 'openbolt'
       branch:
         description: >-
-          The default platform list to build for. Use `8.x` for builds of
-          OpenBolt 5.x. The `main` option is currently unsupported.
+          The default platform list to build for. Use `main` for builds of
+          OpenBolt 9.x. Only use `8.x` if we ever have to do another OpenBolt 5.x release.
         type: choice
         options:
           - main
           - '8.x'
-        default: '8.x'
+        default: 'main'
       platform_list:
         description: >-
           Comma-separated list of platforms to build for. Do not include
