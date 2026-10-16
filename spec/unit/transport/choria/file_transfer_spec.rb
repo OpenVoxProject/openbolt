@@ -304,12 +304,5 @@ describe Bolt::Transport::Choria do
       expect(lines).to eq([[:debug, 'Upload of /srv/app.tar to /opt/app on 2 nodes'],
                            [:warn, 'The temporary file .file_transfer-3f2a beside /opt/app/app.tar stays on node1: No response']])
     end
-
-    it 'passes warn_once to Bolt::Logger with the id' do
-      message = "The file transfer client could not read the broker's message size limit and assumes 1048576 bytes"
-      expect(Bolt::Logger).to receive(:warn_once).with('file_transfer_max_payload_unknown', message)
-
-      adapter.warn_once('file_transfer_max_payload_unknown', message)
-    end
   end
 end

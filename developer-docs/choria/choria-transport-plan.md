@@ -262,8 +262,10 @@ base64) to survive JSON serialization.
 NATS has a configurable max message size (default 1MB, up to 64MB, with
 values over 8MB discouraged). The Choria broker exposes no setting for it, so
 Choria broker deployments run at 1MB. Only a deployment on a standalone NATS
-server can raise it. The server advertises the limit to every client in the
-`INFO` message at connect time.
+server could raise it, and that is out of scope for this transport, so the
+client library holds the 1MB limit as one constant and does not read the
+limit the server advertises in its `INFO` message at connect time
+(2026-10-16).
 
 NATS JetStream (called "Choria Streams" in Choria) is available but not
 enabled by default -- it requires `plugin.choria.network.stream.store` to be
@@ -310,21 +312,19 @@ chunk_base64_budget = request_json_budget - envelope - margin
 raw_chunk_bytes     = chunk_base64_budget * 3 / 4
 ```
 
-The chunk is half the broker's advertised limit by default,
-`message-data-size` in kibibytes to set it. The agent's design document
-derives every layer of a request from the gem's code: with a 1 MiB limit
-the largest content that fits is 568 KB on a single broker and 539 KB
+The chunk is 512 KiB by default, half the Choria broker's 1 MiB limit,
+`message-data-size` in kibibytes to lower it. The agent's design document
+derives every layer of a request from the gem's code: at that limit the
+largest content that fits is 568 KB on a single broker and 539 KB
 through a federation broker with 200 targets of 253 byte names, so half
-leaves room for longer identities and certificates, and more room at a
-higher limit, since the fixed part of the envelope does not grow with
-it. A direct request carries no identity list, so on a single broker the
-envelope does not grow with the batch. The exact per-request computation
-is parked on the agent repository's `exact-chunk-sizing` branch.
+leaves room for longer identities and certificates. A direct request
+carries no identity list, so on a single broker the envelope does not
+grow with the batch. The exact per-request computation is parked on the
+agent repository's `exact-chunk-sizing` branch.
 
-The client library reads the broker's advertised limit at run time:
-- It reads `max_payload` from the NATS `INFO` the client received at
-  connect, and assumes 1MB with a warning when the wrapper does not expose
-  it
+The client library holds the broker's limit as one constant, since
+go-choria's broker has no setting for it and a NATS server other than
+Choria's is out of scope (2026-10-16):
 - A size guard at the wrapper's publish method compares every outgoing
   message, as serialized, against the limit before it is sent. An oversized
   request never leaves the controller. The targets of that call fail with
@@ -444,8 +444,9 @@ target listed under the umask, special bits stripped, and skips
 directories reached through links. Downloads make nothing on the
 nodes and no staging directory on the controller.
 
-**Message data size.** Half the broker's advertised limit of file content
-per request by default, `message-data-size` in kibibytes to set it. The
+**Message data size.** 512 KiB of file content per request by default,
+half the Choria broker's 1 MiB limit, `message-data-size` in kibibytes to
+lower it. The
 request's signed envelope, two base64 passes, and transport headers fit
 beside that under the limit, which the agent's design document accounts
 for at 1 MiB. A guard on the client's publish compares every payload with
@@ -479,12 +480,11 @@ held to Windows name rules. A run on a Windows node is still owed.
 New options:
 - `message-data-size` (Integer, no default, minimum 16) - The data one RPC
   call carries in kibibytes, the file content of a chunk and the most a
-  directory listing may weigh. Without it, half the broker's message size
-  limit, 512 at the NATS default of 1 MiB.
+  directory listing may weigh. Without it, 512, half the Choria broker's
+  1 MiB message size limit, which has no setting.
 - `upload-batch-size` (Integer, no default, minimum 1) - Targets one chunk
-  request is published to at once. Without it, the largest number that
-  keeps one batch's copies under 256 MiB on the controller at the
-  broker's limit.
+  request is published to at once. Without it, 256, which keeps one
+  batch's copies under 256 MiB on the controller at the broker's limit.
 
 A download round asks the largest number of targets that keeps one round
 of replies under three quarters of the 64 MiB backlog the broker holds for
@@ -503,8 +503,7 @@ file_transfer agent.
    abort for the targets that did not finish, chunk boundaries (empty, one
    chunk, many chunks), directory walks, grouping and dropping, results,
    and agent detection failing fast from the CLI and plan paths
-3. Chunk sizing against a fake client wrapper: budget, guard refusal, and
-   the warning for an unknown limit
+3. Chunk sizing against a fake client wrapper: budget and guard refusal
 4. One spec that loads the bundled DDL and validates a full-size chunk and
    the rejection cases through the client's validator
 5. Integration tests against a real Choria cluster: a multi-GB file, a

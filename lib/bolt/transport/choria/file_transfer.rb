@@ -24,7 +24,7 @@ module Bolt
       }.freeze
       FILE_TRANSFER_DEFAULT_ERROR_KIND = FILE_TRANSFER_ERROR_KINDS.fetch(:transfer_failed)
 
-      # The library's logger over the transport's, with warn_once on Bolt's.
+      # The library's logger over the transport's.
       class FileTransferLogger
         def initialize(logger)
           @logger = logger
@@ -36,10 +36,6 @@ module Bolt
 
         def warn(message)
           @logger.warn { message }
-        end
-
-        def warn_once(id, message)
-          Bolt::Logger.warn_once(id, message)
         end
       end
 

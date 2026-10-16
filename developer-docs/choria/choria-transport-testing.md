@@ -867,7 +867,7 @@ bolt file upload /tmp/three_mb.bin /tmp/uploaded.bin --targets nodeA.example.com
 ```
 
 Expected: `Each message carries up to 65536 bytes of data`. Without the
-option the line names half the broker's limit, 524288 at the NATS default.
+option the line names 524288, half the Choria broker's 1 MiB limit.
 A `message-data-size` under 16 is refused by config validation. A request
 the broker's limit refuses fails its targets with
 `bolt/choria-payload-too-large` and a message naming a lower
@@ -889,7 +889,7 @@ Add `--log-level debug` to any OpenBolt command to see detailed transport traces
 - `The shell.list call on <host> reports handle ... as stopped` (per-target poll result)
 - `Fetching shell.statuses for N targets` (batched output fetch)
 - `Uploading N bytes to <path> on M targets` (inline shell upload of a task file)
-- `Each message carries up to B bytes of data` (message sizing, half the broker's limit unless set)
+- `Each message carries up to B bytes of data` (message sizing, 512 KiB unless set)
 - `Upload of <source> to <destination> on N nodes` (file_transfer upload start)
 - `Upload chunks go to N nodes per request` (the file_transfer upload batch size)
 - `Checking connectivity for N targets` (connectivity check)

@@ -230,7 +230,7 @@ batch_upload(N targets, source, destination)
   prepare_targets(targets)              # configure_client + 2 RPC calls
   Client#upload(source, destination, identities)   # the client library from here on
     file_transfer.stat(destination)     # 1 RPC call: directory or not
-    [per chunk of message-data-size, half the broker's limit by default]:
+    [per chunk of message-data-size, 512 KiB by default]:
       file_transfer.put(destination, token, ...)   # 1 RPC call per landing path in batches of upload-batch-size, N copies published
     file_transfer.put(... final, sha256, mode)     # verify and rename into place
     file_transfer.abort(destination, token)        # 1 RPC call, only to the targets that did not finish
@@ -421,8 +421,9 @@ backslashes.
 ### The file_transfer client library
 
 `MCollective::Util::FileTransfer` holds the whole transfer protocol: a
-chunk of half the broker's limit by default, a publish guard that refuses a request
-over the broker's advertised limit before it leaves the controller, the
+chunk of 512 KiB by default, half the Choria broker's 1 MiB limit, which
+has no setting, a publish guard that refuses a request over that limit
+before it leaves the controller, the
 temporary file beside each destination, the chunk loops, download rounds,
 directory walks, and the checks
 on what a node says. Its README and the design document in the agent
@@ -437,12 +438,9 @@ outcomes back:
   builds its RPC clients itself, pins `threaded` to false when it sets a
   `publish_timeout`, since the threaded publisher never joins its thread
   and an exception raised in it would never reach the caller, and finds
-  the connector's wrapper on its own to read the broker's payload limit
-  and prepend its publish guard.
+  the connector's wrapper on its own to prepend its publish guard.
 - **A logger** (`FileTransferLogger`): debug and warn lines go to the
-  transport logger, `warn_once` to `Bolt::Logger.warn_once`, which the
-  library uses for a warning that would otherwise repeat on every transfer
-  of a run, such as a broker limit it could not read.
+  transport logger.
 - **Options** from the batch's first target (`file-transfer-timeout`,
   `message-data-size`, `upload-batch-size`), each left to the library's
   default when unset.
@@ -569,8 +567,8 @@ handles its own concurrency: `batches()` groups targets by collective
   those calls.
   The copies wait in nats-pure's outbound queue, bounded by count and not
   by bytes, until its flusher writes them, so a chunk goes to
-  `upload-batch-size` targets at a time, by default the largest number
-  that keeps one batch's copies under 256 MiB at the broker's limit.
+  `upload-batch-size` targets at a time, 256 by default, which keeps one
+  batch's copies under 256 MiB at the broker's 1 MiB limit.
   Nothing on the upload side meets a 64 MB limit: the broker buffers per
   connection, and each target's connection carries one copy per batch.
 - **Download reply backlog:** every reply of a round lands on the
