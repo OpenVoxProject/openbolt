@@ -798,8 +798,9 @@ find /tmp/downloaded -type f
 ```
 
 Expected: both targets succeed. nodeA delivers both files and nodeB delivers
-`b.txt` alone. A file only one target holds is stat-ed and fetched only on
-that target, so the other is not failed for not having it.
+`b.txt` alone. A file only one target holds is fetched only from that
+target, with the size, digest and mode its listing carried, so the other
+is not failed for not having it.
 
 **A short timeout**
 
