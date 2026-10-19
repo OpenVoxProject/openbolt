@@ -105,6 +105,24 @@ describe Bolt::Shell::Bash do
       expect { shell.handle_sudo(stdin, msg, "") }.to raise_error(Bolt::Node::EscalateError, err)
     end
 
+    it "raises an error if sudo-rs reports the user may not run sudo" do
+      msg = "sudo: Sorry, user root may not run sudo on localhost."
+      err = /User root does not have sudo permission/
+      expect { shell.handle_sudo(stdin, msg, "") }.to raise_error(Bolt::Node::EscalateError, err)
+    end
+
+    it "raises an error if sudo-rs reports the command is not allowed" do
+      msg = "sudo: Sorry, user root is not allowed to execute '/bin/sh -c whoami' as root on localhost."
+      err = /User root does not have sudo permission/
+      expect { shell.handle_sudo(stdin, msg, "") }.to raise_error(Bolt::Node::EscalateError, err)
+    end
+
+    it "raises an error if sudo-rs rejects the password" do
+      msg = "sudo: Authentication failed, try again."
+      err = /Sudo password for user root not recognized/
+      expect { shell.handle_sudo(stdin, msg, "") }.to raise_error(Bolt::Node::EscalateError, err)
+    end
+
     it "returns the input string if there's no error" do
       line = "This is just ordinary output"
       expect(shell.handle_sudo(stdin, line, "")).to eq(line)
@@ -183,6 +201,17 @@ describe Bolt::Shell::Bash do
 
       result = shell.execute('my cool command')
       expect(result.stderr.string).to include("This might be caused by the default tmpdir being mounted")
+    end
+  end
+
+  describe "#make_tmpdir" do
+    it "names the directory it could not create" do
+      inventory.set_config(target, 'ssh', 'tmpdir' => '/tmp/mytmpdir')
+      execute_result = mock_result(stderr: "mkdir: No such file or directory\n", exitcode: 1)
+      expect(connection).to receive(:execute).and_return(execute_result)
+
+      expect { shell.make_tmpdir }
+        .to raise_error(Bolt::Node::FileError, %r{Could not make tmpdir /tmp/mytmpdir/\S+: mkdir: No such file or directory})
     end
   end
 

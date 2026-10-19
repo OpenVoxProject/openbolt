@@ -12,6 +12,5 @@ runs:
       shell: bash
       run: |
         echo 'runner:runner' | sudo chpasswd
-        sudo sh -c "echo 'Defaults authenticate' >> /etc/sudoers"
         sudo sh -c "echo 'runner  ALL=(ALL) PASSWD:ALL' >> /etc/sudoers"
         chmod 0600 spec/fixtures/keys/id_rsa
