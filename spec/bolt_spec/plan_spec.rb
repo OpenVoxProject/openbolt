@@ -531,7 +531,8 @@ describe "BoltSpec::Plans" do
       end
 
       it 'errors if unexpected plan is called' do
-        err = "Unexpected call to 'run_plan(plans::command, {\"nodes\"=>[\"foo\", \"bar\"]})'"
+        params = { 'nodes' => targets }
+        err = "Unexpected call to 'run_plan(#{sub_plan_name}, #{params})'"
         expect { run_plan(plan_name, 'targets' => targets) }
           .to raise_error(RuntimeError, err)
       end

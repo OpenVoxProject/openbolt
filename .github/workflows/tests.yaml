@@ -243,9 +243,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-24.04, windows-2025]
-        # currently fails on Ruby 3.4
-        #ruby: ${{ fromJSON(needs.rubocop_and_matrix.outputs.ruby) }}
-        ruby: ['3.2', '3.3']
+        ruby: ${{ fromJSON(needs.rubocop_and_matrix.outputs.ruby) }}
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout repository
@@ -363,7 +361,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby: ['3.2', '3.3', '4.0']
+        ruby: ${{ fromJSON(needs.rubocop_and_matrix.outputs.ruby) }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -439,20 +437,24 @@ jobs:
         run: bundle exec rake ci:linux:integration
 
   modules_ci:
-    name: Test vendored Modules - ${{ matrix.runs-on }}
+    name: Test vendored Modules ${{ matrix.ruby }} ${{ matrix.runs-on }}
+    needs:
+      - rubocop_and_matrix
     runs-on: ${{ matrix.runs-on }}
     strategy:
+      fail-fast: false
       matrix:
         runs-on:
           - ubuntu-24.04
           - windows-2025
+        ruby: ${{ fromJSON(needs.rubocop_and_matrix.outputs.ruby) }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Setup Ruby
         uses: ruby/setup-ruby@95ef2b042f9d7a56d8268cba8559e2842e2ad01b # v1.321.0
         with:
-          ruby-version: 3.2
+          ruby-version: ${{ matrix.ruby }}
           bundler-cache: true
       # The Docker service sometimes fails to come up at runner boot, actions/runner-images#13729
       - name: Start Docker if it is not running
