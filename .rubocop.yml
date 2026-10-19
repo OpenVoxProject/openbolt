@@ -5,12 +5,15 @@ inherit_gem:
   voxpupuli-rubocop: rubocop.yml
 
 AllCops:
-  TargetRubyVersion: '3.2'
+  TargetRubyVersion: '3.4'
   Exclude:
     - vendor/**/*
     - .vendor/**/*
     - spec/fixtures/**/*
     - modules/**/*
+
+Style/ArgumentsForwarding:
+  Enabled: false
 
 Style/SymbolProc:
   Enabled: false
