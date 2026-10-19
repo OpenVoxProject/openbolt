@@ -26,6 +26,10 @@ gemspec
 # openssl 4 raises some errors that need to be investigated
 gem 'openssl', '~> 3' unless `uname -o`.chomp == 'Cygwin'
 
+# Only until the new version of the gem is released so
+# that tests will pass on Ruby 4
+gem 'choria-mcorpc-support', git: 'https://github.com/choria-io/choria-mcorpc-support', branch: 'main'
+
 # Optional paint gem for rainbow outputter
 gem "paint", "~> 2.2"
 
