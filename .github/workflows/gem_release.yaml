@@ -13,7 +13,7 @@ jobs:
     # Prevent releases from forked repositories
     if: github.repository_owner == 'OpenVoxProject'
     name: Build the gem
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Install Ruby
@@ -34,7 +34,7 @@ jobs:
   create-github-release:
     needs: build-release
     name: Create GitHub release
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     permissions:
       contents: write # clone repo and create release
     steps:
@@ -51,7 +51,7 @@ jobs:
   release-to-github:
     needs: build-release
     name: Release to GitHub
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     permissions:
       packages: write # publish to rubygems.pkg.github.com
     steps:
@@ -67,7 +67,7 @@ jobs:
   release-to-rubygems:
     needs: build-release
     name: Release gem to rubygems.org
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     environment: release # recommended by rubygems.org
     permissions:
       id-token: write # rubygems.org authentication
@@ -83,7 +83,7 @@ jobs:
 
   release-verification:
     name: Check that all releases are done
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     permissions:
       contents: read # minimal permissions that we have to grant
     needs:

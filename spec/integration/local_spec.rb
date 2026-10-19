@@ -155,12 +155,11 @@ describe "when running over the local transport" do
         results = run_cli_json(%W[script run #{script.path} hello] + config_flags)
         results['items'].each do |result|
           expect(result['status']).to eq('success')
-          expect(result['value']).to eq(
-            "stdout"        => "hello\n",
-            "stderr"        => "",
-            "merged_output" => "hello\n",
-            "exit_code"     => 0
-          )
+          # sudo-rs echoes a newline after reading the password, so compare stripped output
+          expect(result['value']['exit_code']).to eq(0)
+          expect(result['value']['stdout']).to eq("hello\n")
+          expect(result['value']['stderr'].strip).to eq('')
+          expect(result['value']['merged_output'].strip).to eq('hello')
         end
       end
     end

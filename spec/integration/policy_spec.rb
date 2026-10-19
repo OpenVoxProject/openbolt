@@ -24,7 +24,7 @@ describe 'policy' do
 
     let(:config)    { { 'policies' => %w[policy::foo policy::bar policy::define] } }
     let(:inventory) { docker_inventory }
-    let(:opts)      { %w[-t puppet_7_node] }
+    let(:opts)      { %w[-t openvox_9_node] }
 
     before(:each) do
       FileUtils.mkdir_p(@project.manifests)

@@ -20,7 +20,7 @@ env:
 
 jobs:
   rubocop_and_matrix:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     outputs:
       ruby: ${{ steps.ruby.outputs.versions }}
     steps:
@@ -28,7 +28,7 @@ jobs:
       - name: Install Ruby ${{ matrix.ruby }}
         uses: ruby/setup-ruby@95ef2b042f9d7a56d8268cba8559e2842e2ad01b # v1.321.0
         with:
-          ruby-version: "3.4"
+          ruby-version: "4.0"
           bundler-cache: true
       - name: Run Rubocop
         run: bundle exec rake rubocop
@@ -37,13 +37,13 @@ jobs:
 
   cache_modules_linux:
     name: 'Linux: Generate module cache'
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Install Ruby
         uses: ruby/setup-ruby@95ef2b042f9d7a56d8268cba8559e2842e2ad01b # v1.321.0
         with:
-          ruby-version: "3.4"
+          ruby-version: "4.0"
           bundler-cache: true
       - name: Cache modules
         id: modules
@@ -65,7 +65,7 @@ jobs:
       - name: Install Ruby
         uses: ruby/setup-ruby@95ef2b042f9d7a56d8268cba8559e2842e2ad01b # v1.321.0
         with:
-          ruby-version: "3.4"
+          ruby-version: "4.0"
           bundler-cache: true
       - name: Cache modules
         id: modules
@@ -88,7 +88,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-24.04, windows-2025]
+        os: [ubuntu-26.04, windows-2025]
         ruby: ${{ fromJSON(needs.rubocop_and_matrix.outputs.ruby) }}
     runs-on: ${{ matrix.os }}
     steps:
@@ -111,14 +111,14 @@ jobs:
         run: bundle exec rake tests:unit
 
   generate-docs:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
     - name: Initialize
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
     - name: Setup Ruby
       uses: ruby/setup-ruby@95ef2b042f9d7a56d8268cba8559e2842e2ad01b # v1.321.0
       with:
-        ruby-version: 3.3
+        ruby-version: "4.0"
         bundler-cache: true
     - name: Generate docs
       run: bundle exec rake docs:all
@@ -134,7 +134,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-24.04, windows-2025]
+        os: [ubuntu-26.04, windows-2025]
         ruby: ${{ fromJSON(needs.rubocop_and_matrix.outputs.ruby) }}
     runs-on: ${{ matrix.os }}
     steps:
@@ -203,7 +203,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-24.04, windows-2025]
+        os: [ubuntu-26.04, windows-2025]
         ruby: ${{ fromJSON(needs.rubocop_and_matrix.outputs.ruby) }}
     runs-on: ${{ matrix.os }}
     steps:
@@ -242,10 +242,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-24.04, windows-2025]
-        # currently fails on Ruby 3.4
-        #ruby: ${{ fromJSON(needs.rubocop_and_matrix.outputs.ruby) }}
-        ruby: ['3.2', '3.3']
+        os: [ubuntu-26.04, windows-2025]
+        ruby: ${{ fromJSON(needs.rubocop_and_matrix.outputs.ruby) }}
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout repository
@@ -276,14 +274,14 @@ jobs:
     name: Check mod deps
     needs:
       - cache_modules_linux
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Setup Ruby
         uses: ruby/setup-ruby@95ef2b042f9d7a56d8268cba8559e2842e2ad01b # v1.321.0
         with:
-          ruby-version: '3.4'
+          ruby-version: '4.0'
           bundler-cache: true
       - name: Cache modules
         id: modules
@@ -359,11 +357,11 @@ jobs:
       - rubocop_and_matrix
       - cache_modules_linux
     name: SSH Transport
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     strategy:
       fail-fast: false
       matrix:
-        ruby: ['3.2', '3.3', '4.0']
+        ruby: ${{ fromJSON(needs.rubocop_and_matrix.outputs.ruby) }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -387,7 +385,7 @@ jobs:
       - rubocop_and_matrix
       - cache_modules_linux
     name: Docker Transport
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     strategy:
       fail-fast: false
       matrix:
@@ -415,7 +413,7 @@ jobs:
       - rubocop_and_matrix
       - cache_modules_linux
     name: Linux Integration
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     strategy:
       fail-fast: false
       matrix:
@@ -439,20 +437,24 @@ jobs:
         run: bundle exec rake ci:linux:integration
 
   modules_ci:
-    name: Test vendored Modules - ${{ matrix.runs-on }}
+    name: Test vendored Modules ${{ matrix.ruby }} ${{ matrix.runs-on }}
+    needs:
+      - rubocop_and_matrix
     runs-on: ${{ matrix.runs-on }}
     strategy:
+      fail-fast: false
       matrix:
         runs-on:
-          - ubuntu-24.04
+          - ubuntu-26.04
           - windows-2025
+        ruby: ${{ fromJSON(needs.rubocop_and_matrix.outputs.ruby) }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Setup Ruby
         uses: ruby/setup-ruby@95ef2b042f9d7a56d8268cba8559e2842e2ad01b # v1.321.0
         with:
-          ruby-version: 3.2
+          ruby-version: ${{ matrix.ruby }}
           bundler-cache: true
       # The Docker service sometimes fails to come up at runner boot, actions/runner-images#13729
       - name: Start Docker if it is not running
@@ -483,7 +485,7 @@ jobs:
       - docker_transport
       - integration_linux
       - modules_ci
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     name: Test suite
     steps:
       - name: Decide whether the needed jobs succeeded or failed

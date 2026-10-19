@@ -28,7 +28,7 @@ describe "devices" do
               'transport' => 'remote',
               'remote' => {
                 'remote-transport' => 'fake',
-                'run-on' => 'puppet_7_node',
+                'run-on' => 'openvox_9_node',
                 'path' => device_path
               }
             }
@@ -77,7 +77,7 @@ describe "devices" do
         expect(results).not_to include('kind')
         expect(results.dig(0, 'value', 'report', 'resource_statuses')).to include('Fake_device[key1]')
 
-        content = run_cli_json(['command', 'run', "cat '#{device_path}'", '-t', 'puppet_7_node'], project: @project)
+        content = run_cli_json(['command', 'run', "cat '#{device_path}'", '-t', 'openvox_9_node'], project: @project)
 
         expect(content.dig('items', 0, 'value', 'stdout')).to eq({ key1: 'val1' }.to_json)
 

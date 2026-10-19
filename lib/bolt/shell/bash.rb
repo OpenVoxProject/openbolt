@@ -230,15 +230,17 @@ module Bolt
         ''
       end
 
+      # GNU sudo and sudo-rs word these differently
       def handle_sudo_errors(err)
         case err
-        when /^#{conn.user} is not in the sudoers file\./
+        when /^#{conn.user} is not in the sudoers file\./,
+             /Sorry, user #{conn.user} (may not run|is not allowed to execute)/
           @logger.trace { err }
           raise Bolt::Node::EscalateError.new(
             "User #{conn.user} does not have sudo permission on #{target}",
             'SUDO_DENIED'
           )
-        when /^Sorry, try again\./
+        when /^Sorry, try again\./, /Authentication failed, try again/
           @logger.trace { err }
           raise Bolt::Node::EscalateError.new(
             "Sudo password for user #{conn.user} not recognized on #{target}",
@@ -299,7 +301,7 @@ module Bolt
 
         result = execute(command)
         if result.exit_code != 0
-          raise Bolt::Node::FileError.new("Could not make tmpdir: #{result.stderr.string}", 'TMPDIR_ERROR')
+          raise Bolt::Node::FileError.new("Could not make tmpdir #{tmppath}: #{result.stderr.string}", 'TMPDIR_ERROR')
         end
 
         path = tmppath || result.stdout.string.chomp

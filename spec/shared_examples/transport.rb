@@ -744,7 +744,8 @@ SHELL
     end
 
     it "can fail to execute with sudo -n" do
-      expect(runner.run_command(target, 'whoami')['stderr']).to match("sudo: a password is required")
+      expect(runner.run_command(target, 'whoami')['stderr'])
+        .to match(/a password is required|interactive authentication is required/)
     end
   end
 end

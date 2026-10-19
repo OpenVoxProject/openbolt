@@ -246,7 +246,7 @@ Undef:}
                           { "action" => "run_task",
                             "object" => "error::fail",
                             "result_set" =>
-                          [{ "target" => 'puppet_7_node',
+                          [{ "target" => 'openvox_9_node',
                              "action" => "task",
                              "object" => "error::fail",
                              "status" => "failure",

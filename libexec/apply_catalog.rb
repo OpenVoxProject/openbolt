@@ -106,6 +106,9 @@ begin
 
   Puppet.override(overrides) do
     catalog = Puppet::Resource::Catalog.from_data_hash(args['catalog'])
+    # The catalog is named after the Bolt target, and OpenVox 9 logs an error when that
+    # name differs from the node name the agent reports under
+    Puppet[:node_name_value] = catalog.name
     catalog.environment = env.name.to_s
     catalog.environment_instance = env
     if defined?(Puppet::Pops::Evaluator::DeferredResolver)
