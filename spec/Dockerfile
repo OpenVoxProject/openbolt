@@ -5,7 +5,7 @@ ARG DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
-        ca-certificates locales openssh-server sudo tree wget \
+        ca-certificates locales openssh-server python3 sudo tree wget \
     && rm -rf /var/lib/apt/lists/*
 
 # Set the locale

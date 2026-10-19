@@ -215,7 +215,7 @@ describe 'apply', apply: true do
           results.each do |result|
             expect(result['status']).to eq('success')
             report = result['value']['report']
-            expect(report['resource_statuses']).to include(/Notify\[Hello puppet_[5-7]_node\]/)
+            expect(report['resource_statuses']).to include('Notify[Hello openvox_9_node]')
           end
         end
 
@@ -396,7 +396,7 @@ describe 'apply', apply: true do
                     'plugin' => 'task',
                     'task' => 'openvox_bootstrap::install',
                     'parameters' => {
-                      'version' => '8.19.1'
+                      'collection' => 'openvox9'
                     }
                   }
                 }
@@ -420,7 +420,7 @@ describe 'apply', apply: true do
           result = results['items']
           expect(result.count).to eq(1)
           expect(result[0]).to include('status' => 'success')
-          expect(result[0]['value']['puppet_version']).to match(/^8\.19/)
+          expect(result[0]['value']['puppet_version']).to match(/^9\./)
         end
       end
     end
