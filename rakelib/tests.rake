@@ -20,7 +20,7 @@ begin
 
     desc "Run RSpec tests that do not require VM fixtures or a particular shell"
     RSpec::Core::RakeTask.new(unit: :install_modules) do |t|
-      t.pattern = "spec/unit/**/*_spec.rb"
+      t.pattern = "spec/unit/**/*_spec.rb,spec/pal/**/*_spec.rb"
     end
 
     desc 'Run tests that require a host System Under Test configured with WinRM'
