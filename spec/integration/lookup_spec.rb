@@ -171,7 +171,7 @@ describe 'lookup' do
 
     context 'without --plan-hierarchy' do
       let(:opts)   { %W[--project #{project} --hiera-config #{hiera_config} -t #{target}] }
-      let(:target) { 'puppet_7_node' }
+      let(:target) { 'openvox_9_node' }
 
       around(:each) do |example|
         inventory = docker_inventory.merge('vars' => { 'lookup' => 'var' }).to_json
@@ -218,7 +218,7 @@ describe 'lookup' do
           result, = run_cli_json(%w[lookup certname] + opts)
           expect(result).to include(
             'object' => 'certname',
-            'value'  => { 'value' => 'certname data/puppet_7_node.yaml' }
+            'value'  => { 'value' => 'certname data/openvox_9_node.yaml' }
           )
         end
 

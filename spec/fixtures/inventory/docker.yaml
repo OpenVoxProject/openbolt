@@ -8,7 +8,7 @@ groups:
     config:
       ssh:
         port: 20022
-  - name: puppet_7_node
+  - name: openvox_9_node
     config:
       ssh:
         port: 20025

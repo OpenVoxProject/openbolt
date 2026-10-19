@@ -4,16 +4,16 @@ services:
     build: .
     container_name: ubuntu_node
     ports:
-      - "20022:22"
+      - "127.0.0.1:20022:22"
 
-  puppet_7_node:
+  openvox_9_node:
     build:
       context: .
       args:
-        PUPPET_COLLECTION: openvox7
-    container_name: puppet_7_node
+        PUPPET_COLLECTION: openvox9
+    container_name: openvox_9_node
     ports:
-      - "20025:22"
+      - "127.0.0.1:20025:22"
 
   postgres:
     image: postgres:11.11
@@ -35,7 +35,7 @@ services:
       USE_PUPPETSERVER: 'false'
       CERTNAME: pdb
     ports:
-      - "18081:8081"
+      - "127.0.0.1:18081:8081"
 
   puppetserver:
     build:
@@ -43,7 +43,7 @@ services:
       dockerfile: Dockerfile.puppetserver
     image: puppet-server
     ports:
-      - "8140:8140"
+      - "127.0.0.1:8140:8140"
     volumes:
       - ./fixtures/modules:/etc/puppetlabs/code/modules
       - ./fixtures/bolt_server/projects:/etc/puppetlabs/code/projects

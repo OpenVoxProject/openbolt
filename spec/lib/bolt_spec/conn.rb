@@ -92,7 +92,7 @@ module BoltSpec
                 'name' => 'nix_agents',
                 'targets' => [
                   {
-                    'name' => 'puppet_7_node',
+                    'name' => 'openvox_9_node',
                     'config' => { 'ssh' => { 'port' => 20025 } }
                   }
                 ]
