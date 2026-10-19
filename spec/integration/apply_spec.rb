@@ -9,7 +9,7 @@ require 'bolt_spec/openvox_bootstrap'
 require 'bolt_spec/run'
 
 TEST_VERSIONS = [
-  [8, 'openvox8']
+  [9, 'openvox9']
 ].freeze
 
 describe 'apply', apply: true do
@@ -435,7 +435,7 @@ describe 'apply', apply: true do
     end
 
     TEST_VERSIONS.each do |version, collection|
-      context "with puppet#{version} installed" do
+      context "with openvox#{version} installed" do
         before(:all) do
           install('winrm', collection: collection, inventory: conn_inventory)
         end
