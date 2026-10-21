@@ -1,0 +1,318 @@
+#compdef bolt
+# ------------------------------------------------------------------------------
+# Description
+# -----------
+#
+#  Completion script for OpenBolt (https://github.com/OpenVoxProject/openbolt/).
+#
+# ------------------------------------------------------------------------------
+# Authors
+# -------
+#
+#  * OpenVox Project (https://github.com/OpenVoxProject/openbolt/)
+#
+# ------------------------------------------------------------------------------
+#
+# Install either by:
+#   * sourcing this file in your ~/.zshrc, or
+#   * copying this file into a directory in your $fpath as `_bolt` and
+#     restarting the shell (the completion system must be initialized).
+#
+# Optional configuration (set in the shell before completing):
+#   BOLT_COMPLETION_RUBY   ruby to use when jq is unavailable
+#                          (default: /opt/puppetlabs/bolt/bin/ruby, bolt's
+#                          bundled all-in-one interpreter; falls back to the
+#                          system ruby if not found)
+#   BOLT_COMPLETION_TARGETS  targets (not just groups) are offered for
+#                          --targets/-t options; set to 0, "false", "off" or
+#                          "no" to disable (useful for large inventories)
+#
+# Dynamic completions call `bolt plan show`, `bolt task show`, `bolt group
+# show` and `bolt inventory show` (with `--format json`). Results are cached in memory
+# for the shell session, keyed by project (the --project argument or the
+# current directory) and the newest mtime among the project's definition
+# files (bolt-project.yaml, inventory.yaml and first-level module
+# directories), so entries refresh automatically when the project
+# changes. Everything falls back to plain message completions when
+# `bolt` is not on the PATH.
+
+typeset -gA _bolt_cache
+
+_bolt () {
+  local curcontext="$curcontext" state line
+  typeset -A opt_args
+  integer ret=1
+
+<%= zsh_opt_groups %>
+
+  # --- shared tables (visible to the subcommand functions via dynamic scope)
+
+  local -a _bolt_subcommands=(
+<%= zsh_subcommands %>
+  )
+
+  local -a _bolt_guide_topics=(
+<%= zsh_topics %>
+  )
+
+  _arguments -C \
+    "${opts_globals[@]}" \
+    '*::: :->args' && ret=0
+
+  if [[ -n $state ]]; then
+    if (( CURRENT == 1 )); then
+      _describe -t subcommands 'subcommand' _bolt_subcommands
+    else
+      compset -n 1
+      case $line[1] in
+<%= zsh_dispatch %>
+        *)         _message "unknown subcommand: $line[1]" ;;
+      esac
+    fi
+  fi
+
+  return ret
+}
+
+# --- dynamic helpers ---------------------------------------------------------
+
+# Prints a change-sentinel for the effective project: the newest mtime
+# among bolt-project.yaml, inventory.yaml and the first-level module
+# directories, or an empty string when none of them exist (entries are
+# then valid for the shell session only).
+_bolt_project_stamp () {
+  local proj="${(Q)${opt_args[--project]:-}}"
+  [[ -z $proj ]] && proj="$PWD"
+  local stamp m f
+  zmodload -F zsh/stat b:zstat 2>/dev/null
+  for f in "$proj/bolt-project.yaml" "$proj/inventory.yaml" "$proj/modules"/*(/N) "$proj/bolt-modules"/*(/N); do
+    [[ -e $f ]] || continue
+    m=$( zstat +mtime "$f" 2>/dev/null ) || continue
+    (( $m > ${stamp:-0} )) && stamp=$m
+  done
+  if [[ -n $stamp ]]; then
+    print -r -- "$stamp"
+  fi
+}
+
+# Applies JQEXPR (or equivalent RUBYSNIP) to JSON read from stdin; prints
+# one result per line. Uses jq when available, else ruby — preferring
+# bolt's bundled interpreter (all-in-one package, see BOLT_COMPLETION_RUBY)
+# over the system ruby.
+_bolt_json_parse () {
+  local jqexpr="$1" rubysnip="$2"
+  if (( $+commands[jq] )); then
+    jq -r "$jqexpr" 2>/dev/null
+    return
+  fi
+  local -a ruby
+  ruby=( "${BOLT_COMPLETION_RUBY:-/opt/puppetlabs/bolt/bin/ruby}" )
+  [[ -x $ruby[1] ]] || ruby=( ruby )
+  "${ruby[@]}" -rjson -e "$rubysnip" 2>/dev/null
+}
+
+# Returns a filesystem-safe key identifying the effective project
+# (--project argument, or the current directory).
+_bolt_project_key () {
+  local proj="${(Q)${opt_args[--project]:-}}"
+  [[ -z $proj ]] && proj="$PWD"
+  print -r -- "${proj//[^a-zA-Z0-9]/_}"
+}
+
+# Fetches the NAMES for KIND ('plans', 'tasks' or 'groups') via
+# `bolt plan/task/group show --format json`, using the per-project
+# in-memory cache. Sets reply and returns 0 on success. Must not be
+# called within a subshell, or the cache would not survive.
+_bolt_fetch_list () {
+  local kind="$1" key appcmd jsonkey jqexpr rubysnip cmd_opts
+  key="${kind}:$( _bolt_project_key ):$( _bolt_project_stamp )"
+  if [[ -n ${_bolt_cache[$key]:-} ]]; then
+    reply=( ${(f)_bolt_cache[$key]} )
+    return 0
+  fi
+
+  # map the kind to a bolt subcommand and its JSON list key
+  case $kind in
+    plans)   appcmd=( plan )      jsonkey=plans ;;
+    tasks)   appcmd=( task )      jsonkey=tasks ;;
+    groups)  appcmd=( group )     jsonkey=groups ;;
+    targets) appcmd=( inventory ) jsonkey=targets ;;
+  esac
+
+  cmd_opts=()
+  if [[ -n ${(Q)${opt_args[--project]:-}} ]]; then
+    cmd_opts=( --project "${(Q)${opt_args[--project]}}" )
+  fi
+  if (( $+commands[bolt] )); then
+    local json
+    json=$( bolt "$appcmd" show "${cmd_opts[@]}" --format json 2>/dev/null )
+    if [[ -n $json ]]; then
+      local -a names
+      # plan/task lists are [["name","description"],...] pairs, the rest are plain name strings
+      if [[ $kind == plans || $kind == tasks ]]; then
+        jqexpr=".${jsonkey}[] | .[0]"
+        rubysnip="begin; JSON.parse(STDIN.read)['$jsonkey'].each { |e| puts e[0] }; rescue; end"
+      else
+        jqexpr=".${jsonkey}[]"
+        rubysnip="begin; JSON.parse(STDIN.read)['$jsonkey'].each { |e| puts e }; rescue; end"
+      fi
+      names=( ${(f)"$( printf '%s' "$json" | _bolt_json_parse "$jqexpr" "$rubysnip" )"} )
+      names=( ${(u)names} )
+      if (( #names )); then
+        _bolt_cache[$key]="${(F)names}"
+        reply=( "${names[@]}" )
+        return 0
+      fi
+    fi
+  fi
+  reply=()
+  return 1
+}
+
+# Completes plan names from `bolt plan show`.
+#
+# NOTE: uses _alternative instead of _describe, because plan names contain
+# '::' which _describe renders as a "name:desc" separator (e.g. it displayed
+# `aggregate -- :count` instead of `aggregate::count`).
+_bolt_plan_names () {
+  if _bolt_fetch_list plans; then
+    _alternative "plans:plan:( $reply )"
+  else
+    _message "plan name"
+  fi
+}
+
+# Completes task names from `bolt task show`.
+_bolt_task_names () {
+  if _bolt_fetch_list tasks; then
+    _alternative "tasks:task:( $reply )"
+  else
+    _message "task name"
+  fi
+}
+
+# Completes plan parameters as "name=" via `bolt plan show <plan>`.
+_bolt_plan_params () {
+  local plan
+  compset -P '*=*' && { _message "parameter value"; return }
+  if [[ -n ${opt_args[--params]} ]]; then
+    _message "parameter (parameters were already given with --params)"; return
+  fi
+  plan="${line[1]:-}"
+  if [[ -z $plan ]]; then
+    plan="${words[1]:-}"
+  fi
+  local -a names opts
+  opts=()
+  if [[ -n ${(Q)${opt_args[--project]:-}} ]]; then
+    opts=( --project "${(Q)${opt_args[--project]}}" )
+  fi
+  if [[ -n $plan ]] && (( $+commands[bolt] )); then
+    local json
+    json=$( bolt plan show "$plan" "${opts[@]}" --format json 2>/dev/null )
+    if [[ -n $json ]]; then
+      names=( ${(f)"$( printf '%s' "$json" | _bolt_json_parse '.parameters // {} | keys | .[]' 'begin; JSON.parse(STDIN.read)["parameters"].each_key { |k| puts k }; rescue; end' )"} )
+    fi
+  fi
+  names=( ${(u)names/%/=} )
+  if (( #names )); then
+    _describe -t parameters 'plan parameter' names
+  else
+    _message "parameter=value"
+  fi
+}
+
+# Completes task parameters as "name=" via `bolt task show <task>`.
+_bolt_task_params () {
+  local task
+  compset -P '*=*' && { _message "parameter value"; return }
+  if [[ -n ${opt_args[--params]} ]]; then
+    _message "parameter (parameters were already given with --params)"; return
+  fi
+  task="${line[1]:-}"
+  if [[ -z $task ]]; then
+    task="${words[1]:-}"
+  fi
+  local -a names opts
+  opts=()
+  if [[ -n ${(Q)${opt_args[--project]:-}} ]]; then
+    opts=( --project "${(Q)${opt_args[--project]}}" )
+  fi
+  if [[ -n $task ]] && (( $+commands[bolt] )); then
+    local json
+    json=$( bolt task show "$task" "${opts[@]}" --format json 2>/dev/null )
+    if [[ -n $json ]]; then
+      names=( ${(f)"$( printf '%s' "$json" | _bolt_json_parse '.metadata.parameters // {} | (if type == "object" then keys[] else empty end)' 'begin; ps = JSON.parse(STDIN.read)["metadata"]["parameters"]; ps.is_a?(Hash) and ps.each_key { |k| puts k }; rescue; end' )"} )
+      names=( ${(u)names/%/=} )
+    fi
+  fi
+  if (( #names )); then
+    _describe -t parameters 'task parameter' names
+  else
+    _message "parameter=value"
+  fi
+}
+
+# Completes target names (comma separated list); cached in memory.
+# Offers groups from `bolt group show`, plus individual targets from
+# `bolt inventory show` unless BOLT_COMPLETION_TARGETS disables the latter.
+_bolt_target_list () {
+  local -a tnames
+  if _bolt_fetch_list groups; then
+    tnames=( "$reply[@]" )
+  fi
+  if [[ ${BOLT_COMPLETION_TARGETS:-1} != (0|false|off|no) ]] && _bolt_fetch_list targets; then
+    tnames+=( "$reply[@]" )
+  fi
+  tnames=( ${(u)tnames} )
+  if (( #tnames )); then
+    _values -s , 'target' "$tnames[@]"
+  else
+    _message "comma separated target list"
+  fi
+}
+
+# --- generated subcommand and action functions -------------------------------
+
+<%= zsh_functions %>
+
+_bolt_help () {
+  integer ret=1
+  _arguments -C \
+    "${opts_globals[@]}" \
+    '*::: :->args' && ret=0
+  if [[ -n $state ]]; then
+    if (( CURRENT == 1 )); then
+      _describe -t subcommands 'subcommand' _bolt_subcommands
+    else
+      compset -n 1
+      case ${line[1]} in
+<%= zsh_help_cases %>
+        *)         _message "unknown subcommand: $line[1]" ;;
+      esac
+    fi
+  fi
+  return ret
+}
+
+_bolt_help_action () {
+  local -a actions
+  actions=( ${=${1}} )
+  if (( CURRENT == 2 )); then
+    _describe -t actions 'action' actions
+  fi
+}
+
+if [ "$funcstack[1]" = "_bolt" ]; then
+  _bolt "$@"
+else
+  compdef _bolt bolt
+fi
+
+# Local Variables:
+# mode: Shell-Script
+# sh-indentation: 2
+# indent-tabs-mode: nil
+# sh-basic-offset: 2
+# End:
+# vim: ft=zsh sw=2 ts=2 et
