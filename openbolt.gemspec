@@ -15,29 +15,29 @@ Gem::Specification.new do |spec|
   spec.description   = "Execute commands remotely over SSH and WinRM"
   spec.homepage      = 'https://github.com/OpenVoxProject/openbolt/'
   spec.license       = "Apache-2.0"
-  spec.files         = Dir['exe/*'] +
-                       Dir['lib/**/*.rb'] +
-                       Dir['lib/**/*.json'] +
-                       Dir['lib/**/*.ddl'] +
-                       Dir['libexec/*'] +
-                       Dir['bolt-modules/*/lib/**/*.rb'] +
-                       Dir['bolt-modules/*/types/**/*.pp'] +
-                       Dir['modules/*/metadata.json'] +
-                       Dir['modules/*/bolt_plugin.json'] +
-                       Dir['modules/*/data/**/*'] +
-                       Dir['modules/*/facts.d/**/*'] +
-                       Dir['modules/*/files/**/*'] +
-                       Dir['modules/*/functions/**/*'] +
-                       Dir['modules/*/lib/**/*.rb'] +
-                       Dir['modules/*/locales/**/*'] +
-                       Dir['modules/*/manifests/**/*'] +
-                       Dir['modules/*/plans/**/*.pp'] +
-                       Dir['modules/*/tasks/**/*'] +
-                       Dir['modules/*/templates/**/*'] +
-                       Dir['modules/*/types/**/*'] +
-                       Dir['Puppetfile'] +
-                       Dir['resources/bolt_bash_completion.sh'] +
-                       Dir['guides/*.yaml']
+  spec.files = Dir['exe/*'] +
+               Dir['lib/**/*.rb'] +
+               Dir['lib/**/*.json'] +
+               Dir['lib/**/*.ddl'] +
+               Dir['lib/**/*.erb'] +
+               Dir['libexec/*'] +
+               Dir['bolt-modules/*/lib/**/*.rb'] +
+               Dir['bolt-modules/*/types/**/*.pp'] +
+               Dir['modules/*/metadata.json'] +
+               Dir['modules/*/bolt_plugin.json'] +
+               Dir['modules/*/data/**/*'] +
+               Dir['modules/*/facts.d/**/*'] +
+               Dir['modules/*/files/**/*'] +
+               Dir['modules/*/functions/**/*'] +
+               Dir['modules/*/lib/**/*.rb'] +
+               Dir['modules/*/locales/**/*'] +
+               Dir['modules/*/manifests/**/*'] +
+               Dir['modules/*/plans/**/*.pp'] +
+               Dir['modules/*/tasks/**/*'] +
+               Dir['modules/*/templates/**/*'] +
+               Dir['modules/*/types/**/*'] +
+               Dir['Puppetfile'] +
+               Dir['guides/*.yaml']
   spec.bindir        = "exe"
   spec.executables   = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
   spec.require_paths = ["lib"]
