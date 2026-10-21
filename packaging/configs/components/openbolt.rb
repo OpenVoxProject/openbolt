@@ -43,7 +43,7 @@ component "openbolt" do |pkg, settings, platform|
     pkg.install_file "../bolt_env_wrapper", bolt_exe, mode: "0755"
 
     if File.directory?("/etc/bash_completion.d")
-      pkg.install_file "resources/bolt_bash_completion.sh", "/etc/bash_completion.d/bolt.sh", mode: "0644"
+      pkg.install_file "resources/bolt-completion.bash", "/etc/bash_completion.d/bolt.sh", mode: "0644"
     end
 
     if platform.is_macos?
