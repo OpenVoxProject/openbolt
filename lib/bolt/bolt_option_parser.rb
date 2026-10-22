@@ -37,6 +37,9 @@ module Bolt
           { flags: OPTIONS[:global],
             banner: COMMAND_HELP }
         end
+      when 'completion'
+        { flags: OPTIONS[:global],
+          banner: COMPLETION_HELP }
       when 'file'
         case action
         when 'upload'
@@ -214,6 +217,7 @@ module Bolt
       #{colorize(:cyan, 'Subcommands')}
           apply             Apply Puppet manifest code
           command           Run a command remotely
+          completion        Print shell completion scripts
           file              Copy files between the controller and targets
           group             Show the list of groups in the inventory
           guide             View guides for Bolt concepts and features
@@ -395,6 +399,32 @@ module Bolt
             bolt guide
           View the 'project' guide page
             bolt guide project
+    HELP
+
+    COMPLETION_HELP = <<~HELP
+      #{colorize(:cyan, 'Name')}
+          completion
+
+      #{colorize(:cyan, 'Usage')}
+          bolt completion <shell>
+
+      #{colorize(:cyan, 'Shells')}
+          bash          Print a bash completion script for Bolt
+          zsh           Print a zsh completion script for Bolt
+
+      #{colorize(:cyan, 'Description')}
+          Print a completion script for the given shell that provides
+          completion for Bolt's commands, actions, options and dynamic
+          values such as plan, task and target names.
+
+          Redirect the output into a file loaded by your shell's startup
+          configuration to use the completion.
+
+      #{colorize(:cyan, 'Examples')}
+          Print the bash completion script
+            bolt completion bash
+          Load completions in the current shell
+            source <(bolt completion zsh)
     HELP
 
     INVENTORY_HELP = <<~HELP
