@@ -1,4 +1,4 @@
-[![Modules Status](https://github.com/OpenVoxProject/openbolt/actions/workflows/modules.yaml/badge.svg?branch=main)](https://github.com/OpenVoxProject/openbolt/actions/workflows/modules.yaml)
+test[![Modules Status](https://github.com/OpenVoxProject/openbolt/actions/workflows/modules.yaml/badge.svg?branch=main)](https://github.com/OpenVoxProject/openbolt/actions/workflows/modules.yaml)
 [![Build Status](https://github.com/OpenVoxProject/openbolt/actions/workflows/build.yml/badge.svg)](https://github.com/OpenVoxProject/openbolt/actions/workflows/build.yml)
 [![Version](https://img.shields.io/github/v/tag/OpenVoxProject/openbolt?label=version)](./CHANGELOG.md)
 [![Platforms](https://img.shields.io/badge/platforms-linux%20%7C%20windows%20%7C%20macos-lightgrey)](./documentation/bolt_installing.md)
