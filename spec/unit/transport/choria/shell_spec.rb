@@ -28,7 +28,7 @@ describe Bolt::Transport::Choria do
         transport.discover_agents([target])
       end
 
-      it 'uses C:\Windows\Temp when default tmpdir is /tmp on a Windows target' do
+      it 'uses C:\Windows\Temp when no tmpdir is set on a Windows target' do
         allow(SecureRandom).to receive(:uuid).and_return('test-uuid')
         path = transport.generate_tmpdir_path(target)
         expect(path).to eq('C:\Windows\Temp\bolt-choria-test-uuid')
