@@ -26,7 +26,7 @@ module Bolt
       #
       # @param targets [Array, Hash] Initial targets to poll (duped internally)
       # @param timeout [Numeric] Maximum seconds before exiting
-      # @param context [String] Label for log messages
+      # @param context [String] Label for log and error messages
       # @return [Hash] with keys:
       #   - :completed [Hash{Target => Hash}] All finished target outputs, plus a poll
       #     error for each pending target after RPC_FAILURE_RETRIES failed polls in a row

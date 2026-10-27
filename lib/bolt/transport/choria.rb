@@ -45,10 +45,9 @@ module Bolt
         @default_collective = nil
       end
 
-      # Advertise both shell and powershell so tasks with either requirement
-      # can be selected. The per-target selection happens in
-      # select_implementation below, which picks the right feature set based
-      # on the target's detected OS.
+      # Task selection does not use this list, since select_implementation
+      # below overrides the Base method that reads it. The list is kept for
+      # apply_prep, which reads a transport's provided features.
       def provided_features
         %w[shell powershell]
       end
