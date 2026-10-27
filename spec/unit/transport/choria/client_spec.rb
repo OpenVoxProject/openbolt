@@ -160,8 +160,11 @@ describe Bolt::Transport::Choria do
       transport.create_rpc_client('shell', [target], 60)
     end
 
-    it 'disables progress output' do
-      expect(mock_rpc_client).to receive(:progress=).with(false)
+    it 'asks for no progress output through the client options alone' do
+      expect(MCollective::RPC::Client).to receive(:new) do |_agent, opts|
+        expect(opts[:options][:progress_bar]).to be_falsey
+        mock_rpc_client
+      end
       transport.create_rpc_client('shell', [target], 60)
     end
 

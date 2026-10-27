@@ -179,10 +179,11 @@ describe Bolt::Transport::Choria do
         expect(results.first.error_hash['msg']).to include('Unknown action start for agent shell')
       end
 
-      it 'returns error results for all targets when start raises' do
+      it 'returns error results for all targets when start raises, without polling' do
         stub_agents(target, %w[rpcutil shell])
 
         allow(mock_rpc_client).to receive(:start).and_raise(StandardError, 'NATS broker down')
+        expect(mock_rpc_client).not_to receive(:list)
 
         results = transport.batch_command([target], 'hostname', {})
         expect(results.length).to eq(1)

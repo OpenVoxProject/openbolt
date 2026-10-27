@@ -153,7 +153,7 @@ module Bolt
         # error here instead.
         configure_client(targets.first)
         discover_agents(targets)
-        discovered, silent = targets.partition { |target| @agent_cache.key?(choria_identity(target)) }
+        discovered, silent = targets.partition { |target| discovered?(target) }
 
         silent_errors = silent.to_h { |target| [target, undiscovered_error(target)] }
         silent.each { |target| callback&.call(type: :node_start, target: target) }
@@ -178,11 +178,6 @@ module Bolt
           client.ping
         end
         response[:responded].length == targets.length
-      rescue StandardError => e
-        raise if e.is_a?(Bolt::Error)
-
-        logger.warn { "Batch connectivity check failed: #{e.class}: #{e.message}" }
-        false
       end
 
       def upload(_target, _source, _destination, _options = {}, _position = [])

@@ -189,7 +189,6 @@ RSpec.shared_context 'choria transport' do
     double('MCollective::RPC::Client').tap do |client|
       allow(client).to receive(:identity_filter)
       allow(client).to receive(:discover) { |**flags| mock_options[:filter]['identity'] = flags[:nodes] || [] }
-      allow(client).to receive(:progress=)
       allow(client).to receive(:timeout=)
       allow(client).to receive(:options).and_return(mock_options)
     end
