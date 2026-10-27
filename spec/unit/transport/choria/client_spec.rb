@@ -165,6 +165,15 @@ describe Bolt::Transport::Choria do
       transport.create_rpc_client('shell', [target], 60)
     end
 
+    it 'leaves the publish timeout and threading to the client library' do
+      expect(MCollective::RPC::Client).to receive(:new) do |_agent, opts|
+        expect(opts[:options]).not_to have_key(:publish_timeout)
+        expect(opts[:options]).not_to have_key(:threaded)
+        mock_rpc_client
+      end
+      transport.create_rpc_client('shell', [target], 60)
+    end
+
     it 'sets collective from the first target' do
       transport.configure_client(target)
       inventory.set_config(target, %w[choria collective], 'production')

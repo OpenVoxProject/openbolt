@@ -118,19 +118,13 @@ module Bolt
       # @return [MCollective::RPC::Client] Configured client with direct addressing enabled
       def create_rpc_client(agent_name, targets, timeout)
         targets = Array(targets)
-        options = MCollective::Util.default_options
+        options = client_options(targets)
         options[:timeout] = timeout
-        options[:verbose] = false
-        options[:connection_timeout] = targets.first.options['broker-timeout']
-
-        collective = collective_for(targets.first)
-        options[:collective] = collective if collective
 
         client = MCollective::RPC::Client.new(agent_name, options: options)
         client.progress = false
 
-        identities = targets.map { |target| choria_identity(target) }.uniq
-        client.discover(nodes: identities)
+        client.discover(nodes: identities_of(targets))
 
         client
       end
@@ -171,8 +165,7 @@ module Bolt
       def rpc_request(agent, targets, context)
         targets = Array(targets)
         rpc_results = @rpc_mutex.synchronize do
-          rpc_timeout = targets.first.options['rpc-timeout']
-          client = create_rpc_client(agent, targets, rpc_timeout)
+          client = create_rpc_client(agent, targets, targets.first.options['rpc-timeout'])
           yield(client)
         end
         by_sender = index_results_by_sender(rpc_results, targets, context)
@@ -187,15 +180,17 @@ module Bolt
               "No response from #{target.safe_name} for #{context}",
               'bolt/choria-no-response'
             )
-          elsif rpc_result[:statuscode] > 1
-            rpc_statuscodes[target] = rpc_result[:statuscode]
+            next
+          end
+
+          rpc_statuscodes[target] = rpc_result[:statuscode]
+          if rpc_result[:statuscode] > 1
             errors[target] = error_output(
               "#{context} on #{target.safe_name} returned RPC error: " \
               "#{rpc_result[:statusmsg]} (code #{rpc_result[:statuscode]})",
               'bolt/choria-rpc-error'
             )
           else
-            rpc_statuscodes[target] = rpc_result[:statuscode]
             if rpc_result[:statuscode] == 1
               logger.warn { "#{context} on #{target.safe_name} had RPC status code #{rpc_result[:statuscode]}: #{rpc_result[:statusmsg]}" }
             end
@@ -212,6 +207,22 @@ module Bolt
                                       'bolt/choria-rpc-failed')
         end
         { responded: {}, errors: errors, rpc_failed: true, rpc_statuscodes: {} }
+      end
+
+      # The client options the targets' configuration gives: the broker
+      # timeout and the collective over the gem's defaults, with progress
+      # output off. The file transfer library builds its own clients from
+      # the same hash, under the same RPC mutex.
+      #
+      # @param targets [Array<Bolt::Target>] The targets of one batch
+      # @return [Hash]
+      def client_options(targets)
+        options = MCollective::Util.default_options
+        options[:verbose] = false
+        options[:connection_timeout] = targets.first.options['broker-timeout']
+        collective = collective_for(targets.first)
+        options[:collective] = collective if collective
+        options
       end
 
       # Configure the client, discover agents, partition targets by agent
