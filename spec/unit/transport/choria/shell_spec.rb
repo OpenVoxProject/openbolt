@@ -523,6 +523,42 @@ describe Bolt::Transport::Choria do
       expect(run_commands).not_to include(match(/rm -rf/))
     end
 
+    context 'with targets whose cleanup options differ' do
+      let(:removals) { [] }
+      let(:warnings) { [] }
+
+      before do
+        stub_agents([target, target2], %w[rpcutil shell])
+        stub_shell_start({ target => {}, target2 => {} })
+        stub_shell_list({ target => {}, target2 => {} })
+        stub_shell_status({ target => {}, target2 => {} })
+        allow(File).to receive(:binread).and_return("#!/bin/bash\necho hi")
+        allow(mock_rpc_client).to receive(:run) do |args|
+          identities = mock_rpc_client.options[:filter]['identity'].dup
+          removals << identities if args[:command].include?('rm -rf')
+          identities.map { |name| make_rpc_result(sender: name, data: { exitcode: 0 }) }
+        end
+        allow(transport.logger).to receive(:warn) { |*args, &block| warnings << (block ? block.call : args.first) }
+      end
+
+      it 'removes the tmpdir only on the targets whose option is on and warns for the rest' do
+        inventory.set_config(target2, %w[choria cleanup], false)
+
+        transport.batch_script([target, target2], task_executable, [], {})
+
+        expect(removals).to eq([['node1.example.com']])
+        expect(warnings).to include(a_string_matching(%r{Leaving /tmp/bolt-choria-\S+ on choria://node2\.example\.com}))
+      end
+
+      it 'still removes the tmpdir on later targets when the first target keeps it' do
+        inventory.set_config(target, %w[choria cleanup], false)
+
+        transport.batch_script([target, target2], task_executable, [], {})
+
+        expect(removals).to eq([['node2.example.com']])
+      end
+    end
+
     it 'does not mask task results when cleanup fails' do
       stub_shell_start
       stub_shell_list
@@ -547,6 +583,32 @@ describe Bolt::Transport::Choria do
 
       expect(mock_rpc_client).not_to receive(:run)
       transport.cleanup_tmpdir([target], '/tmp/some-other-dir')
+    end
+
+    context 'on a Windows target' do
+      before(:each) do
+        stub_agents(target, %w[rpcutil shell], os_family: 'windows')
+        transport.configure_client(target)
+        transport.discover_agents([target])
+      end
+
+      it 'removes a tmpdir whose path is joined with backslashes' do
+        scripts = []
+        allow(mock_rpc_client).to receive(:run) do |args|
+          encoded = args[:command].split.last
+          scripts << Base64.decode64(encoded).force_encoding('UTF-16LE').encode('UTF-8')
+          [make_rpc_result(sender: target, data: { exitcode: 0 })]
+        end
+
+        transport.cleanup_tmpdir([target], 'C:\Windows\Temp\bolt-choria-test-uuid')
+
+        expect(scripts).to eq(["Remove-Item -Recurse -Force -Path 'C:\\Windows\\Temp\\bolt-choria-test-uuid'"])
+      end
+
+      it 'refuses to delete a backslash path whose last part does not start with bolt-choria-' do
+        expect(mock_rpc_client).not_to receive(:run)
+        transport.cleanup_tmpdir([target], 'C:\Windows\Temp')
+      end
     end
   end
 
