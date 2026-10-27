@@ -71,27 +71,17 @@ module Bolt
           results += emit_results(failures, **result_opts, &callback)
           active_targets -= failures.keys
 
-          # Upload the script file
+          # Upload the script file and make it executable
           if active_targets.any?
-            failures = upload_file_content(active_targets, script_content, remote_path)
-            results += emit_results(failures, **result_opts, &callback)
-            active_targets -= failures.keys
-          end
-
-          # Make the script executable (no-op on Windows)
-          chmod_cmd = make_executable_command(first_target, remote_path)
-          if active_targets.any? && chmod_cmd
-            failures = shell_run(active_targets, chmod_cmd, description: 'chmod script')
-            results += emit_results(failures, **result_opts, &callback)
-            active_targets -= failures.keys
+            active_targets, stage_results = stage_executable(active_targets, first_target, script_content,
+                                                             remote_path, result_opts, &callback)
+            results += stage_results
           end
 
           # Execute the script asynchronously and poll for completion
           if active_targets.any?
-            interpreter = select_interpreter(script, first_target.options['interpreters'])
-            cmd_parts = []
-            cmd_parts += Array(interpreter).map { |part| escape_arg(first_target, part) } if interpreter && options[:script_interpreter]
-            cmd_parts << escape_arg(first_target, remote_path)
+            interpreter = select_interpreter(script, first_target.options['interpreters']) if options[:script_interpreter]
+            cmd_parts = [executable_command(first_target, remote_path, interpreter)]
             cmd_parts += arguments.map { |arg| escape_arg(first_target, arg) }
 
             pending, start_failures = shell_start(active_targets, cmd_parts.join(' '))
@@ -246,20 +236,12 @@ module Bolt
           end
         end
 
-        # Upload the main task executable
-        remote_task_path = join_path(first_target, task_dir, File.basename(executable)) if active_targets.any?
-        if remote_task_path
-          failures = upload_file_content(active_targets, executable_content, remote_task_path)
-          failed_results += emit_results(failures, **result_opts, &callback)
-          active_targets -= failures.keys
-        end
-
-        # Make the task executable (no-op on Windows)
-        chmod_cmd = make_executable_command(first_target, remote_task_path) if remote_task_path
-        if active_targets.any? && chmod_cmd
-          failures = shell_run(active_targets, chmod_cmd, description: 'chmod task')
-          failed_results += emit_results(failures, **result_opts, &callback)
-          active_targets -= failures.keys
+        # Upload the main task executable and make it executable
+        if active_targets.any?
+          remote_task_path = join_path(first_target, task_dir, File.basename(executable))
+          active_targets, stage_results = stage_executable(active_targets, first_target, executable_content,
+                                                           remote_task_path, result_opts, &callback)
+          failed_results += stage_results
         end
 
         # Start the task asynchronously
@@ -272,6 +254,34 @@ module Bolt
         end
 
         { failed_results: failed_results, pending: pending, tmpdir: tmpdir }
+      end
+
+      # Upload an executable to the same path on the targets and make it
+      # executable (no-op on Windows), emitting a result for each target
+      # that fails a step.
+      #
+      # @param targets [Array<Bolt::Target>] Targets to stage the executable on, at least 1
+      # @param first_target [Bolt::Target] Target whose platform determines the commands
+      # @param content [String] Raw file content (binary-safe)
+      # @param remote_path [String] Absolute path on the remote node
+      # @param result_opts [Hash] Options passed through to emit_results (:action, :name, :position)
+      # @param callback [Proc] Called with :node_result events
+      # @return [Array] 2-element array:
+      #   - [Array<Bolt::Target>] Targets that have the executable in place
+      #   - [Array<Bolt::Result>] Error results for the targets that failed a step
+      def stage_executable(targets, first_target, content, remote_path, result_opts, &callback)
+        failures = upload_file_content(targets, content, remote_path)
+        results = emit_results(failures, **result_opts, &callback)
+        targets -= failures.keys
+
+        chmod_cmd = make_executable_command(first_target, remote_path)
+        if targets.any? && chmod_cmd
+          failures = shell_run(targets, chmod_cmd, description: "chmod #{result_opts[:action]}")
+          results += emit_results(failures, **result_opts, &callback)
+          targets -= failures.keys
+        end
+
+        [targets, results]
       end
 
       # Execute a synchronous command on targets via the shell.run RPC action.
