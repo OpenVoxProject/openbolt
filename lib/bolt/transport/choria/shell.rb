@@ -383,21 +383,12 @@ module Bolt
 
         remaining_errors = {}
         unless poll_result[:remaining].empty?
-          if poll_result[:rpc_persistent_failure]
-            poll_result[:remaining].each_key do |target|
-              remaining_errors[target] = error_output(
-                "RPC requests to poll shell status on #{target.safe_name} failed persistently",
-                'bolt/choria-poll-failed'
-              )
-            end
-          else
-            kill_timed_out_processes(poll_result[:remaining])
-            poll_result[:remaining].each_key do |target|
-              remaining_errors[target] = error_output(
-                "Command timed out after #{timeout} seconds on #{target.safe_name}",
-                'bolt/choria-command-timeout'
-              )
-            end
+          kill_timed_out_processes(poll_result[:remaining])
+          poll_result[:remaining].each_key do |target|
+            remaining_errors[target] = error_output(
+              "Command timed out after #{timeout} seconds on #{target.safe_name}",
+              'bolt/choria-command-timeout'
+            )
           end
         end
 

@@ -495,7 +495,7 @@ describe 'Bolt::Transport::Choria bolt_tasks' do
       result = transport.batch_task([target], task, {}).first
       expect(result.ok?).to be false
       expect(result.error_hash['kind']).to eq('bolt/choria-poll-failed')
-      expect(result.error_hash['msg']).to match(/failed persistently/)
+      expect(result.error_hash['msg']).to match(/The bolt_tasks\.task_status poll on .+ failed 3 times in a row/)
     end
 
     it 'recovers after transient poll failures and completes successfully' do

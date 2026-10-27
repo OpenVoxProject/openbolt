@@ -160,14 +160,8 @@ module Bolt
         end
 
         remaining_errors = poll_result[:remaining].each_with_object({}) do |target, errors|
-          errors[target] =
-            if poll_result[:rpc_persistent_failure]
-              error_output("RPC requests to poll task status on #{target.safe_name} failed persistently",
-                           'bolt/choria-poll-failed')
-            else
-              error_output("Task #{task.name} timed out after #{timeout} seconds on #{target.safe_name}",
-                           'bolt/choria-task-timeout')
-            end
+          errors[target] = error_output("Task #{task.name} timed out after #{timeout} seconds on #{target.safe_name}",
+                                        'bolt/choria-task-timeout')
         end
 
         poll_result[:completed].merge(remaining_errors)

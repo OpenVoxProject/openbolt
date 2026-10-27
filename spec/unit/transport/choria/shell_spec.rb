@@ -748,7 +748,7 @@ describe Bolt::Transport::Choria do
         expect(results.length).to eq(1)
         expect(results.first.ok?).to be false
         expect(results.first.error_hash['kind']).to eq('bolt/choria-poll-failed')
-        expect(results.first.error_hash['msg']).to match(/failed persistently/)
+        expect(results.first.error_hash['msg']).to match(/The shell\.list poll on .+ failed 3 times in a row/)
       end
     end
 

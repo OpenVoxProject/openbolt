@@ -288,16 +288,15 @@ describe 'Bolt::Transport::Choria helpers' do
 
       expect(result[:completed][target][:stdout]).to eq('ok')
       expect(result[:remaining]).to be_empty
-      expect(result[:rpc_persistent_failure]).to be false
     end
 
-    it 'retries on rpc_failed and gives up after RPC_FAILURE_RETRIES' do
+    it 'retries on rpc_failed, then gives up after RPC_FAILURE_RETRIES with a poll error for each pending target' do
       round = { rpc_failed: true, done: {} }
       result = transport.poll_with_retries([target], 30, 'test') { round }
 
-      expect(result[:remaining]).to include(target)
-      expect(result[:rpc_persistent_failure]).to be true
-      expect(result[:completed]).to be_empty
+      expect(result[:remaining]).to be_empty
+      expect(result[:completed][target][:error_kind]).to eq('bolt/choria-poll-failed')
+      expect(result[:completed][target][:error]).to eq('The test poll on choria://node1.example.com failed 3 times in a row')
     end
 
     it 'resets failure counter after a successful round' do
@@ -310,7 +309,6 @@ describe 'Bolt::Transport::Choria helpers' do
 
       expect(result[:completed][target][:stdout]).to eq('recovered')
       expect(result[:remaining]).to be_empty
-      expect(result[:rpc_persistent_failure]).to be false
     end
 
     it 'stops when deadline is exceeded' do
@@ -320,7 +318,7 @@ describe 'Bolt::Transport::Choria helpers' do
       end
 
       expect(result[:remaining]).to include(target)
-      expect(result[:rpc_persistent_failure]).to be false
+      expect(result[:completed]).to be_empty
     end
 
     it 'works with Hash targets (shell handles)' do
