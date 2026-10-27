@@ -79,7 +79,7 @@ module Bolt
           next if code.zero? || dl_errors.key?(target)
 
           dl_errors[target] = error_output(
-            "bolt_tasks.download on #{target.safe_name} failed to download task files",
+            "bolt_tasks.download on #{target.safe_name} failed to download task files: #{response[:rpc_statusmsgs][target]}",
             'bolt/choria-download-failed'
           )
         end
@@ -94,14 +94,27 @@ module Bolt
           client.run_no_wait(task: task.name, input_method: input_method,
                              files: file_specs_json, input: arguments.to_json)
         end
-        failed_results.concat(emit_results(response[:errors], **result_opts, &callback))
-        return none_started_result if response[:responded].empty?
+        # A reply with statuscode 1 lands in :responded like a download
+        # failure does, so it is moved to the errors the same way. Otherwise
+        # the target would be polled for a task that never ran, or its reply
+        # without a task_id would stand in for the whole group.
+        start_errors = response[:errors]
+        response[:rpc_statuscodes].each do |target, code|
+          next if code.zero? || start_errors.key?(target)
+
+          start_errors[target] = error_output(
+            "bolt_tasks.run_no_wait on #{target.safe_name} failed to start the task: #{response[:rpc_statusmsgs][target]}",
+            'bolt/choria-task-start-failed'
+          )
+        end
+        failed_results.concat(emit_results(start_errors, **result_opts, &callback))
+        started = response[:responded].except(*start_errors.keys)
 
         # Extract the shared task_id (all targets get the same one from
         # the single run_no_wait call that fanned out to all of them)
-        task_id = response[:responded].values.first&.dig(:task_id)
+        task_id = started.values.first&.dig(:task_id)
         unless task_id
-          no_id_errors = response[:responded].each_with_object({}) do |(target, _), errors|
+          no_id_errors = started.each_with_object({}) do |(target, _), errors|
             errors[target] = error_output(
               "bolt_tasks.run_no_wait on #{target.safe_name} succeeded but returned no task_id",
               'bolt/choria-missing-task-id'
@@ -111,8 +124,8 @@ module Bolt
           return none_started_result
         end
 
-        logger.debug { "Started task #{task.name} on #{target_count(response[:responded])}, task_id: #{task_id}" }
-        { failed_results: failed_results, targets: response[:responded].keys, task_id: task_id }
+        logger.debug { "Started task #{task.name} on #{target_count(started)}, task_id: #{task_id}" }
+        { failed_results: failed_results, targets: started.keys, task_id: task_id }
       end
 
       # Poll bolt_tasks.task_status until all targets complete or timeout.

@@ -255,6 +255,7 @@ describe Bolt::Transport::Choria do
       expect(response[:responded][target][:exitcode]).to eq(1)
       expect(response[:errors]).to be_empty
       expect(response[:rpc_statuscodes][target]).to eq(1)
+      expect(response[:rpc_statusmsgs][target]).to eq('Task failed with exit code 1')
     end
 
     it 'routes statuscode 2+ to :errors' do
