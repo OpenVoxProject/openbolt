@@ -100,8 +100,7 @@ module Bolt
       # @param target [Bolt::Target] Target whose platform and tmpdir config determine the base path
       # @return [String] Absolute path to a unique temporary directory
       def generate_tmpdir_path(target)
-        base = target.options['tmpdir']
-        base = 'C:\Windows\Temp' if base == '/tmp' && windows_target?(target)
+        base = target.options['tmpdir'] || (windows_target?(target) ? 'C:\Windows\Temp' : '/tmp')
         join_path(target, base, "bolt-choria-#{SecureRandom.uuid}")
       end
 
