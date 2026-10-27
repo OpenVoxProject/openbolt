@@ -151,11 +151,12 @@ module Bolt
         # platforms need different base paths (e.g., /tmp vs C:\Windows\Temp).
         begin
           targets.group_by { |target| select_implementation(target, task) }.each do |implementation, impl_targets|
-            start_result = upload_and_start_task(impl_targets, task, implementation,
+            tmpdir = generate_tmpdir_path(impl_targets.first)
+            cleanup_entries << { targets: impl_targets, tmpdir: tmpdir }
+            start_result = upload_and_start_task(impl_targets, task, implementation, tmpdir,
                                                  arguments, result_opts, &callback)
             results += start_result[:failed_results]
             all_pending.merge!(start_result[:pending])
-            cleanup_entries << { targets: impl_targets, tmpdir: start_result[:tmpdir] }
           end
 
           # Poll all handles in one loop. Unlike bolt_tasks (which needs
@@ -176,20 +177,19 @@ module Bolt
       # @param targets [Array<Bolt::Target>] Targets sharing the same implementation
       # @param task [Bolt::Task] Task being executed
       # @param implementation [Hash] Task implementation with 'path', 'name', 'input_method', 'files' keys
+      # @param tmpdir [String] Remote tmpdir path to create, which the caller cleans up
       # @param arguments [Hash] Task parameter names to values
       # @param result_opts [Hash] Options passed through to emit_results (:action, :name, :position)
       # @param callback [Proc] Called with :node_start and :node_result events
       # @return [Hash] with keys:
       #   - :failed_results [Array<Bolt::Result>] Error results from setup phase
       #   - :pending [Hash] Targets mapped to { handle: uuid } for polling
-      #   - :tmpdir [String] Remote tmpdir path for cleanup
-      def upload_and_start_task(targets, task, implementation, arguments, result_opts, &callback)
+      def upload_and_start_task(targets, task, implementation, tmpdir, arguments, result_opts, &callback)
         arguments = arguments.dup
         executable = implementation['path']
         input_method = implementation['input_method']
         extra_files = implementation['files']
         first_target = targets.first
-        tmpdir = generate_tmpdir_path(first_target)
 
         executable_content = File.binread(executable)
         extra_file_contents = {}
@@ -253,7 +253,7 @@ module Bolt
           failed_results += emit_results(start_failures, **result_opts, &callback)
         end
 
-        { failed_results: failed_results, pending: pending, tmpdir: tmpdir }
+        { failed_results: failed_results, pending: pending }
       end
 
       # Upload an executable to the same path on the targets and make it

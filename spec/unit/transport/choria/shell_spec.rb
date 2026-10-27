@@ -347,6 +347,19 @@ describe Bolt::Transport::Choria do
       expect(result.value).to eq('result' => 'ok')
     end
 
+    it 'removes the tmpdir when an upload is interrupted' do
+      commands = []
+      allow(mock_rpc_client).to receive(:run) do |args|
+        commands << args[:command]
+        raise Interrupt if args[:command].include?('base64 -d')
+
+        [make_rpc_result(sender: target, data: { exitcode: 0 })]
+      end
+
+      expect { transport.batch_task([target], task, {}) }.to raise_error(Interrupt)
+      expect(commands.last).to eq('rm -rf /tmp/bolt-choria-test-uuid')
+    end
+
     # Command-building details (stdin/environment/both input methods,
     # JSON serialization, interpreter selection) are covered by the
     # pure function tests for #build_task_command in command_builders_spec.
