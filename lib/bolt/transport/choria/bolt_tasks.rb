@@ -72,15 +72,13 @@ module Bolt
         end
         # The bolt_tasks agent uses reply.fail! with statuscode 1 for download
         # failures, which rpc_request routes to :responded since statuscode 0-1
-        # means the action completed. Check rpc_statuscodes to catch these and
+        # means the action completed. Check :aborted to catch these and
         # report the download failure clearly instead of letting run_no_wait
         # fail with a confusing "task not available" error.
         dl_errors = response[:errors]
-        response[:rpc_statuscodes].each do |target, code|
-          next if code.zero? || dl_errors.key?(target)
-
+        response[:aborted].each do |target, statusmsg|
           dl_errors[target] = error_output(
-            "The bolt_tasks.download call on #{target.safe_name} failed to download task files: #{response[:rpc_statusmsgs][target]}",
+            "The bolt_tasks.download call on #{target.safe_name} failed to download task files: #{statusmsg}",
             'bolt/choria-download-failed'
           )
         end
@@ -101,11 +99,9 @@ module Bolt
         # that never ran, or its reply without a task_id would stand in for
         # the whole group.
         start_errors = response[:errors]
-        response[:rpc_statuscodes].each do |target, code|
-          next if code.zero? || start_errors.key?(target)
-
+        response[:aborted].each do |target, statusmsg|
           start_errors[target] = error_output(
-            "The bolt_tasks.run_no_wait call on #{target.safe_name} failed to start the task: #{response[:rpc_statusmsgs][target]}",
+            "The bolt_tasks.run_no_wait call on #{target.safe_name} failed to start the task: #{statusmsg}",
             'bolt/choria-task-start-failed'
           )
         end
