@@ -119,7 +119,6 @@ module Bolt
       def create_rpc_client(agent_name, targets, timeout)
         targets = Array(targets)
         options = MCollective::Util.default_options
-        options[:timeout] = timeout
         options[:verbose] = false
         options[:connection_timeout] = targets.first.options['broker-timeout']
 
@@ -128,6 +127,9 @@ module Bolt
 
         client = MCollective::RPC::Client.new(agent_name, options: options)
         client.progress = false
+        # Set after the build, which replaces a timeout of exactly 5, the
+        # gem's default, with the DDL timeout plus the discovery timeout.
+        client.timeout = timeout
 
         identities = targets.map { |target| choria_identity(target) }.uniq
         client.discover(nodes: identities)
