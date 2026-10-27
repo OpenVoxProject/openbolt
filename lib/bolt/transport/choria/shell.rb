@@ -550,11 +550,12 @@ module Bolt
       def kill_timed_out_processes(targets)
         logger.debug { "Killing timed-out processes on #{target_count(targets)}" }
         targets.each do |target, state|
-          rpc_request('shell', target, 'shell.kill') do |client|
+          response = rpc_request('shell', target, 'shell.kill') do |client|
             client.kill(handle: state[:handle])
           end
-        rescue StandardError => e
-          logger.warn { "Failed to kill process on #{target.safe_name}: #{e.message}" }
+          response[:errors].each_value do |output|
+            logger.warn { "Failed to kill process on #{target.safe_name}: #{output[:error]}" }
+          end
         end
       end
     end
