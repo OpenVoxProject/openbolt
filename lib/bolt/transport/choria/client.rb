@@ -221,8 +221,9 @@ module Bolt
         { responded: {}, errors: errors, rpc_failed: true, rpc_statuscodes: {}, rpc_statusmsgs: {} }
       end
 
-      # Configure the client, discover agents, partition targets by agent
-      # availability, and emit errors for incapable targets.
+      # Fire node_start for every target, configure the client, discover
+      # agents, partition targets by agent availability, and emit errors for
+      # incapable targets.
       #
       # @param targets [Array<Bolt::Target>] Targets to prepare
       # @param agent_name [String] Required agent name (e.g. 'shell', 'bolt_tasks')
@@ -232,6 +233,7 @@ module Bolt
       #   - [Array<Bolt::Target>] Targets that have the required agent
       #   - [Array<Bolt::Result>] Error results for targets that lack the agent
       def prepare_targets(targets, agent_name, result_opts, &callback)
+        targets.each { |target| callback&.call(type: :node_start, target: target) }
         configure_client(targets.first)
         discover_agents(targets)
 
@@ -245,7 +247,7 @@ module Bolt
                 end
           errors[target] = error_output(msg, 'bolt/choria-agent-not-available')
         end
-        incapable_results = emit_results(agent_errors, fire_node_start: true, **result_opts, &callback)
+        incapable_results = emit_results(agent_errors, **result_opts, &callback)
 
         [capable, incapable_results]
       end
