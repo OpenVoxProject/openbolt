@@ -773,7 +773,7 @@ describe Bolt::Transport::Choria do
       warnings = []
 
       # shell_list never finds completion, so the loop times out
-      allow(transport).to receive(:shell_list).and_return([{}, false])
+      allow(transport).to receive(:shell_list).and_return([{}, {}, false])
       allow(mock_rpc_client).to receive(:kill).and_return(
         [make_rpc_result(sender: target, statuscode: 5, statusmsg: 'Could not kill the process')]
       )
@@ -794,7 +794,7 @@ describe Bolt::Transport::Choria do
       pending_map = { target => { handle: 'h1' } }
       warnings = []
 
-      allow(transport).to receive(:shell_list).and_return([{}, false])
+      allow(transport).to receive(:shell_list).and_return([{}, {}, false])
       allow(mock_rpc_client).to receive(:kill).and_raise(StandardError, 'NATS timeout on kill')
       allow(transport.logger).to receive(:warn) { |*args, &block| warnings << (block ? block.call : args.first) }
 
