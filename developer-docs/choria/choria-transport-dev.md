@@ -427,10 +427,12 @@ handles its own concurrency: `batches()` groups targets by collective
 - **Agent discovery for offline nodes:** Non-responding targets are not cached
   (to allow retry), so each operation re-queries offline nodes. At 10,000
   targets with many offline, this adds discovery overhead.
-- **Per-target options in batches:** Batch methods use `targets.first.options`
-  for shared settings (timeout, tmpdir, cleanup). Per-target option differences
-  within a batch are silently ignored. This is inherent to the batch execution
-  model.
+- **Per-target options in batches:** Targets in one collective share the
+  request-level options: the timeouts, the task agent, the interpreters, the
+  Puppet environment, the shell tmpdir base and `cleanup`. A batch reads them
+  from its first target, so targets whose values differ get the first target's
+  values. Batching by option values as well would serialize one batch per
+  distinct set of values, which is far slower when the values vary per target.
 - **Base64 upload size:** The `upload_file_content` method sends files
   in a single NATS message. After base64 encoding (~33% expansion) and RPC
   overhead, the max raw file size is roughly 700-750KB with the default 1MB
