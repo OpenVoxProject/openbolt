@@ -548,6 +548,32 @@ describe Bolt::Transport::Choria do
       expect(mock_rpc_client).not_to receive(:run)
       transport.cleanup_tmpdir([target], '/tmp/some-other-dir')
     end
+
+    context 'on a Windows target' do
+      before(:each) do
+        stub_agents(target, %w[rpcutil shell], os_family: 'windows')
+        transport.configure_client(target)
+        transport.discover_agents([target])
+      end
+
+      it 'removes a tmpdir whose path is joined with backslashes' do
+        scripts = []
+        allow(mock_rpc_client).to receive(:run) do |args|
+          encoded = args[:command].split.last
+          scripts << Base64.decode64(encoded).force_encoding('UTF-16LE').encode('UTF-8')
+          [make_rpc_result(sender: target, data: { exitcode: 0 })]
+        end
+
+        transport.cleanup_tmpdir([target], 'C:\Windows\Temp\bolt-choria-test-uuid')
+
+        expect(scripts).to eq(["Remove-Item -Recurse -Force -Path 'C:\\Windows\\Temp\\bolt-choria-test-uuid'"])
+      end
+
+      it 'refuses to delete a backslash path whose last part does not start with bolt-choria-' do
+        expect(mock_rpc_client).not_to receive(:run)
+        transport.cleanup_tmpdir([target], 'C:\Windows\Temp')
+      end
+    end
   end
 
   describe '#shell_statuses' do

@@ -127,7 +127,9 @@ module Bolt
       def cleanup_tmpdir(targets, tmpdir)
         return unless targets.first.options.fetch('cleanup', true)
 
-        unless File.basename(tmpdir).start_with?('bolt-choria-')
+        # A Windows target's tmpdir is joined with backslashes, which
+        # File.basename does not split on when the controller runs on Linux.
+        unless tmpdir.split(%r{[/\\]}).last.to_s.start_with?('bolt-choria-')
           logger.warn { "Refusing to delete unexpected tmpdir path: #{tmpdir}" }
           return
         end
