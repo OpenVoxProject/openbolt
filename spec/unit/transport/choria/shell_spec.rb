@@ -768,18 +768,44 @@ describe Bolt::Transport::Choria do
   describe '#kill_timed_out_processes' do
     before(:each) { transport.configure_client(target) }
 
-    it 'still returns timeout error when kill raises' do
+    it 'still returns timeout error and warns when kill fails' do
       pending_map = { target => { handle: 'h1' } }
+      warnings = []
 
       # shell_list never finds completion, so the loop times out
       allow(transport).to receive(:shell_list).and_return([{}, false])
-      allow(mock_rpc_client).to receive(:kill).and_raise(StandardError, 'NATS timeout on kill')
+      allow(mock_rpc_client).to receive(:kill).and_return(
+        [make_rpc_result(sender: target, statuscode: 5, statusmsg: 'Could not kill the process')]
+      )
+      allow(transport.logger).to receive(:warn) { |*args, &block| warnings << (block ? block.call : args.first) }
 
       inventory.set_config(target, %w[choria command-timeout], 1)
       outputs = transport.wait_for_shell_results(pending_map, 1)
 
       expect(outputs.length).to eq(1)
       expect(outputs[target][:error_kind]).to eq('bolt/choria-command-timeout')
+      expect(warnings).to include(
+        'Failed to kill process on choria://node1.example.com: shell.kill on ' \
+        'choria://node1.example.com returned RPC error: Could not kill the process (code 5)'
+      )
+    end
+
+    it 'still returns timeout error and warns when kill raises' do
+      pending_map = { target => { handle: 'h1' } }
+      warnings = []
+
+      allow(transport).to receive(:shell_list).and_return([{}, false])
+      allow(mock_rpc_client).to receive(:kill).and_raise(StandardError, 'NATS timeout on kill')
+      allow(transport.logger).to receive(:warn) { |*args, &block| warnings << (block ? block.call : args.first) }
+
+      inventory.set_config(target, %w[choria command-timeout], 1)
+      outputs = transport.wait_for_shell_results(pending_map, 1)
+
+      expect(outputs[target][:error_kind]).to eq('bolt/choria-command-timeout')
+      expect(warnings).to include(
+        'Failed to kill process on choria://node1.example.com: shell.kill failed on ' \
+        'choria://node1.example.com: NATS timeout on kill'
+      )
     end
   end
 end
