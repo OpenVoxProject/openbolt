@@ -358,5 +358,35 @@ describe Bolt::Transport::Choria do
       expect(started_targets).to contain_exactly(target, target2)
       expect(finished_targets).to contain_exactly(target, target2)
     end
+
+    it 'reports a target that did not answer discovery once, without discovering it again' do
+      stub_agents([target], %w[rpcutil bolt_tasks])
+      allow(mock_rpc_client).to receive_messages(download: [make_download_result(target)],
+                                                 run_no_wait: [make_task_run_result(target)],
+                                                 task_status: [make_task_status_result(target)])
+      expect(mock_rpc_client).to receive(:agent_inventory).once.and_return(@stub_inventory_results)
+      target_mapping = { target => { 'param' => 'value1' }, target2 => { 'param' => 'value2' } }
+
+      results = transport.batch_task_with([target, target2], task, target_mapping, {}, [])
+
+      expect(results.length).to eq(2)
+      expect(results.find { |result| result.target == target }.value).to eq('result' => 'ok')
+      expect(results.find { |result| result.target == target2 }.error_hash['msg']).to include('did not respond to discovery')
+    end
+
+    it 'reports every target as not discovered when none answered, without running the task' do
+      allow(mock_rpc_client).to receive_messages(agent_inventory: [], get_fact: [])
+      expect(mock_rpc_client).not_to receive(:download)
+      expect(mock_rpc_client).not_to receive(:run_no_wait)
+      events = []
+      callback = proc { |event| events << event }
+
+      results = transport.batch_task_with([target, target2], task, { target => {}, target2 => {} }, {}, [], &callback)
+
+      expect(results.map { |result| result.error_hash['kind'] }).to eq(['bolt/choria-agent-not-available'] * 2)
+      expect(results.map(&:action).uniq).to eq(['task'])
+      expect(events.select { |event| event[:type] == :node_start }.map { |event| event[:target] }).to contain_exactly(target, target2)
+      expect(events.select { |event| event[:type] == :node_result }.map { |event| event[:result].target }).to contain_exactly(target, target2)
+    end
   end
 end

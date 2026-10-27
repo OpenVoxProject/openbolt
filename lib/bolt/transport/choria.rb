@@ -49,10 +49,9 @@ module Bolt
         @default_collective = nil
       end
 
-      # Advertise both shell and powershell so tasks with either requirement
-      # can be selected. The per-target selection happens in
-      # select_implementation below, which picks the right feature set based
-      # on the target's detected OS.
+      # Task selection does not use this list, since select_implementation
+      # below overrides the Base method that reads it. The list is kept for
+      # apply_prep, which reads a transport's provided features.
       def provided_features
         %w[shell powershell]
       end
@@ -152,12 +151,17 @@ module Bolt
       # @param callback [Proc] Called with :node_start and :node_result events
       # @return [Array<Bolt::Result>] Results for all targets
       def batch_task_with(targets, task, target_mapping, options = {}, position = [], &callback)
-        # Pre-warm the agent cache so individual batch_task calls are cache hits
+        # Pre-warm the agent cache so individual batch_task calls are cache hits.
+        # A target that did not answer has no cache entry, and batch_task would
+        # discover it again and wait out the timeout again, so it gets its
+        # error here instead.
         configure_client(targets.first)
         discover_agents(targets)
+        discovered, silent = targets.partition { |target| @agent_cache.key?(choria_identity(target)) }
 
-        results = []
-        targets.each do |target|
+        silent_errors = silent.to_h { |target| [target, undiscovered_error(target)] }
+        results = emit_results(silent_errors, action: 'task', name: task.name, position: position, fire_node_start: true, &callback)
+        discovered.each do |target|
           results += batch_task([target], task, target_mapping[target], options, position, &callback)
         end
         results
@@ -177,11 +181,6 @@ module Bolt
           client.ping
         end
         response[:responded].length == targets.length
-      rescue StandardError => e
-        raise if e.is_a?(Bolt::Error)
-
-        logger.warn { "Batch connectivity check failed: #{e.class}: #{e.message}" }
-        false
       end
 
       # Returns the Choria node identity for a target. Uses the transport

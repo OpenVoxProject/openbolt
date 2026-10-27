@@ -14,7 +14,7 @@ module Bolt
       WINDOWS_PATH_REGEX = %r{\A[A-Za-z]:[\\/]}
 
       def target_count(targets)
-        count = targets.is_a?(Hash) ? targets.size : targets.length
+        count = targets.size
         "#{count} #{count == 1 ? 'target' : 'targets'}"
       end
 
@@ -47,7 +47,7 @@ module Bolt
 
           if round[:rpc_failed]
             poll_failures += 1
-            logger.warn { "#{context} poll failed (attempt #{poll_failures}/#{RPC_FAILURE_RETRIES})" }
+            logger.warn { "The #{context} poll failed (attempt #{poll_failures}/#{RPC_FAILURE_RETRIES})" }
             break if poll_failures >= RPC_FAILURE_RETRIES
 
             next
@@ -120,8 +120,8 @@ module Bolt
       end
 
       # Build an output hash from command/task output.
-      def output(stdout: nil, stderr: nil, exitcode: nil)
-        { stdout: stdout || '', stderr: stderr || '', exitcode: exitcode || 0 }
+      def output(stdout:, stderr:, exitcode:)
+        { stdout: stdout || '', stderr: stderr || '', exitcode: exitcode }
       end
 
       # Build an error output hash. When actual output is available (e.g.

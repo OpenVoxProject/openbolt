@@ -47,7 +47,7 @@ module Bolt
         response = rpc_request('rpcutil', targets, 'rpcutil.agent_inventory') do |client|
           client.agent_inventory
         end
-        response[:errors].each { |target, output| logger.debug { "agent_inventory failed for #{target.safe_name}: #{output[:error]}" } }
+        response[:errors].each { |target, output| logger.debug { "The agent_inventory call failed for #{target.safe_name}: #{output[:error]}" } }
 
         response[:responded].each do |target, data|
           sender = choria_identity(target)
@@ -87,7 +87,7 @@ module Bolt
           sender = choria_identity(target)
           os_family = data[:value].to_s.downcase
           if os_family.empty?
-            logger.warn { "os.family fact is empty on #{sender}. Defaulting to POSIX command syntax." }
+            logger.warn { "The os.family fact is empty on #{sender}. Defaulting to POSIX command syntax." }
             next
           end
           @agent_cache[sender][:os] = os_family
