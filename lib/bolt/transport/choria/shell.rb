@@ -294,7 +294,7 @@ module Bolt
         failures = response[:errors]
         response[:responded].each do |target, data|
           data ||= {}
-          exitcode = exitcode_from(data, target, label)
+          exitcode = exitcode_from(data[:exitcode], target, label)
           next if exitcode.zero?
 
           failures[target] = error_output(
@@ -510,7 +510,7 @@ module Bolt
               stdout: stdout, stderr: stderr, exitcode: 1
             )
           else
-            exitcode = exitcode_from(status_data, target, 'shell.statuses')
+            exitcode = exitcode_from(status_data['exitcode'], target, 'shell.statuses')
             results[target] = output(stdout: stdout, stderr: stderr, exitcode: exitcode)
           end
         end

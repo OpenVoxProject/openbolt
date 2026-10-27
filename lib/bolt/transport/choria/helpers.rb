@@ -137,15 +137,14 @@ module Bolt
           .merge(error: message, error_kind: kind)
       end
 
-      # Extract exit code from RPC response data, defaulting to 1 with a
+      # Return the exit code an agent reported, defaulting to 1 with a
       # warning if the agent returned nil.
       #
-      # @param data [Hash] RPC response data containing :exitcode
+      # @param exitcode [Integer, nil] The exit code from the RPC response data
       # @param target [Bolt::Target] Target for logging context
       # @param context [String] Human-readable label for the log message
-      # @return [Integer] The exit code from the data, or 1 if nil
-      def exitcode_from(data, target, context)
-        exitcode = data[:exitcode] || data['exitcode']
+      # @return [Integer] The exit code, or 1 if nil
+      def exitcode_from(exitcode, target, context)
         if exitcode.nil?
           logger.warn {
             "Agent on #{target.safe_name} returned no exit code for #{context}. " \
