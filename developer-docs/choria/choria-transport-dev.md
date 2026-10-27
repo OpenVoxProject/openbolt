@@ -44,7 +44,7 @@ Key points:
   with the `choria-mcorpc-support` gem. The shell DDL is bundled with OpenBolt
   at `lib/mcollective/agent/shell.ddl`.
 - **MCollective::Config is a singleton.** `loadconfig` must only be called
-  once. We guard this with `@config_mutex` and check
+  once. The transport guards this with `@config_mutex` and checks
   `MCollective::Config.instance.configured`.
 
 The Ruby library that implements this RPC client is the `choria-mcorpc-support`
@@ -62,6 +62,16 @@ gem, which provides `MCollective::RPC::Client`. Despite the MCollective name
   ([choria-plugins/shell-agent](https://github.com/choria-plugins/shell-agent)).
   Provides synchronous (`run`) and asynchronous (`start`/`list`/`statuses`/`kill`)
   command execution. Version 1.2.1+ required for the batched `statuses` action.
+- **file_transfer**: A separate plugin
+  ([overlookinfra/file_transfer-agent](https://github.com/overlookinfra/file_transfer-agent)),
+  a Choria external agent written in Ruby. Provides `put`, `abort`,
+  `get`, `stat`, `list`, and `mkdir` for chunked transfers with
+  whole-file SHA-256 verification. Version 1.0.0+ required. The agent
+  design, its semantics, and its own specs live in that repository. The
+  client side of the protocol, `MCollective::Util::FileTransfer`, ships in
+  the same module as client files and has to be installed on the controller
+  (`mcollective_agent_file_transfer` with `client => true`). The transport
+  is an adapter over it.
 
 ## File Layout
 
@@ -73,10 +83,11 @@ gem, which provides `MCollective::RPC::Client`. Despite the MCollective name
 | `lib/bolt/transport/choria/helpers.rb` | Shared utilities: `prepare_targets`, result builders, polling, security validators. |
 | `lib/bolt/transport/choria/shell.rb` | Shell agent execution: commands, scripts, shell-path tasks. Batched polling architecture. |
 | `lib/bolt/transport/choria/bolt_tasks.rb` | bolt_tasks agent execution: download, async start, status polling, stdout unwrapping. |
+| `lib/bolt/transport/choria/file_transfer.rb` | upload and download through the file_transfer client library: targets to identities, options, outcomes to results, and the connection and logger the library calls back into. |
 | `lib/bolt/transport/choria/command_builders.rb` | Platform-aware command generation for POSIX and Windows (PowerShell). |
 | `lib/bolt/config/transport/choria.rb` | Config class: option declarations, defaults, validation. |
 | `lib/bolt/config/transport/options.rb` | Shared option schema definitions (Choria entries added alongside other transports). |
-| `lib/mcollective/agent/shell.ddl` | Bundled shell agent DDL for client-side validation. |
+| `lib/mcollective/agent/shell.ddl` | Bundled shell agent DDL for client-side validation. The file_transfer DDL is not bundled, since the agent module's client files bring it with the library. |
 
 See code comments in each file for function-level detail.
 
@@ -142,8 +153,8 @@ transport handles this with:
   `@@request_sequence` class variable for reply-to NATS subjects. Concurrent
   RPC calls cause response misrouting: threads can get duplicate sequence
   numbers (reply subject collision) and pop each other's messages from the
-  shared queue (message loss). This was confirmed to break with just 2
-  concurrent clients. The mutex ensures only one RPC call is in flight at a
+  shared queue (message loss). Two concurrent clients are enough to break
+  it. The mutex ensures only one RPC call is in flight at a
   time while allowing non-RPC work (file I/O, result processing, cache
   lookups) to run in parallel across batch threads.
 
@@ -206,6 +217,79 @@ batch_task(N targets, task, args)
 
 Best-case total (single file task): 2 discovery + 1 mkdir + 1 upload + 1 chmod
 \+ 1 start + 1 list + 1 statuses + 1 cleanup = **9 RPC calls**.
+
+Task files and stdin arguments travel inside shell commands, so the shell
+agent's 10,240 character command limit bounds what the shell path can run.
+The shell path does not use the file_transfer agent, so each agent works on
+its own wherever a deployment allows only one of them.
+
+### upload on N targets
+
+```
+batch_upload(N targets, source, destination)
+  prepare_targets(targets)              # configure_client + 2 RPC calls
+  Client#upload(source, destination, identities)   # the client library from here on
+    file_transfer.stat(destination)     # 1 RPC call: directory or not
+    [per chunk of message-data-size, 512 KiB by default]:
+      file_transfer.put(destination, token, ...)   # 1 RPC call per landing path in batches of upload-batch-size, N copies published
+    file_transfer.put(... final, sha256, mode)     # verify and rename into place
+    file_transfer.abort(destination, token)        # 1 RPC call, only to the targets that did not finish
+  one Bolt::Result per target from the outcome per identity
+```
+
+Every chunk is one RPC call whatever the target count, but the client
+publishes one copy per target, so the controller's connection carries N
+times the chunk. The call goes out to `upload-batch-size` targets at a
+time through MCollective's batched requests, each batch with its own
+publish and reply windows, so `file-transfer-timeout` has to cover one
+batch on the wire rather than the whole fleet. Every request carries that
+wait as its TTL, since a target drops a request older than its TTL and the
+copies at the end of a batch arrive last. A directory adds one `mkdir` per
+directory and the loop above per file. A link to a file is sent as the
+file it points at, and a link to a directory is skipped with a warning, so
+the walk cannot loop.
+
+### download on N targets
+
+```
+batch_download(N targets, source, destination)
+  prepare_targets(targets)              # configure_client + 2 RPC calls
+  Client#download(source, directory per identity)   # the client library from here on
+    file_transfer.stat(source, checksum)  # 1 RPC call: size and digest per target
+    [per round of targets bounded by the broker's backlog, per offset of message-data-size]:
+      file_transfer.get(source, offset, max_bytes)   # 1 RPC call, replies written when it returns
+    verify digests, apply the reported modes, rename the copies into place
+  one Bolt::Result per target from the outcome per identity
+```
+
+Each reply is written to a temporary file beside its destination under
+`<destination>/<target>/`, which is renamed into place only after the
+digest matches and gets the permission bits the target reported with the
+owner's bits added under the umask, as net-scp gives a downloaded file,
+and without the setuid, setgid and sticky bits. A copy that fails is
+removed, and a directory already standing at the destination is a
+per-target error rather than somewhere to hide the file. A directory
+source is listed recursively first, then fetched file
+by file from the targets that have it, each directory made with the
+permission bits the target listed under the umask, special bits stripped.
+
+What the node says about a download is checked before it is used. A reply
+larger than the round asked for fails that target, a reply reaching past the
+size the node reported for the file is cut at that size, and a reply from a
+target whose size the rounds already covered is passed over.
+A listed entry path becomes part of a local path only after every
+component of it is checked to be one plain name in a valid encoding, so
+it stays inside that target's download directory. A listing without the
+size, digest and mode the download needs, or with a file the node could
+not read for its digest, fails that target before anything is written for
+it, and an entry that is neither a regular file nor a directory, a linked
+directory included, is skipped with a warning. A directory is listed in
+download batches of targets, each answering its whole tree under
+`message-data-size`, and a target whose tree lists larger fails with the
+agent's message. A reply that is not the shape the DDL promises fails
+that one target and not the batch, except one the gem itself cannot
+convert, with null or a string for data, which fails the whole call as
+any exception in it does.
 
 ## Platform Support
 
@@ -342,6 +426,48 @@ sequences on some platforms (e.g., `\n` becomes a newline). `printf '%s'`
 passes the string through literally. This matters when task arguments contain
 backslashes.
 
+### The file_transfer client library
+
+`MCollective::Util::FileTransfer` holds the whole transfer protocol: a
+chunk of 512 KiB by default, half the Choria broker's 1 MiB limit, which
+has no setting, a publish guard that refuses a request over that limit
+before it leaves the controller, the
+temporary file beside each destination, the chunk loops, download rounds,
+directory walks, and the checks
+on what a node says. Its README and the design document in the agent
+repository describe it. The transport gives it three things and gets
+outcomes back:
+
+- **The client options and the RPC mutex**: the options this transport
+  gives its own clients (`client_options`: verbose off, the broker
+  timeout, the collective) and the transport's RPC mutex, from which the
+  library builds its own connection, so a chunk call takes the same lock
+  as every other RPC call in the process, one call at a time. The library
+  builds its RPC clients itself, pins `threaded` to false, since the
+  threaded publisher never joins its thread and an exception raised in it
+  would never reach the caller, and finds the connector's wrapper on its
+  own to prepend its publish guard.
+- **A logger**: the transport's own, so the library's debug and warn
+  lines land in OpenBolt's log.
+- **Options** from the batch's first target (`file-transfer-timeout`,
+  `message-data-size`, `upload-batch-size`), each left to the library's
+  default when unset.
+
+An outcome per identity becomes a `Bolt::Result` per target, with the
+library's failure kinds mapped onto the transport's error kinds
+(`FILE_TRANSFER_ERROR_KINDS`), so a chunk the broker's limit refuses is
+`bolt/choria-payload-too-large` and a digest that differs is
+`bolt/choria-checksum-mismatch`. A kind a later library adds is reported
+as `bolt/choria-file-transfer-failed`, so a library update never breaks
+the mapping. Two targets behind one identity get the same outcome of one
+upload, and a download gives both the last one's directory, since the
+library takes one directory per identity.
+
+The library is required at run time from the Choria libdir, which loading
+the client config put on the load path. When it is missing, every capable
+target of the call gets a `bolt/choria-file-transfer-library` result naming
+the module to apply.
+
 ## Architectural Decisions
 
 ### Async execution to avoid DDL timeouts
@@ -349,7 +475,7 @@ backslashes.
 Both agents use asynchronous execution patterns (`bolt_tasks.run_no_wait`,
 `shell.start`) instead of synchronous calls. The bolt_tasks DDL has a
 hardcoded 60-second timeout on `run_and_wait`. The shell agent's `run` action
-has a 180-second DDL timeout. By starting asynchronously and polling, we avoid
+has a 180-second DDL timeout. Starting asynchronously and polling avoids
 these limits entirely.
 
 Synchronous `shell.run` is used for infrastructure operations (mkdir, chmod,
@@ -359,7 +485,7 @@ concern.
 ### Fixed poll interval
 
 Polling uses a fixed 1-second interval (`POLL_INTERVAL`). Exponential backoff
-was considered but adds complexity without clear benefit. Each poll round is a
+would add complexity without clear benefit. Each poll round is a
 single RPC call regardless of target count, so the broker load is constant.
 One second provides reasonable responsiveness without excessive polling.
 
@@ -374,9 +500,8 @@ error. This is simpler and more predictable than a try-and-fallback approach.
 
 Shell polling uses `shell.list` + `shell.statuses` instead of per-handle
 `shell.status` calls. This reduces RPC overhead from O(N) per round to O(1)
-per target node, making it feasible at scale. This is why version 1.2.1
-of the shell agent is required, since this is the version version to include
-`shell.statuses`.
+per target node, making it feasible at scale. Version 1.2.1 of the shell
+agent is required because it is the first version with `shell.statuses`.
 
 ### Kill on timeout
 
@@ -394,8 +519,8 @@ retry loops when the NATS broker goes down mid-operation.
 
 ## Scalability
 
-This code was written to ensure scalability when running across thousands
-and thousands of nodes, potentially split across a handful of collectives.
+The transport is built to run across thousands of nodes, potentially split
+across a handful of collectives.
 
 ### Batch-only architecture
 
@@ -438,12 +563,32 @@ handles its own concurrency: `batches()` groups targets by collective
   from its first target, so targets whose values differ get the first target's
   values. Batching by option values as well would serialize one batch per
   distinct set of values, which is far slower when the values vary per target.
-- **Base64 upload size:** The `upload_file_content` method sends the whole
-  file base64-encoded inside one `shell.run` command, and the shell agent's
-  DDL caps a command at 10,240 characters, so a file can be about 7.5 KB on
-  POSIX and under 3 KB on Windows, where the PowerShell wrapper is encoded as
-  UTF-16LE base64 on top of that. This will be addressed in Phase 4 with
-  chunked file transfer.
+- **Inline shell uploads:** `upload_file_content` embeds base64 file content
+  in a `shell.run` command. The shell agent DDL caps `command` at 10,240
+  characters, so each call contains about 7.5 KB of raw content on POSIX
+  targets and under 3 KB on Windows, where the PowerShell wrapper re-encodes
+  the command as UTF-16 base64. Task arguments sent through stdin or
+  environment variables share the limit, and the shell agent's DDL validation
+  refuses a command over it.
+- **One publish per target:** the client publishes every request once per
+  target, so a chunk to 1,000 targets leaves the controller 1,000 times.
+  Uploads to a large fleet are bounded by the controller's connection to the
+  broker, and `publish_timeout` is raised to `file-transfer-timeout` for
+  those calls.
+  The copies wait in nats-pure's outbound queue, bounded by count and not
+  by bytes, until its flusher writes them, so a chunk goes to
+  `upload-batch-size` targets at a time, 256 by default, which keeps one
+  batch's copies under 256 MiB at the broker's 1 MiB limit.
+  Nothing on the upload side meets a 64 MB limit: the broker buffers per
+  connection, and each target's connection carries one copy per batch.
+- **Download reply backlog:** every reply of a round lands on the
+  controller's one broker connection, and nats-server closes a connection
+  whose unread backlog passes 64 MiB after stalling the senders above
+  three quarters of that. The library bounds a download round so that its
+  replies at their wire size stay under the stall threshold, 48 targets
+  at a 1 MiB limit, with no option to raise it. nats-pure's subscription
+  buffer of the same size sits behind a callback that only queues
+  replies, so it is not what a fleet-wide round meets.
 
 ## Testing
 
@@ -457,15 +602,20 @@ handles its own concurrency: `batches()` groups targets by collective
 | `spec/unit/transport/choria/helpers_spec.rb` | RPC pipeline, prepare_targets, security validators |
 | `spec/unit/transport/choria/shell_spec.rb` | Shell execution, polling, uploads, cleanup |
 | `spec/unit/transport/choria/bolt_tasks_spec.rb` | bolt_tasks execution, polling, stdout unwrapping |
+| `spec/unit/transport/choria/file_transfer_spec.rb` | The adapter over the file_transfer client library against a stand-in for it: options, identities, outcomes to results, the connection and logger, the missing library |
 | `spec/unit/transport/choria/command_builders_spec.rb` | POSIX/Windows command generation |
 | `spec/unit/config/transport/choria_spec.rb` | Config options, defaults, validation |
 | `spec/lib/bolt_spec/choria.rb` | Shared test helpers, config file writer, stub helpers |
+| `spec/lib/bolt_spec/choria_file_transfer.rb` | The stand-in for the file_transfer client library, which the test suite does not have, with scripted outcomes |
 
 ### Mocking pattern
 
 Tests use the real `choria-mcorpc-support` gem for `MCollective::Config`,
-`MCollective::Util`, and `MCollective::RPC::Result`. The only MCollective
-stub is `RPC::Client.new` (to avoid NATS TCP connections). A fresh Tempfile
+`MCollective::Util`, and `MCollective::RPC::Result`. The only stub of the
+gem is `RPC::Client.new` (to avoid NATS TCP connections). The file transfer
+specs also replace the client library, `MCollective::Util::FileTransfer`,
+with the stand-in in `spec/lib/bolt_spec/choria_file_transfer.rb` and
+answer its `require`. A fresh Tempfile
 config is written per test via `write_choria_config`. The standard pattern:
 
 ```ruby
