@@ -195,16 +195,16 @@ describe Bolt::Transport::Choria do
       transport.create_rpc_client('shell', [target], 10)
     end
 
-    it 'passes rpc-timeout as the RPC call timeout' do
+    # The gem's client replaces a timeout of exactly 5 in its options with
+    # the DDL timeout plus the discovery timeout while it is built, so the
+    # timeout goes through the accessor afterwards, where it is set correctly.
+    it 'sets rpc-timeout on the client after building it' do
       transport.configure_client(target)
-      inventory.set_config(target, %w[choria rpc-timeout], 120)
+      inventory.set_config(target, %w[choria rpc-timeout], 5)
 
       allow(mock_rpc_client).to receive(:ping).and_return([make_rpc_result(sender: target)])
-
-      expect(MCollective::RPC::Client).to receive(:new) do |_agent, opts|
-        expect(opts[:options][:timeout]).to eq(120)
-        mock_rpc_client
-      end
+      expect(MCollective::RPC::Client).to receive(:new).ordered.and_return(mock_rpc_client)
+      expect(mock_rpc_client).to receive(:timeout=).with(5).ordered
 
       transport.rpc_request('rpcutil', [target], 'test') { |client| client.ping }
     end
