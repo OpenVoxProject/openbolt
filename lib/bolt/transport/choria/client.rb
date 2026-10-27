@@ -245,6 +245,15 @@ module Bolt
         [capable, incapable_results]
       end
 
+      # The error output for a target that did not answer discovery.
+      #
+      # @param target [Bolt::Target]
+      # @return [Hash] An error output hash
+      def undiscovered_error(target)
+        error_output("No agent information available for #{target.safe_name} (node did not respond to discovery)",
+                     'bolt/choria-agent-not-available')
+      end
+
       # Index RPC results by sender, keeping only the first response per
       # sender and only from the set of expected identities. Logs and discards
       # responses from unexpected senders and duplicates.
