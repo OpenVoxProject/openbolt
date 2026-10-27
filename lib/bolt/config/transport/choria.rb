@@ -12,9 +12,11 @@ module Bolt
           collective
           command-timeout
           config-file
+          file-transfer-timeout
           host
           interpreters
           mcollective-certname
+          message-data-size
           broker-timeout
           brokers
           puppet-environment
@@ -25,6 +27,7 @@ module Bolt
           task-agent
           task-timeout
           tmpdir
+          upload-batch-size
         ].sort.freeze
 
         DEFAULTS = {

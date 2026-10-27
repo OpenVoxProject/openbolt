@@ -101,6 +101,29 @@ module Bolt
             _default: 30,
             _example: 60
           },
+          "file-transfer-timeout" => {
+            type: Integer,
+            description: "How long to wait in seconds for targets to respond to a file transfer request. Default is " \
+                         "300, and the wait is never shorter than the agent's DDL timeout of 120 seconds.",
+            minimum: 1,
+            _plugin: true,
+            _example: 600
+          },
+          "message-data-size" => {
+            type: Integer,
+            description: "The file content in one Choria RPC message, in kibibytes, for uploads, downloads and " \
+                         "directory listings. Default is 512, half the broker's 1 MiB message limit.",
+            minimum: 1,
+            _plugin: true,
+            _example: 256
+          },
+          "upload-batch-size" => {
+            type: Integer,
+            description: "How many targets one chunk request is published to at a time. Default is 256.",
+            minimum: 1,
+            _plugin: true,
+            _example: 100
+          },
           "connect-timeout" => {
             type: Integer,
             description: "How long to wait in seconds when establishing connections. Set this value higher if you " \

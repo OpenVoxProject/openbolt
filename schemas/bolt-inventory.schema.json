@@ -144,6 +144,18 @@
                         }
                       ]
                     },
+                    "file-transfer-timeout": {
+                      "description": "How long to wait in seconds for targets to respond to a file transfer request. Default is 300, and the wait is never shorter than the agent's DDL timeout of 120 seconds.",
+                      "oneOf": [
+                        {
+                          "type": "integer",
+                          "minimum": 1
+                        },
+                        {
+                          "$ref": "#/definitions/_plugin"
+                        }
+                      ]
+                    },
                     "host": {
                       "description": "The target's hostname.",
                       "oneOf": [
@@ -180,6 +192,18 @@
                       "oneOf": [
                         {
                           "type": "string"
+                        },
+                        {
+                          "$ref": "#/definitions/_plugin"
+                        }
+                      ]
+                    },
+                    "message-data-size": {
+                      "description": "The file content in one Choria RPC message, in kibibytes, for uploads, downloads and directory listings. Default is 512, half the broker's 1 MiB message limit.",
+                      "oneOf": [
+                        {
+                          "type": "integer",
+                          "minimum": 1
                         },
                         {
                           "$ref": "#/definitions/_plugin"
@@ -270,6 +294,18 @@
                       "oneOf": [
                         {
                           "type": "string"
+                        },
+                        {
+                          "$ref": "#/definitions/_plugin"
+                        }
+                      ]
+                    },
+                    "upload-batch-size": {
+                      "description": "How many targets one chunk request is published to at a time. Default is 256.",
+                      "oneOf": [
+                        {
+                          "type": "integer",
+                          "minimum": 1
                         },
                         {
                           "$ref": "#/definitions/_plugin"

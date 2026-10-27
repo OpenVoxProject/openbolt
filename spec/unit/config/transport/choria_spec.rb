@@ -29,11 +29,43 @@ describe Bolt::Config::Transport::Choria do
       end
     end
 
-    %w[command-timeout broker-timeout rpc-timeout task-timeout].each do |opt|
+    %w[command-timeout broker-timeout rpc-timeout file-transfer-timeout task-timeout message-data-size upload-batch-size].each do |opt|
       it "#{opt} rejects non-integer value" do
         data[opt] = 'not_an_integer'
         expect { transport.new(data) }.to raise_error(Bolt::ValidationError)
       end
+    end
+
+    it 'file-transfer-timeout has no default, so the library\'s own wait applies' do
+      expect(transport.new(data)['file-transfer-timeout']).to be_nil
+    end
+
+    it 'file-transfer-timeout rejects zero' do
+      data['file-transfer-timeout'] = 0
+      expect { transport.new(data) }.to raise_error(Bolt::ValidationError, /minimum of 1/)
+    end
+
+    it 'message-data-size rejects zero' do
+      data['message-data-size'] = 0
+      expect { transport.new(data) }.to raise_error(Bolt::ValidationError, /minimum of 1\b/)
+    end
+
+    it 'message-data-size accepts one kibibyte' do
+      data['message-data-size'] = 1
+      expect { transport.new(data) }.not_to raise_error
+    end
+
+    it 'message-data-size has no default, so the library sizes messages from the broker limit' do
+      expect(transport.new(data)['message-data-size']).to be_nil
+    end
+
+    it 'upload-batch-size rejects zero' do
+      data['upload-batch-size'] = 0
+      expect { transport.new(data) }.to raise_error(Bolt::ValidationError, /minimum of 1/)
+    end
+
+    it 'upload-batch-size has no default, so the library\'s own batch size applies' do
+      expect(transport.new(data)['upload-batch-size']).to be_nil
     end
 
     it 'brokers accepts a string' do
