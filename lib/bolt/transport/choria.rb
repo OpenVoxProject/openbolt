@@ -107,7 +107,6 @@ module Bolt
         logger.debug { "Task #{task.name} routing: agent: #{chosen_agent}, #{capable.size} capable / #{targets.size - capable.size} incapable" }
 
         unless capable.empty?
-          capable.each { |target| callback&.call(type: :node_start, target: target) }
           arguments = unwrap_sensitive_args(arguments)
 
           results += case chosen_agent
@@ -157,7 +156,8 @@ module Bolt
         discovered, silent = targets.partition { |target| @agent_cache.key?(choria_identity(target)) }
 
         silent_errors = silent.to_h { |target| [target, undiscovered_error(target)] }
-        results = emit_results(silent_errors, action: 'task', name: task.name, position: position, fire_node_start: true, &callback)
+        silent.each { |target| callback&.call(type: :node_start, target: target) }
+        results = emit_results(silent_errors, action: 'task', name: task.name, position: position, &callback)
         discovered.each do |target|
           results += batch_task([target], task, target_mapping[target], options, position, &callback)
         end

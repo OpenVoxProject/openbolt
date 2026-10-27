@@ -100,19 +100,16 @@ module Bolt
       end
 
       # Convert a hash of { target => output } into Results, fire callbacks,
-      # and return the Results array. When fire_node_start is true, fires a
-      # :node_start callback before each :node_result.
+      # and return the Results array.
       #
       # @param target_outputs [Hash{Bolt::Target => Hash}] Map of targets to output hashes
       # @param action [String] One of 'task', 'command', or 'script'
       # @param name [String] Task/command/script name for result metadata
       # @param position [Array] Positional info for result tracking
-      # @param fire_node_start [Boolean] Whether to emit :node_start before each result
-      # @param callback [Proc] Called with :node_start and :node_result events
+      # @param callback [Proc] Called with :node_result events
       # @return [Array<Bolt::Result>] Results for all targets in the hash
-      def emit_results(target_outputs, action:, name:, position:, fire_node_start: false, &callback)
+      def emit_results(target_outputs, action:, name:, position:, &callback)
         target_outputs.map do |target, data|
-          callback&.call(type: :node_start, target: target) if fire_node_start
           result = build_result(target, data, action: action, name: name, position: position)
           callback&.call(type: :node_result, result: result)
           result
