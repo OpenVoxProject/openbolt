@@ -110,7 +110,6 @@ module Bolt
         logger.debug { "Task #{task.name} routing: agent: #{chosen_agent}, #{capable.size} capable / #{targets.size - capable.size} incapable" }
 
         unless capable.empty?
-          capable.each { |target| callback&.call(type: :node_start, target: target) }
           arguments = unwrap_sensitive_args(arguments)
 
           results += case chosen_agent

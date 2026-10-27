@@ -73,10 +73,10 @@ module Bolt
       end
 
       # Sorts the targets by whether they have the agent, fires node_start
-      # for the capable ones, and yields them with a library client. Returns
-      # a result for every target, whether it lacked the agent, went through
-      # the block, or could not be served because the library cannot be used
-      # on this host.
+      # for every target, and yields the capable ones with a library client.
+      # Returns a result for every target, whether it lacked the agent, went
+      # through the block, or could not be served because the library cannot
+      # be used on this host.
       #
       # @param targets [Array<Bolt::Target>] The targets of one batch
       # @param result_opts [Hash] Options passed through to emit_results (:action, :name, :position)
@@ -87,7 +87,6 @@ module Bolt
         capable, results = prepare_targets(targets, FILE_TRANSFER_AGENT, result_opts, &callback)
         return results if capable.empty?
 
-        capable.each { |target| callback&.call(type: :node_start, target: target) }
         begin
           client = file_transfer_client(capable)
         rescue Bolt::Error => e

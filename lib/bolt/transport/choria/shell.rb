@@ -27,8 +27,6 @@ module Bolt
         timeout = first_target.options['command-timeout']
         command = prepend_env_vars(first_target, command, options[:env_vars], 'run_command env_vars')
 
-        shell_targets.each { |target| callback&.call(type: :node_start, target: target) }
-
         pending, start_failures = shell_start(shell_targets, command)
         results += emit_results(start_failures, **result_opts, &callback)
         results += emit_results(wait_for_shell_results(pending, timeout), **result_opts, &callback)
@@ -61,8 +59,6 @@ module Bolt
         tmpdir = generate_tmpdir_path(first_target)
 
         script_content = File.binread(script)
-
-        shell_targets.each { |target| callback&.call(type: :node_start, target: target) }
 
         begin
           remote_path = join_path(first_target, tmpdir, File.basename(script))
