@@ -362,8 +362,9 @@ The shell polling loop is the heart of asynchronous command execution:
 **`shell_list`** does a single round:
 1. Sends one batched `shell.list` RPC call to all remaining targets
 2. For each target, matches its handle against the returned job list
-3. Returns `[done_hash, rpc_failed_boolean]` where done contains completed
-   targets (status in `SHELL_DONE_STATUSES`: `stopped` or `failed`)
+3. Returns `[finished, failed, rpc_failed]`, where finished contains the
+   targets whose process ended (status in `SHELL_DONE_STATUSES`: `stopped` or
+   `failed`) and failed contains an error hash for each target whose poll failed
 
 **`shell_statuses`** retrieves results for completed targets:
 1. Sends one batched `shell.statuses` RPC call with all completed handles

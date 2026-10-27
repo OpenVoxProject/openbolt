@@ -357,25 +357,13 @@ module Bolt
       # @return [Hash{Bolt::Target => Hash}] Output hash for every target (success and error)
       def wait_for_shell_results(pending, timeout)
         poll_result = poll_with_retries(pending, timeout, 'shell.list') do |remaining|
-          completed, rpc_failed = shell_list(remaining)
+          finished, failed, rpc_failed = shell_list(remaining)
           next { rpc_failed: true } if rpc_failed
 
-          done = {}
-          fetch_targets = {}
-          completed.each do |target, value|
-            if value[:error]
-              done[target] = value
-            else
-              fetch_targets[target] = value
-            end
-          end
-
-          unless fetch_targets.empty?
-            logger.debug { "Fetching output from #{target_count(fetch_targets)}" }
-            fetched = shell_statuses(fetch_targets)
-            fetch_targets.each_key do |target|
-              done[target] = fetched[target]
-            end
+          done = failed
+          unless finished.empty?
+            logger.debug { "Fetching output from #{target_count(finished)}" }
+            done.merge!(shell_statuses(finished))
           end
 
           { rpc_failed: false, done: done }
@@ -400,22 +388,25 @@ module Bolt
       #
       # @param remaining [Hash{Bolt::Target => Hash}] Targets still pending, each mapped to
       #   { handle: uuid_string }
-      # @return [Array] Two-element array:
-      #   - done [Hash{Bolt::Target => Hash}] Completed targets mapped to handle state or error hash
+      # @return [Array] 3-element array:
+      #   - finished [Hash{Bolt::Target => Hash}] Targets whose process finished, mapped to
+      #     { handle: uuid_string }
+      #   - failed [Hash{Bolt::Target => Hash}] Targets whose poll failed, mapped to error hashes
       #   - rpc_failed [Boolean] True when the entire RPC call failed
       def shell_list(remaining)
         response = rpc_request('shell', remaining.keys, 'shell.list') do |client|
           client.list
         end
-        return [{}, true] if response[:rpc_failed]
+        return [{}, {}, true] if response[:rpc_failed]
 
-        done = response[:errors]
-        logger.debug { "The shell.list call had #{target_count(response[:responded])} respond and #{target_count(done)} fail" } unless done.empty?
+        finished = {}
+        failed = response[:errors]
+        logger.debug { "The shell.list call had #{target_count(response[:responded])} respond and #{target_count(failed)} fail" } unless failed.empty?
 
         response[:responded].each do |target, data|
           if data.nil?
-            done[target] = error_output("The shell.list call on #{target.safe_name} returned success but no data",
-                                        'bolt/choria-missing-data')
+            failed[target] = error_output("The shell.list call on #{target.safe_name} returned success but no data",
+                                          'bolt/choria-missing-data')
             next
           end
 
@@ -428,7 +419,7 @@ module Bolt
               "The shell.list call on #{target.safe_name} did not list handle #{handle}, " \
               "available handles: #{job_handles.inspect}"
             }
-            done[target] = error_output(
+            failed[target] = error_output(
               "Handle #{handle} not found in shell.list on #{target.safe_name}. " \
               "The process may have been cleaned up or the agent may have restarted.",
               'bolt/choria-handle-not-found'
@@ -438,10 +429,10 @@ module Bolt
 
           status = job['status']&.to_s
           logger.debug { "The shell.list call on #{target.safe_name} reports handle #{handle} as #{status}" }
-          done[target] = remaining[target] if SHELL_DONE_STATUSES.include?(status)
+          finished[target] = remaining[target] if SHELL_DONE_STATUSES.include?(status)
         end
 
-        [done, false]
+        [finished, failed, false]
       end
 
       # Fetch stdout/stderr/exitcode from completed targets via the
