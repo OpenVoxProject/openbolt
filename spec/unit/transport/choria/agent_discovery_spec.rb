@@ -110,6 +110,17 @@ describe Bolt::Transport::Choria do
       expect(transport.has_agent?(target, 'rpcutil')).to be false
     end
 
+    it 'still discovers later responders when one replies with no data' do
+      r1 = make_rpc_result(sender: target, data: nil)
+      r2 = make_rpc_result(sender: target2, data: { agents: [{ 'agent' => 'rpcutil' }] })
+      f2 = make_rpc_result(sender: target2, data: { value: 'RedHat' })
+      allow(mock_rpc_client).to receive_messages(agent_inventory: [r1, r2], get_fact: [f2])
+
+      transport.discover_agents([target, target2])
+      expect(transport.has_agent?(target, 'rpcutil')).to be false
+      expect(transport.has_agent?(target2, 'rpcutil')).to be true
+    end
+
     describe 'error handling' do
       it 'returns nil for all targets when agent_inventory raises' do
         allow(mock_rpc_client).to receive(:agent_inventory).and_raise(StandardError, 'NATS timeout')
@@ -221,6 +232,19 @@ describe Bolt::Transport::Choria do
       transport.discover_agents([target])
 
       expect(transport.windows_target?(target)).to be false
+    end
+
+    it 'still detects the OS on later responders when one replies with no data' do
+      agents = { agents: [{ 'agent' => 'rpcutil' }] }
+      allow(mock_rpc_client).to receive_messages(
+        agent_inventory: [make_rpc_result(sender: target, data: agents), make_rpc_result(sender: target2, data: agents)],
+        get_fact: [make_rpc_result(sender: target, data: nil), make_rpc_result(sender: target2, data: { value: 'windows' })]
+      )
+
+      transport.discover_agents([target, target2])
+
+      expect(transport.windows_target?(target)).to be false
+      expect(transport.windows_target?(target2)).to be true
     end
 
     it 're-raises Bolt::Error from OS detection instead of swallowing it' do

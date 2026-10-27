@@ -48,7 +48,7 @@ module Bolt
 
         response[:responded].each do |target, data|
           sender = choria_identity(target)
-          agents = filter_agents(sender, data[:agents])
+          agents = filter_agents(sender, data&.dig(:agents))
           unless agents
             logger.warn { "Unexpected agent_inventory response from #{sender}. This target will be treated as unreachable." }
             next
@@ -82,7 +82,7 @@ module Bolt
 
         response[:responded].each do |target, data|
           sender = choria_identity(target)
-          os_family = data[:value].to_s.downcase
+          os_family = data&.dig(:value).to_s.downcase
           if os_family.empty?
             logger.warn { "os.family fact is empty on #{sender}. Defaulting to POSIX command syntax." }
             next
