@@ -167,12 +167,9 @@ module Bolt
       #     mapped to their response data
       #   - :errors [Hash] Targets with RPC errors or no response, mapped to error output hashes
       #   - :rpc_failed [Boolean] True when the entire RPC call failed
-      #   - :rpc_statuscodes [Hash] Per-target MCollective RPC statuscodes.
-      #     Includes all targets that responded (both :responded and :errors).
-      #     Not populated when rpc_failed is true (no individual responses).
-      #   - :rpc_statusmsgs [Hash] Per-target MCollective RPC status messages for the
-      #     targets in :responded, so a caller can report the agent's reason for a
-      #     statuscode 1 reply.
+      #   - :aborted [Hash] Targets in :responded whose reply had statuscode 1,
+      #     mapped to the agent's status message, so a caller can report the
+      #     agent's reason
       def rpc_request(agent, targets, context)
         targets = Array(targets)
         rpc_results = @rpc_mutex.synchronize do
@@ -184,8 +181,7 @@ module Bolt
 
         responded = {}
         errors = {}
-        rpc_statuscodes = {}
-        rpc_statusmsgs = {}
+        aborted = {}
         targets.each do |target|
           rpc_result = by_sender[choria_identity(target)]
           if rpc_result.nil?
@@ -194,22 +190,20 @@ module Bolt
               'bolt/choria-no-response'
             )
           elsif rpc_result[:statuscode] > 1
-            rpc_statuscodes[target] = rpc_result[:statuscode]
             errors[target] = error_output(
               "#{context} on #{target.safe_name} returned RPC error: " \
               "#{rpc_result[:statusmsg]} (code #{rpc_result[:statuscode]})",
               'bolt/choria-rpc-error'
             )
           else
-            rpc_statuscodes[target] = rpc_result[:statuscode]
-            rpc_statusmsgs[target] = rpc_result[:statusmsg]
             if rpc_result[:statuscode] == 1
               logger.warn { "#{context} on #{target.safe_name} had RPC status code #{rpc_result[:statuscode]}: #{rpc_result[:statusmsg]}" }
+              aborted[target] = rpc_result[:statusmsg]
             end
             responded[target] = rpc_result[:data]
           end
         end
-        { responded: responded, errors: errors, rpc_failed: false, rpc_statuscodes: rpc_statuscodes, rpc_statusmsgs: rpc_statusmsgs }
+        { responded: responded, errors: errors, rpc_failed: false, aborted: aborted }
       rescue StandardError => e
         raise if e.is_a?(Bolt::Error)
 
@@ -218,7 +212,7 @@ module Bolt
           errs[target] = error_output("#{context} failed on #{target.safe_name}: #{e.message}",
                                       'bolt/choria-rpc-failed')
         end
-        { responded: {}, errors: errors, rpc_failed: true, rpc_statuscodes: {}, rpc_statusmsgs: {} }
+        { responded: {}, errors: errors, rpc_failed: true, aborted: {} }
       end
 
       # Fire node_start for every target, configure the client, discover
