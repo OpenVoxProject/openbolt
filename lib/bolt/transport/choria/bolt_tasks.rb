@@ -173,7 +173,7 @@ module Bolt
       # @param target [Bolt::Target] Target for logging and stdout unwrapping context
       # @return [Hash] Output hash from output() or error_output()
       def extract_task_output(data, target)
-        exitcode = exitcode_from(data, target, 'task')
+        exitcode = exitcode_from(data[:exitcode], target, 'task')
         output(stdout: unwrap_bolt_tasks_stdout(data[:stdout]),
                stderr: data[:stderr], exitcode: exitcode)
       end

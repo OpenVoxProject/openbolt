@@ -130,8 +130,8 @@ describe 'Bolt::Transport::Choria helpers' do
   end
 
   describe '#exitcode_from' do
-    it 'returns the exitcode from data when present' do
-      result = transport.exitcode_from({ exitcode: 42 }, target, 'test command')
+    it 'returns the exitcode when present' do
+      result = transport.exitcode_from(42, target, 'test command')
       expect(result).to eq(42)
     end
 
@@ -139,21 +139,8 @@ describe 'Bolt::Transport::Choria helpers' do
       logger = transport.logger
       expect(logger).to receive(:warn)
 
-      result = transport.exitcode_from({ exitcode: nil }, target, 'test command')
+      result = transport.exitcode_from(nil, target, 'test command')
       expect(result).to eq(1)
-    end
-
-    it 'defaults to 1 when exitcode key is missing' do
-      logger = transport.logger
-      expect(logger).to receive(:warn)
-
-      result = transport.exitcode_from({}, target, 'test command')
-      expect(result).to eq(1)
-    end
-
-    it 'returns the exitcode when accessed via string key' do
-      result = transport.exitcode_from({ 'exitcode' => 42 }, target, 'test command')
-      expect(result).to eq(42)
     end
   end
 
