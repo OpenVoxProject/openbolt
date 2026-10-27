@@ -239,10 +239,10 @@ describe Bolt::Transport::Choria do
       expect(response[:responded][target]).to eq(value: 'ok')
       expect(response[:errors]).to be_empty
       expect(response[:rpc_failed]).to be false
-      expect(response[:rpc_statuscodes][target]).to eq(0)
+      expect(response[:aborted]).to be_empty
     end
 
-    it 'routes statuscode 1 to :responded and preserves data' do
+    it 'routes statuscode 1 to :responded with its data and to :aborted with its status message' do
       result = make_rpc_result(
         sender: target, statuscode: 1,
         statusmsg: 'Task failed with exit code 1',
@@ -254,8 +254,7 @@ describe Bolt::Transport::Choria do
       expect(response[:responded]).to have_key(target)
       expect(response[:responded][target][:exitcode]).to eq(1)
       expect(response[:errors]).to be_empty
-      expect(response[:rpc_statuscodes][target]).to eq(1)
-      expect(response[:rpc_statusmsgs][target]).to eq('Task failed with exit code 1')
+      expect(response[:aborted]).to eq(target => 'Task failed with exit code 1')
     end
 
     it 'routes statuscode 2+ to :errors' do
@@ -266,7 +265,7 @@ describe Bolt::Transport::Choria do
       expect(response[:responded]).to be_empty
       expect(response[:errors]).to have_key(target)
       expect(response[:errors][target][:error]).to match(/Missing data.*code 3/)
-      expect(response[:rpc_statuscodes][target]).to eq(3)
+      expect(response[:aborted]).to be_empty
     end
 
     it 'reports no-response targets as errors' do
@@ -306,8 +305,7 @@ describe Bolt::Transport::Choria do
       response = transport.rpc_request('rpcutil', [target, target2], 'test') { |client| client.ping }
       expect(response[:responded]).to have_key(target)
       expect(response[:errors]).to have_key(target2)
-      expect(response[:rpc_statuscodes][target]).to eq(0)
-      expect(response[:rpc_statuscodes][target2]).to eq(4)
+      expect(response[:aborted]).to be_empty
     end
   end
 
