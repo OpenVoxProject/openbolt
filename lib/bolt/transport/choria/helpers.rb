@@ -28,9 +28,9 @@ module Bolt
       # @param timeout [Numeric] Maximum seconds before exiting
       # @param context [String] Label for log messages
       # @return [Hash] with keys:
-      #   - :completed [Hash{Target => Hash}] All finished target outputs
-      #   - :remaining [Array, Hash] Targets still pending when the loop exited
-      #   - :rpc_persistent_failure [Boolean] True if loop exited due to persistent RPC failures
+      #   - :completed [Hash{Target => Hash}] All finished target outputs, plus a poll
+      #     error for each pending target after RPC_FAILURE_RETRIES failed polls in a row
+      #   - :remaining [Array, Hash] Targets still pending at the deadline
       def poll_with_retries(targets, timeout, context)
         deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + timeout
         remaining = targets.dup
@@ -62,8 +62,17 @@ module Bolt
           break if Process.clock_gettime(Process::CLOCK_MONOTONIC) >= deadline
         end
 
-        { completed: completed, remaining: remaining,
-          rpc_persistent_failure: poll_failures >= RPC_FAILURE_RETRIES }
+        if poll_failures >= RPC_FAILURE_RETRIES
+          (remaining.is_a?(Hash) ? remaining.keys : remaining).each do |target|
+            completed[target] = error_output(
+              "RPC requests to poll #{context} on #{target.safe_name} failed persistently",
+              'bolt/choria-poll-failed'
+            )
+          end
+          remaining.clear
+        end
+
+        { completed: completed, remaining: remaining }
       end
 
       # Build a Bolt::Result from an output hash. Handles both success and
