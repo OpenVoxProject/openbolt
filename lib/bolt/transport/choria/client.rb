@@ -243,10 +243,10 @@ module Bolt
         capable, incapable = targets.partition { |target| has_agent?(target, agent_name) }
 
         agent_errors = incapable.each_with_object({}) do |target, errors|
-          errors[target] = if @agent_cache[choria_identity(target)].nil?
-                             undiscovered_error(target)
-                           else
+          errors[target] = if discovered?(target)
                              error_output("The '#{agent_name}' agent is not available on #{target.safe_name}.", 'bolt/choria-agent-not-available')
+                           else
+                             undiscovered_error(target)
                            end
         end
         incapable_results = emit_results(agent_errors, fire_node_start: true, **result_opts, &callback)

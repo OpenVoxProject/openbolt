@@ -157,7 +157,7 @@ module Bolt
         # error here instead.
         configure_client(targets.first)
         discover_agents(targets)
-        discovered, silent = targets.partition { |target| @agent_cache.key?(choria_identity(target)) }
+        discovered, silent = targets.partition { |target| discovered?(target) }
 
         silent_errors = silent.to_h { |target| [target, undiscovered_error(target)] }
         results = emit_results(silent_errors, action: 'task', name: task.name, position: position, fire_node_start: true, &callback)
