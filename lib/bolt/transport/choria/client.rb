@@ -79,7 +79,7 @@ module Bolt
             logger.debug { "Choria brokers overridden: #{brokers.join(', ')}" }
           end
 
-          if opts['ssl-ca'] && opts['ssl-cert'] && opts['ssl-key']
+          if opts['ssl-ca']
             unreadable = %w[ssl-ca ssl-cert ssl-key].find { |key| !File.readable?(opts[key]) }
             if unreadable
               raise Bolt::Error.new(
@@ -101,9 +101,9 @@ module Bolt
       end
 
       # Create an MCollective::RPC::Client for one or more targets.
-      # Accepts a single target or an array. Uses MCollective's direct
-      # addressing mode (client.discover(nodes:)) to skip broadcast
-      # discovery and send requests directly to the specified nodes.
+      # Uses MCollective's direct addressing mode (client.discover(nodes:))
+      # to skip broadcast discovery and send requests directly to the
+      # specified nodes.
       #
       # Note that when the client is created, if the shell agent isn't already
       # installed on the OpenBolt controller node, then the shell DDL that we
@@ -113,20 +113,15 @@ module Bolt
       # DDL is already included in the choria-mcorpc-support gem.
       #
       # @param agent_name [String] MCollective agent name (e.g. 'shell', 'bolt_tasks')
-      # @param targets [Bolt::Target, Array<Bolt::Target>] One or more targets to address
+      # @param targets [Array<Bolt::Target>] Targets to address
       # @param timeout [Numeric] RPC call timeout in seconds
       # @return [MCollective::RPC::Client] Configured client with direct addressing enabled
       def create_rpc_client(agent_name, targets, timeout)
-        targets = Array(targets)
         options = MCollective::Util.default_options
-        options[:verbose] = false
         options[:connection_timeout] = targets.first.options['broker-timeout']
-
-        collective = collective_for(targets.first)
-        options[:collective] = collective if collective
+        options[:collective] = collective_for(targets.first)
 
         client = MCollective::RPC::Client.new(agent_name, options: options)
-        client.progress = false
         # Set after the build, which replaces a timeout of exactly 5, the
         # gem's default, with the DDL timeout plus the discovery timeout.
         client.timeout = timeout
@@ -234,12 +229,11 @@ module Bolt
         capable, incapable = targets.partition { |target| has_agent?(target, agent_name) }
 
         agent_errors = incapable.each_with_object({}) do |target, errors|
-          msg = if @agent_cache[choria_identity(target)].nil?
-                  "No agent information available for #{target.safe_name} (node did not respond to discovery)"
-                else
-                  "The '#{agent_name}' agent is not available on #{target.safe_name}."
-                end
-          errors[target] = error_output(msg, 'bolt/choria-agent-not-available')
+          errors[target] = if discovered?(target)
+                             error_output("The '#{agent_name}' agent is not available on #{target.safe_name}.", 'bolt/choria-agent-not-available')
+                           else
+                             undiscovered_error(target)
+                           end
         end
         incapable_results = emit_results(agent_errors, **result_opts, &callback)
 

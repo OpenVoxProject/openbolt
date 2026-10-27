@@ -15,7 +15,7 @@ module Bolt
       #
       # @param targets [Array<Bolt::Target>] Targets to discover agents on
       def discover_agents(targets)
-        uncached = targets.reject { |target| @agent_cache.key?(choria_identity(target)) }
+        uncached = targets.reject { |target| discovered?(target) }
         return if uncached.empty?
 
         logger.debug { "Discovering agents on #{target_count(uncached)}" }
@@ -23,9 +23,12 @@ module Bolt
         discover_os_family(uncached)
 
         uncached.each do |target|
-          identity = choria_identity(target)
-          logger.warn { "No response from #{identity} during agent discovery" } unless @agent_cache.key?(identity)
+          logger.warn { "No response from #{choria_identity(target)} during agent discovery" } unless discovered?(target)
         end
+      end
+
+      def discovered?(target)
+        @agent_cache.key?(choria_identity(target))
       end
 
       def has_agent?(target, agent_name)
@@ -68,7 +71,7 @@ module Bolt
       # @param targets [Array<Bolt::Target>] Targets to detect OS on
       def discover_os_family(targets)
         # Only fetch OS for targets that responded to agent_inventory
-        responded = targets.select { |target| @agent_cache.key?(choria_identity(target)) }
+        responded = targets.select { |target| discovered?(target) }
         return if responded.empty?
 
         response = rpc_request('rpcutil', responded, 'rpcutil.get_fact') do |client|

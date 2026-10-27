@@ -51,18 +51,19 @@ module Bolt
       # @return [Hash] with keys:
       #   - :failed_results [Array<Bolt::Result>] Error results from setup phase
       #   - :targets [Array<Bolt::Target>] Targets that successfully started
-      #   - :task_id [String, nil] Shared task ID for polling, nil if nothing started
+      #   - :task_id [String] Shared task ID for polling
+      #   When nothing started, only :failed_results is set.
       def download_and_start_task(targets, task, implementation, arguments, result_opts, &callback)
         environment = targets.first.options['puppet-environment']
         input_method = implementation['input_method']
         impl_files = [{ 'name' => File.basename(implementation['name']), 'path' => implementation['path'] }] +
-                     (implementation['files'] || [])
+                     implementation['files']
         file_specs_json = impl_files.map { |file| task_file_spec(file, task.module_name, environment) }.to_json
 
         # The failed_results reference will get updated and if we ever end up without
         # any targets left to act on, we can return it immediately.
         failed_results = []
-        none_started_result = { failed_results: failed_results, targets: [], task_id: nil }
+        none_started_result = { failed_results: failed_results }
 
         # Download task files
         logger.debug { "Downloading task #{task.name} files via bolt_tasks to #{target_count(targets)}" }
@@ -137,9 +138,9 @@ module Bolt
           response = rpc_request('bolt_tasks', remaining, 'bolt_tasks.task_status') do |client|
             client.task_status(task_id: task_id)
           end
-          next { rpc_failed: true, done: {} } if response[:rpc_failed]
+          next { rpc_failed: true } if response[:rpc_failed]
 
-          done = response[:errors].dup
+          done = response[:errors]
 
           response[:responded].each do |target, data|
             if data.nil?
