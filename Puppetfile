@@ -31,7 +31,7 @@ mod 'puppetlabs-zone_core', '2.1.0'
 # Useful additional modules
 mod 'puppetlabs-package', '4.0.0'
 mod 'puppetlabs-puppet_conf', '3.0.0'
-mod 'puppetlabs-reboot', '6.0.0'
+mod 'puppetlabs-reboot', '6.1.0'
 
 # Task helpers
 mod 'puppetlabs-powershell_task_helper', '0.2.0'
