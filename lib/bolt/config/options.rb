@@ -185,7 +185,7 @@ module Bolt
         },
         "disable-warnings" => {
           description: "An array of IDs of warnings to suppress. Warnings with a matching ID will not be logged " \
-                       "by Bolt. If you are upgrading Bolt to a new major version, you should re-enable all warnings " \
+                       "by OpenBolt. If you are upgrading OpenBolt to a new major version, you should re-enable all warnings " \
                        "until you have finished upgrading.",
           type: Array,
           items: {
@@ -203,7 +203,7 @@ module Bolt
           _default: "human"
         },
         "future" => {
-          description: "Enable new Bolt features that may include breaking changes.",
+          description: "Enable new OpenBolt features that may include breaking changes.",
           type: Hash,
           properties: {
             "file_paths" => {
@@ -211,7 +211,7 @@ module Bolt
               type: [TrueClass, FalseClass],
               _example: true,
               _default: false,
-              _deprecation: "Bolt no longer honors this option and enables loading scripts from the scripts " \
+              _deprecation: "OpenBolt no longer honors this option and enables loading scripts from the scripts " \
                             "directory by default."
             },
             "script_interpreter" => {
@@ -258,9 +258,9 @@ module Bolt
           description: "A map of configuration for the logfile output. Under `log`, you can configure log options " \
                        "for `console` and add configuration for individual log files, such as " \
                        "`~/.puppetlabs/bolt/debug.log`. Individual log files must be valid filepaths. If the log " \
-                       "file does not exist, then Bolt will create it before logging information. Set the value to " \
+                       "file does not exist, then OpenBolt will create it before logging information. Set the value to " \
                        "`disable` to remove a log file defined at an earlier level of the config hierarchy. By " \
-                       "default, Bolt logs to a bolt-debug.log file in the Bolt project directory.",
+                       "default, OpenBolt logs to a bolt-debug.log file in the OpenBolt project directory.",
           type: Hash,
           properties: {
             "console" => {
@@ -300,7 +300,7 @@ module Bolt
                       "~/logs/debug.log" => { "append" => false, "level" => "debug" } }
         },
         "modulepath" => {
-          description: "An array of directories that Bolt loads content such as plans and tasks from. Read more " \
+          description: "An array of directories that OpenBolt loads content such as plans and tasks from. Read more " \
                        "about modules in [Module structure](module_structure.md).",
           type: [Array, String],
           items: {
@@ -311,7 +311,7 @@ module Bolt
           _default: ["project/modules"]
         },
         "module-install" => {
-          description: "Options that configure where Bolt downloads modules from. This option is only used when " \
+          description: "Options that configure where OpenBolt downloads modules from. This option is only used when " \
                        "installing modules using the `bolt module add|install` commands and " \
                        "`Add|Install-BoltModule` cmdlets.",
           type: Hash,
@@ -417,8 +417,8 @@ module Bolt
           ]
         },
         "name" => {
-          description: "The name of the Bolt project. When this option is configured, the project is considered a " \
-                       "[Bolt project](projects.md), allowing Bolt to load content from the project directory " \
+          description: "The name of the OpenBolt project. When this option is configured, the project is considered an " \
+                       "[OpenBolt project](projects.md), allowing OpenBolt to load content from the project directory " \
                        "as though it were a module.",
           type: String,
           _plugin: false,
@@ -427,7 +427,7 @@ module Bolt
         "plans" => {
           description: "A list of plan names and glob patterns to filter the project's plans by. This option is used " \
                        "to limit the visibility of plans for users of the project. For example, project authors " \
-                       "might want to limit the visibility of plans that are bundled with Bolt or plans that should " \
+                       "might want to limit the visibility of plans that are bundled with OpenBolt or plans that should " \
                        "only be run as part of another plan. When this option is not configured, all plans are " \
                        "visible. This option does not prevent users from running plans that are not part of this " \
                        "list.",
@@ -467,7 +467,7 @@ module Bolt
           _example: ["myproject::apache", "myproject::postgres"]
         },
         "puppetdb" => {
-          description: "A map containing options for [configuring the Bolt PuppetDB " \
+          description: "A map containing options for [configuring the OpenBolt PuppetDB " \
                        "client](bolt_connect_puppetdb.md).",
           type: Hash,
           properties: PUPPETDB_OPTIONS,
@@ -476,7 +476,7 @@ module Bolt
         "puppetdb-instances" => {
           description: "A map of named PuppetDB instances and their configuration, where keys are the name " \
                        "of a PuppetDB instance and values are maps of configuration options. For more " \
-                       "information, see [Connecting Bolt to PuppetDB](bolt_connect_puppetdb.md).",
+                       "information, see [Connecting OpenBolt to OpenVoxDB](bolt_connect_puppetdb.md).",
           type: Hash,
           additionalProperties: {
             type: Hash,
@@ -492,7 +492,7 @@ module Bolt
           _plugin: true
         },
         "save-rerun" => {
-          description: "Whether to update `.rerun.json` in the Bolt project directory. If " \
+          description: "Whether to update `.rerun.json` in the OpenBolt project directory. If " \
                        "your target names include passwords, set this value to `false` to avoid " \
                        "writing passwords to disk.",
           type: [TrueClass, FalseClass],
@@ -501,7 +501,7 @@ module Bolt
           _default: true
         },
         "spinner" => {
-          description: "Whether to print a spinner to the console for long-running Bolt operations.",
+          description: "Whether to print a spinner to the console for long-running OpenBolt operations.",
           type: [TrueClass, FalseClass],
           _plugin: false,
           _example: false,
@@ -518,7 +518,7 @@ module Bolt
         "tasks" => {
           description: "A list of task names and glob patterns to filter the project's tasks by. This option is used " \
                        "to limit the visibility of tasks for users of the project. For example, project authors " \
-                       "might want to limit the visibility of tasks that are bundled with Bolt or plans that should " \
+                       "might want to limit the visibility of tasks that are bundled with OpenBolt or plans that should " \
                        "only be run as part of a larger workflow. When this option is not configured, all tasks " \
                        "are visible. This option does not prevent users from running tasks that are not part of " \
                        "this list.",
@@ -530,8 +530,8 @@ module Bolt
           _example: ["myproject", "myproject::foo", "myproject::bar", "myproject::deploy_*"]
         },
         "trusted-external-command" => {
-          description: "The path to an executable on the Bolt controller that can produce external trusted facts. " \
-                       "**External trusted facts are experimental in both Puppet and Bolt and this API might " \
+          description: "The path to an executable on the OpenBolt controller that can produce external trusted facts. " \
+                       "**External trusted facts are experimental in both Puppet and OpenBolt and this API might " \
                        "change or be removed.**",
           type: String,
           _plugin: false,

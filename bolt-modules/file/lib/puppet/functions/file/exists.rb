@@ -2,7 +2,7 @@
 
 # Check if a local file exists using Puppet's
 # `Puppet::Parser::Files.find_file()` function. This will only check files that
-# are on the machine Bolt is run on.
+# are on the machine OpenBolt is run on.
 Puppet::Functions.create_function(:'file::exists', Puppet::Functions::InternalFunction) do
   # @param filename Absolute path or Puppet file path.
   # @return Whether the file exists.

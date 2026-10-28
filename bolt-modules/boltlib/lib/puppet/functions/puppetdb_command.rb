@@ -6,7 +6,7 @@ require 'bolt/error'
 #
 # The `pdb_command` function only supports version 5 of the `replace_facts`
 # command. Other commands might also work, but are not tested or supported
-# by Bolt.
+# by OpenBolt.
 #
 # See the [commands endpoint](https://puppet.com/docs/puppetdb/latest/api/command/v1/commands.html)
 # documentation for more information about available commands and payload

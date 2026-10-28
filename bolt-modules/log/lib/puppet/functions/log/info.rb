@@ -8,7 +8,7 @@ require 'bolt/util/format'
 # what a plan is doing. For example, you might log a message at the `info` level
 # that informs users that the plan is reading a file on disk.
 #
-# See [Logs](logs.md) for more information about Bolt's log levels.
+# See [Logs](logs.md) for more information about OpenBolt's log levels.
 #
 # > **Note:** Not available in apply block
 Puppet::Functions.create_function(:'log::info') do

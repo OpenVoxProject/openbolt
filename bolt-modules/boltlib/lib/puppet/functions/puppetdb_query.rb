@@ -3,7 +3,7 @@
 require 'bolt/error'
 
 # Makes a query to [puppetdb](https://puppet.com/docs/puppetdb/latest/index.html)
-# using Bolt's PuppetDB client.
+# using OpenBolt's PuppetDB client.
 Puppet::Functions.create_function(:puppetdb_query) do
   # Make a query to PuppetDB.
   #

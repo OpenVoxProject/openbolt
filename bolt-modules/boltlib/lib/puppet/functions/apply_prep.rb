@@ -4,13 +4,13 @@ require 'bolt/logger'
 require 'bolt/task'
 
 # Installs the `openvox-agent` package on targets if needed, then collects facts,
-# including any custom facts found in Bolt's module path. The package is
+# including any custom facts found in OpenBolt's module path. The package is
 # installed using either the configured plugin or the `task` plugin with the
 # `openvox_bootstrap::install` task.
 #
 # Agent installation will be skipped if the target includes the `puppet-agent`
 # feature, either as a property of its transport or by explicitly setting
-# it as a feature in Bolt's inventory.
+# it as a feature in OpenBolt's inventory.
 #
 # > **Note:** Not available in apply block
 Puppet::Functions.create_function(:apply_prep) do

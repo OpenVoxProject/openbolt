@@ -5,7 +5,7 @@ title: Transport configuration options
 
 # Transport configuration options
 
-This page lists the configuration options that are available to each transport used by Bolt to connect
+This page lists the configuration options that are available to each transport used by OpenBolt to connect
 to targets. These options can be set in multiple locations:
 
 - Under a `config` key in an [inventory file](inventory_files.html).
@@ -57,13 +57,13 @@ to targets. These options can be set in multiple locations:
 <% if option == 'ssh' -%>
 ## OpenSSH Config
 
-Bolt's SSH transport uses the Ruby library `net-ssh`, which is a pure Ruby
+OpenBolt's SSH transport uses the Ruby library `net-ssh`, which is a pure Ruby
 implementation of the SSH2 client protocol. The library reads and uses some,
 but not all, settings from the user's OpenSSH configuration file (typically
 `~/.ssh/config`). OpenSSH configuration takes the [lowest
 precedence](configuring_bolt.html#configuration-precedence), and any configurable
-settings that you've set through Bolt, such as `port`, override the OpenSSH
-settings. Bolt uses the following OpenSSH configuration options when using the
+settings that you've set through OpenBolt, such as `port`, override the OpenSSH
+settings. OpenBolt uses the following OpenSSH configuration options when using the
 SSH transport:
 
 ### `Ciphers`
@@ -112,10 +112,10 @@ Path to local user's host key database.
 
 ## Native `ssh`
 
-Bolt's SSH transport uses the Ruby library `net-ssh`, which is a pure Ruby
+OpenBolt's SSH transport uses the Ruby library `net-ssh`, which is a pure Ruby
 implementation of the SSH2 client protocol. While robust, the library lacks
 support for some features and algorithms that are available in native SSH.
-When you use the native SSH transport, Bolt uses the SSH executable you've
+When you use the native SSH transport, OpenBolt uses the SSH executable you've
 specified instead of using `net-ssh`.
 
 Set the `native-ssh` config option or pass `--native-ssh` on the command line

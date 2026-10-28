@@ -2,7 +2,7 @@
 
 require 'bolt/task'
 
-# Query the state of resources on a list of targets using resource definitions in Bolt's module path.
+# Query the state of resources on a list of targets using resource definitions in OpenBolt's module path.
 # The results are returned as a list of hashes representing each resource.
 #
 # Requires the Puppet Agent be installed on the target, which can be accomplished with apply_prep

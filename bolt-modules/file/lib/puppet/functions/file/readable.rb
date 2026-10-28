@@ -2,7 +2,7 @@
 
 # Check if a local file is readable using Puppet's
 # `Puppet::Parser::Files.find_file()` function. This will only check files on the
-# machine you run Bolt on.
+# machine you run OpenBolt on.
 Puppet::Functions.create_function(:'file::readable', Puppet::Functions::InternalFunction) do
   # @param filename Absolute path or Puppet file path.
   # @return Whether the file is readable.

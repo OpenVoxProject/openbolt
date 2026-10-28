@@ -5,11 +5,11 @@ title: Data types
 
 # Data types
 
-This page lists custom data types used in Bolt plans and their functions.
+This page lists custom data types used in plans and their functions.
 
 ## Custom data types
 
-Bolt ships with several custom data types that can be used within a plan.
+OpenBolt ships with several custom data types that can be used within a plan.
 
 <% @types.each do |data| -%>
 ### `<%= data['name'] %>`
@@ -36,7 +36,7 @@ includes the following keys on the `value` hash:
 | Key | Type | Description |
 | --- | --- | --- |
 | `exit_code` | `Number` | The command's or script's exit code. |
-| `merged_output` | `String` | Output written to both standard error (stderr) and standard out (stdout) in the order that Bolt received the output. |
+| `merged_output` | `String` | Output written to both standard error (stderr) and standard out (stdout) in the order that OpenBolt received the output. |
 | `stderr` | `String` | Output written to standard error (stderr). |
 | `stdout` | `String` | Output written to standard out (stdout). |
 
@@ -53,7 +53,7 @@ following key on the `value` hash:
 
 ## Type Aliases
 
-Bolt also ships with type aliases, which provide an alternate name for existing types or lists of
+OpenBolt also ships with type aliases, which provide an alternate name for existing types or lists of
 types. These types can be used within a plan, and have all of the attributes and functions of
 whichever Puppet type they are set to in the plan.
 
@@ -66,7 +66,7 @@ A `TargetSpec` is an alias for any of the following types:
 
 You can pass `TargetSpec` objects to `get_targets()` to return an `Array[Target]`. Generally, you shouldn't
 need to worry about the distinction between `TargetSpec` and `Target`/`Array[Target]`, because most
-Bolt plan functions handle them automatically. But if your use case requires it,
+plan functions handle them automatically. But if your use case requires it,
 you can use `get_targets()` to return an exact list of targets.
 
 📖  **Related information**

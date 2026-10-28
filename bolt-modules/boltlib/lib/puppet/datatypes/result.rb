@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# For each target that you execute an action on, Bolt returns a `Result` object
+# For each target that you execute an action on, OpenBolt returns a `Result` object
 # and adds the `Result` to a `ResultSet` object. A `Result` object contains
 # information about the action you executed on the target.
 #
