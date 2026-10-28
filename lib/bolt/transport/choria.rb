@@ -45,10 +45,9 @@ module Bolt
         @default_collective = nil
       end
 
-      # Advertise both shell and powershell so tasks with either requirement
-      # can be selected. The per-target selection happens in
-      # select_implementation below, which picks the right feature set based
-      # on the target's detected OS.
+      # Task selection does not use this list, since select_implementation
+      # below overrides the Base method that reads it. The list is kept for
+      # apply_prep, which reads a transport's provided features.
       def provided_features
         %w[shell powershell]
       end
@@ -107,7 +106,6 @@ module Bolt
         logger.debug { "Task #{task.name} routing: agent: #{chosen_agent}, #{capable.size} capable / #{targets.size - capable.size} incapable" }
 
         unless capable.empty?
-          capable.each { |target| callback&.call(type: :node_start, target: target) }
           arguments = unwrap_sensitive_args(arguments)
 
           results += case chosen_agent
@@ -148,12 +146,18 @@ module Bolt
       # @param callback [Proc] Called with :node_start and :node_result events
       # @return [Array<Bolt::Result>] Results for all targets
       def batch_task_with(targets, task, target_mapping, options = {}, position = [], &callback)
-        # Pre-warm the agent cache so individual batch_task calls are cache hits
+        # Pre-warm the agent cache so individual batch_task calls are cache hits.
+        # A target that did not answer has no cache entry, and batch_task would
+        # discover it again and wait out the timeout again, so it gets its
+        # error here instead.
         configure_client(targets.first)
         discover_agents(targets)
+        discovered, silent = targets.partition { |target| discovered?(target) }
 
-        results = []
-        targets.each do |target|
+        silent_errors = silent.to_h { |target| [target, undiscovered_error(target)] }
+        silent.each { |target| callback&.call(type: :node_start, target: target) }
+        results = emit_results(silent_errors, action: 'task', name: task.name, position: position, &callback)
+        discovered.each do |target|
           results += batch_task([target], task, target_mapping[target], options, position, &callback)
         end
         results
@@ -173,11 +177,6 @@ module Bolt
           client.ping
         end
         response[:responded].length == targets.length
-      rescue StandardError => e
-        raise if e.is_a?(Bolt::Error)
-
-        logger.warn { "Batch connectivity check failed: #{e.class}: #{e.message}" }
-        false
       end
 
       def upload(_target, _source, _destination, _options = {}, _position = [])

@@ -28,7 +28,7 @@ describe Bolt::Transport::Choria do
         transport.discover_agents([target])
       end
 
-      it 'uses C:\Windows\Temp when default tmpdir is /tmp on a Windows target' do
+      it 'uses C:\Windows\Temp when no tmpdir is set on a Windows target' do
         allow(SecureRandom).to receive(:uuid).and_return('test-uuid')
         path = transport.generate_tmpdir_path(target)
         expect(path).to eq('C:\Windows\Temp\bolt-choria-test-uuid')
@@ -179,10 +179,11 @@ describe Bolt::Transport::Choria do
         expect(results.first.error_hash['msg']).to include('Unknown action start for agent shell')
       end
 
-      it 'returns error results for all targets when start raises' do
+      it 'returns error results for all targets when start raises, without polling' do
         stub_agents(target, %w[rpcutil shell])
 
         allow(mock_rpc_client).to receive(:start).and_raise(StandardError, 'NATS broker down')
+        expect(mock_rpc_client).not_to receive(:list)
 
         results = transport.batch_command([target], 'hostname', {})
         expect(results.length).to eq(1)
@@ -345,6 +346,19 @@ describe Bolt::Transport::Choria do
     it 'uploads task file, makes executable, and runs it' do
       result = transport.batch_task([target], task, {}).first
       expect(result.value).to eq('result' => 'ok')
+    end
+
+    it 'removes the tmpdir when an upload is interrupted' do
+      commands = []
+      allow(mock_rpc_client).to receive(:run) do |args|
+        commands << args[:command]
+        raise Interrupt if args[:command].include?('base64 -d')
+
+        [make_rpc_result(sender: target, data: { exitcode: 0 })]
+      end
+
+      expect { transport.batch_task([target], task, {}) }.to raise_error(Interrupt)
+      expect(commands.last).to eq('rm -rf /tmp/bolt-choria-test-uuid')
     end
 
     # Command-building details (stdin/environment/both input methods,
@@ -548,6 +562,32 @@ describe Bolt::Transport::Choria do
       expect(mock_rpc_client).not_to receive(:run)
       transport.cleanup_tmpdir([target], '/tmp/some-other-dir')
     end
+
+    context 'on a Windows target' do
+      before(:each) do
+        stub_agents(target, %w[rpcutil shell], os_family: 'windows')
+        transport.configure_client(target)
+        transport.discover_agents([target])
+      end
+
+      it 'removes a tmpdir whose path is joined with backslashes' do
+        scripts = []
+        allow(mock_rpc_client).to receive(:run) do |args|
+          encoded = args[:command].split.last
+          scripts << Base64.decode64(encoded).force_encoding('UTF-16LE').encode('UTF-8')
+          [make_rpc_result(sender: target, data: { exitcode: 0 })]
+        end
+
+        transport.cleanup_tmpdir([target], 'C:\Windows\Temp\bolt-choria-test-uuid')
+
+        expect(scripts).to eq(["Remove-Item -Recurse -Force -Path 'C:\\Windows\\Temp\\bolt-choria-test-uuid'"])
+      end
+
+      it 'refuses to delete a backslash path whose last part does not start with bolt-choria-' do
+        expect(mock_rpc_client).not_to receive(:run)
+        transport.cleanup_tmpdir([target], 'C:\Windows\Temp')
+      end
+    end
   end
 
   describe '#shell_statuses' do
@@ -742,18 +782,44 @@ describe Bolt::Transport::Choria do
   describe '#kill_timed_out_processes' do
     before(:each) { transport.configure_client(target) }
 
-    it 'still returns timeout error when kill raises' do
+    it 'still returns timeout error and warns when kill fails' do
       pending_map = { target => { handle: 'h1' } }
+      warnings = []
 
       # shell_list never finds completion, so the loop times out
-      allow(transport).to receive(:shell_list).and_return([{}, false])
-      allow(mock_rpc_client).to receive(:kill).and_raise(StandardError, 'NATS timeout on kill')
+      allow(transport).to receive(:shell_list).and_return([{}, {}, false])
+      allow(mock_rpc_client).to receive(:kill).and_return(
+        [make_rpc_result(sender: target, statuscode: 5, statusmsg: 'Could not kill the process')]
+      )
+      allow(transport.logger).to receive(:warn) { |*args, &block| warnings << (block ? block.call : args.first) }
 
       inventory.set_config(target, %w[choria command-timeout], 1)
       outputs = transport.wait_for_shell_results(pending_map, 1)
 
       expect(outputs.length).to eq(1)
       expect(outputs[target][:error_kind]).to eq('bolt/choria-command-timeout')
+      expect(warnings).to include(
+        'Failed to kill process on choria://node1.example.com: shell.kill on ' \
+        'choria://node1.example.com returned RPC error: Could not kill the process (code 5)'
+      )
+    end
+
+    it 'still returns timeout error and warns when kill raises' do
+      pending_map = { target => { handle: 'h1' } }
+      warnings = []
+
+      allow(transport).to receive(:shell_list).and_return([{}, {}, false])
+      allow(mock_rpc_client).to receive(:kill).and_raise(StandardError, 'NATS timeout on kill')
+      allow(transport.logger).to receive(:warn) { |*args, &block| warnings << (block ? block.call : args.first) }
+
+      inventory.set_config(target, %w[choria command-timeout], 1)
+      outputs = transport.wait_for_shell_results(pending_map, 1)
+
+      expect(outputs[target][:error_kind]).to eq('bolt/choria-command-timeout')
+      expect(warnings).to include(
+        'Failed to kill process on choria://node1.example.com: shell.kill failed on ' \
+        'choria://node1.example.com: NATS timeout on kill'
+      )
     end
   end
 end

@@ -33,8 +33,7 @@ module Bolt
           'broker-timeout' => 30,
           'puppet-environment' => 'production',
           'rpc-timeout' => 30,
-          'task-timeout' => 300,
-          'tmpdir' => '/tmp'
+          'task-timeout' => 300
         }.freeze
 
         VALID_AGENTS = %w[bolt_tasks shell].freeze

@@ -14,7 +14,7 @@ module Bolt
       WINDOWS_PATH_REGEX = %r{\A[A-Za-z]:[\\/]}
 
       def target_count(targets)
-        count = targets.is_a?(Hash) ? targets.size : targets.length
+        count = targets.size
         "#{count} #{count == 1 ? 'target' : 'targets'}"
       end
 
@@ -26,11 +26,11 @@ module Bolt
       #
       # @param targets [Array, Hash] Initial targets to poll (duped internally)
       # @param timeout [Numeric] Maximum seconds before exiting
-      # @param context [String] Label for log messages
+      # @param context [String] Label for log and error messages
       # @return [Hash] with keys:
-      #   - :completed [Hash{Target => Hash}] All finished target outputs
-      #   - :remaining [Array, Hash] Targets still pending when the loop exited
-      #   - :rpc_persistent_failure [Boolean] True if loop exited due to persistent RPC failures
+      #   - :completed [Hash{Target => Hash}] All finished target outputs, plus a poll
+      #     error for each pending target after RPC_FAILURE_RETRIES failed polls in a row
+      #   - :remaining [Array, Hash] Targets still pending at the deadline
       def poll_with_retries(targets, timeout, context)
         deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + timeout
         remaining = targets.dup
@@ -62,8 +62,17 @@ module Bolt
           break if Process.clock_gettime(Process::CLOCK_MONOTONIC) >= deadline
         end
 
-        { completed: completed, remaining: remaining,
-          rpc_persistent_failure: poll_failures >= RPC_FAILURE_RETRIES }
+        if poll_failures >= RPC_FAILURE_RETRIES
+          (remaining.is_a?(Hash) ? remaining.keys : remaining).each do |target|
+            completed[target] = error_output(
+              "RPC requests to poll #{context} on #{target.safe_name} failed persistently",
+              'bolt/choria-poll-failed'
+            )
+          end
+          remaining.clear
+        end
+
+        { completed: completed, remaining: remaining }
       end
 
       # Build a Bolt::Result from an output hash. Handles both success and
@@ -100,19 +109,16 @@ module Bolt
       end
 
       # Convert a hash of { target => output } into Results, fire callbacks,
-      # and return the Results array. When fire_node_start is true, fires a
-      # :node_start callback before each :node_result.
+      # and return the Results array.
       #
       # @param target_outputs [Hash{Bolt::Target => Hash}] Map of targets to output hashes
       # @param action [String] One of 'task', 'command', or 'script'
       # @param name [String] Task/command/script name for result metadata
       # @param position [Array] Positional info for result tracking
-      # @param fire_node_start [Boolean] Whether to emit :node_start before each result
-      # @param callback [Proc] Called with :node_start and :node_result events
+      # @param callback [Proc] Called with :node_result events
       # @return [Array<Bolt::Result>] Results for all targets in the hash
-      def emit_results(target_outputs, action:, name:, position:, fire_node_start: false, &callback)
+      def emit_results(target_outputs, action:, name:, position:, &callback)
         target_outputs.map do |target, data|
-          callback&.call(type: :node_start, target: target) if fire_node_start
           result = build_result(target, data, action: action, name: name, position: position)
           callback&.call(type: :node_result, result: result)
           result
@@ -120,8 +126,8 @@ module Bolt
       end
 
       # Build an output hash from command/task output.
-      def output(stdout: nil, stderr: nil, exitcode: nil)
-        { stdout: stdout || '', stderr: stderr || '', exitcode: exitcode || 0 }
+      def output(stdout:, stderr:, exitcode:)
+        { stdout: stdout || '', stderr: stderr || '', exitcode: exitcode }
       end
 
       # Build an error output hash. When actual output is available (e.g.
@@ -131,15 +137,14 @@ module Bolt
           .merge(error: message, error_kind: kind)
       end
 
-      # Extract exit code from RPC response data, defaulting to 1 with a
+      # Return the exit code an agent reported, defaulting to 1 with a
       # warning if the agent returned nil.
       #
-      # @param data [Hash] RPC response data containing :exitcode
+      # @param exitcode [Integer, nil] The exit code from the RPC response data
       # @param target [Bolt::Target] Target for logging context
       # @param context [String] Human-readable label for the log message
-      # @return [Integer] The exit code from the data, or 1 if nil
-      def exitcode_from(data, target, context)
-        exitcode = data[:exitcode] || data['exitcode']
+      # @return [Integer] The exit code, or 1 if nil
+      def exitcode_from(exitcode, target, context)
         if exitcode.nil?
           logger.warn {
             "Agent on #{target.safe_name} returned no exit code for #{context}. " \

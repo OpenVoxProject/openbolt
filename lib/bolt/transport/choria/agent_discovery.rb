@@ -15,7 +15,7 @@ module Bolt
       #
       # @param targets [Array<Bolt::Target>] Targets to discover agents on
       def discover_agents(targets)
-        uncached = targets.reject { |target| @agent_cache.key?(choria_identity(target)) }
+        uncached = targets.reject { |target| discovered?(target) }
         return if uncached.empty?
 
         logger.debug { "Discovering agents on #{target_count(uncached)}" }
@@ -23,9 +23,12 @@ module Bolt
         discover_os_family(uncached)
 
         uncached.each do |target|
-          identity = choria_identity(target)
-          logger.warn { "No response from #{identity} during agent discovery" } unless @agent_cache.key?(identity)
+          logger.warn { "No response from #{choria_identity(target)} during agent discovery" } unless discovered?(target)
         end
+      end
+
+      def discovered?(target)
+        @agent_cache.key?(choria_identity(target))
       end
 
       def has_agent?(target, agent_name)
@@ -48,7 +51,7 @@ module Bolt
 
         response[:responded].each do |target, data|
           sender = choria_identity(target)
-          agents = filter_agents(sender, data[:agents])
+          agents = filter_agents(sender, data&.dig(:agents))
           unless agents
             logger.warn { "Unexpected agent_inventory response from #{sender}. This target will be treated as unreachable." }
             next
@@ -68,7 +71,7 @@ module Bolt
       # @param targets [Array<Bolt::Target>] Targets to detect OS on
       def discover_os_family(targets)
         # Only fetch OS for targets that responded to agent_inventory
-        responded = targets.select { |target| @agent_cache.key?(choria_identity(target)) }
+        responded = targets.select { |target| discovered?(target) }
         return if responded.empty?
 
         response = rpc_request('rpcutil', responded, 'rpcutil.get_fact') do |client|
@@ -82,7 +85,7 @@ module Bolt
 
         response[:responded].each do |target, data|
           sender = choria_identity(target)
-          os_family = data[:value].to_s.downcase
+          os_family = data&.dig(:value).to_s.downcase
           if os_family.empty?
             logger.warn { "os.family fact is empty on #{sender}. Defaulting to POSIX command syntax." }
             next

@@ -79,7 +79,7 @@ module Bolt
             logger.debug { "Choria brokers overridden: #{brokers.join(', ')}" }
           end
 
-          if opts['ssl-ca'] && opts['ssl-cert'] && opts['ssl-key']
+          if opts['ssl-ca']
             unreadable = %w[ssl-ca ssl-cert ssl-key].find { |key| !File.readable?(opts[key]) }
             if unreadable
               raise Bolt::Error.new(
@@ -101,9 +101,9 @@ module Bolt
       end
 
       # Create an MCollective::RPC::Client for one or more targets.
-      # Accepts a single target or an array. Uses MCollective's direct
-      # addressing mode (client.discover(nodes:)) to skip broadcast
-      # discovery and send requests directly to the specified nodes.
+      # Uses MCollective's direct addressing mode (client.discover(nodes:))
+      # to skip broadcast discovery and send requests directly to the
+      # specified nodes.
       #
       # Note that when the client is created, if the shell agent isn't already
       # installed on the OpenBolt controller node, then the shell DDL that we
@@ -113,21 +113,18 @@ module Bolt
       # DDL is already included in the choria-mcorpc-support gem.
       #
       # @param agent_name [String] MCollective agent name (e.g. 'shell', 'bolt_tasks')
-      # @param targets [Bolt::Target, Array<Bolt::Target>] One or more targets to address
+      # @param targets [Array<Bolt::Target>] Targets to address
       # @param timeout [Numeric] RPC call timeout in seconds
       # @return [MCollective::RPC::Client] Configured client with direct addressing enabled
       def create_rpc_client(agent_name, targets, timeout)
-        targets = Array(targets)
         options = MCollective::Util.default_options
-        options[:timeout] = timeout
-        options[:verbose] = false
         options[:connection_timeout] = targets.first.options['broker-timeout']
-
-        collective = collective_for(targets.first)
-        options[:collective] = collective if collective
+        options[:collective] = collective_for(targets.first)
 
         client = MCollective::RPC::Client.new(agent_name, options: options)
-        client.progress = false
+        # Set after the build, which replaces a timeout of exactly 5, the
+        # gem's default, with the DDL timeout plus the discovery timeout.
+        client.timeout = timeout
 
         identities = targets.map { |target| choria_identity(target) }.uniq
         client.discover(nodes: identities)
@@ -165,9 +162,9 @@ module Bolt
       #     mapped to their response data
       #   - :errors [Hash] Targets with RPC errors or no response, mapped to error output hashes
       #   - :rpc_failed [Boolean] True when the entire RPC call failed
-      #   - :rpc_statuscodes [Hash] Per-target MCollective RPC statuscodes.
-      #     Includes all targets that responded (both :responded and :errors).
-      #     Not populated when rpc_failed is true (no individual responses).
+      #   - :aborted [Hash] Targets in :responded whose reply had statuscode 1,
+      #     mapped to the agent's status message, so a caller can report the
+      #     agent's reason
       def rpc_request(agent, targets, context)
         targets = Array(targets)
         rpc_results = @rpc_mutex.synchronize do
@@ -179,7 +176,7 @@ module Bolt
 
         responded = {}
         errors = {}
-        rpc_statuscodes = {}
+        aborted = {}
         targets.each do |target|
           rpc_result = by_sender[choria_identity(target)]
           if rpc_result.nil?
@@ -188,21 +185,20 @@ module Bolt
               'bolt/choria-no-response'
             )
           elsif rpc_result[:statuscode] > 1
-            rpc_statuscodes[target] = rpc_result[:statuscode]
             errors[target] = error_output(
               "#{context} on #{target.safe_name} returned RPC error: " \
               "#{rpc_result[:statusmsg]} (code #{rpc_result[:statuscode]})",
               'bolt/choria-rpc-error'
             )
           else
-            rpc_statuscodes[target] = rpc_result[:statuscode]
             if rpc_result[:statuscode] == 1
               logger.warn { "#{context} on #{target.safe_name} had RPC status code #{rpc_result[:statuscode]}: #{rpc_result[:statusmsg]}" }
+              aborted[target] = rpc_result[:statusmsg]
             end
             responded[target] = rpc_result[:data]
           end
         end
-        { responded: responded, errors: errors, rpc_failed: false, rpc_statuscodes: rpc_statuscodes }
+        { responded: responded, errors: errors, rpc_failed: false, aborted: aborted }
       rescue StandardError => e
         raise if e.is_a?(Bolt::Error)
 
@@ -211,11 +207,12 @@ module Bolt
           errs[target] = error_output("#{context} failed on #{target.safe_name}: #{e.message}",
                                       'bolt/choria-rpc-failed')
         end
-        { responded: {}, errors: errors, rpc_failed: true, rpc_statuscodes: {} }
+        { responded: {}, errors: errors, rpc_failed: true, aborted: {} }
       end
 
-      # Configure the client, discover agents, partition targets by agent
-      # availability, and emit errors for incapable targets.
+      # Fire node_start for every target, configure the client, discover
+      # agents, partition targets by agent availability, and emit errors for
+      # incapable targets.
       #
       # @param targets [Array<Bolt::Target>] Targets to prepare
       # @param agent_name [String] Required agent name (e.g. 'shell', 'bolt_tasks')
@@ -225,22 +222,31 @@ module Bolt
       #   - [Array<Bolt::Target>] Targets that have the required agent
       #   - [Array<Bolt::Result>] Error results for targets that lack the agent
       def prepare_targets(targets, agent_name, result_opts, &callback)
+        targets.each { |target| callback&.call(type: :node_start, target: target) }
         configure_client(targets.first)
         discover_agents(targets)
 
         capable, incapable = targets.partition { |target| has_agent?(target, agent_name) }
 
         agent_errors = incapable.each_with_object({}) do |target, errors|
-          msg = if @agent_cache[choria_identity(target)].nil?
-                  "No agent information available for #{target.safe_name} (node did not respond to discovery)"
-                else
-                  "The '#{agent_name}' agent is not available on #{target.safe_name}."
-                end
-          errors[target] = error_output(msg, 'bolt/choria-agent-not-available')
+          errors[target] = if discovered?(target)
+                             error_output("The '#{agent_name}' agent is not available on #{target.safe_name}.", 'bolt/choria-agent-not-available')
+                           else
+                             undiscovered_error(target)
+                           end
         end
-        incapable_results = emit_results(agent_errors, fire_node_start: true, **result_opts, &callback)
+        incapable_results = emit_results(agent_errors, **result_opts, &callback)
 
         [capable, incapable_results]
+      end
+
+      # The error output for a target that did not answer discovery.
+      #
+      # @param target [Bolt::Target]
+      # @return [Hash] An error output hash
+      def undiscovered_error(target)
+        error_output("No agent information available for #{target.safe_name} (node did not respond to discovery)",
+                     'bolt/choria-agent-not-available')
       end
 
       # Index RPC results by sender, keeping only the first response per

@@ -51,18 +51,19 @@ module Bolt
       # @return [Hash] with keys:
       #   - :failed_results [Array<Bolt::Result>] Error results from setup phase
       #   - :targets [Array<Bolt::Target>] Targets that successfully started
-      #   - :task_id [String, nil] Shared task ID for polling, nil if nothing started
+      #   - :task_id [String] Shared task ID for polling
+      #   When nothing started, only :failed_results is set.
       def download_and_start_task(targets, task, implementation, arguments, result_opts, &callback)
         environment = targets.first.options['puppet-environment']
         input_method = implementation['input_method']
         impl_files = [{ 'name' => File.basename(implementation['name']), 'path' => implementation['path'] }] +
-                     (implementation['files'] || [])
+                     implementation['files']
         file_specs_json = impl_files.map { |file| task_file_spec(file, task.module_name, environment) }.to_json
 
         # The failed_results reference will get updated and if we ever end up without
         # any targets left to act on, we can return it immediately.
         failed_results = []
-        none_started_result = { failed_results: failed_results, targets: [], task_id: nil }
+        none_started_result = { failed_results: failed_results }
 
         # Download task files
         logger.debug { "Downloading task #{task.name} files via bolt_tasks to #{target_count(targets)}" }
@@ -71,15 +72,13 @@ module Bolt
         end
         # The bolt_tasks agent uses reply.fail! with statuscode 1 for download
         # failures, which rpc_request routes to :responded since statuscode 0-1
-        # means the action completed. Check rpc_statuscodes to catch these and
+        # means the action completed. Check :aborted to catch these and
         # report the download failure clearly instead of letting run_no_wait
         # fail with a confusing "task not available" error.
         dl_errors = response[:errors]
-        response[:rpc_statuscodes].each do |target, code|
-          next if code.zero? || dl_errors.key?(target)
-
+        response[:aborted].each do |target, statusmsg|
           dl_errors[target] = error_output(
-            "bolt_tasks.download on #{target.safe_name} failed to download task files",
+            "bolt_tasks.download on #{target.safe_name} failed to download task files: #{statusmsg}",
             'bolt/choria-download-failed'
           )
         end
@@ -94,14 +93,25 @@ module Bolt
           client.run_no_wait(task: task.name, input_method: input_method,
                              files: file_specs_json, input: arguments.to_json)
         end
-        failed_results.concat(emit_results(response[:errors], **result_opts, &callback))
-        return none_started_result if response[:responded].empty?
+        # A reply with statuscode 1 lands in :responded like a download
+        # failure does, so it is moved to the errors the same way. Otherwise
+        # the target would be polled for a task that never ran, or its reply
+        # without a task_id would stand in for the whole group.
+        start_errors = response[:errors]
+        response[:aborted].each do |target, statusmsg|
+          start_errors[target] = error_output(
+            "bolt_tasks.run_no_wait on #{target.safe_name} failed to start the task: #{statusmsg}",
+            'bolt/choria-task-start-failed'
+          )
+        end
+        failed_results.concat(emit_results(start_errors, **result_opts, &callback))
+        started = response[:responded].except(*start_errors.keys)
 
         # Extract the shared task_id (all targets get the same one from
         # the single run_no_wait call that fanned out to all of them)
-        task_id = response[:responded].values.first&.dig(:task_id)
+        task_id = started.values.first&.dig(:task_id)
         unless task_id
-          no_id_errors = response[:responded].each_with_object({}) do |(target, _), errors|
+          no_id_errors = started.each_with_object({}) do |(target, _), errors|
             errors[target] = error_output(
               "bolt_tasks.run_no_wait on #{target.safe_name} succeeded but returned no task_id",
               'bolt/choria-missing-task-id'
@@ -111,8 +121,8 @@ module Bolt
           return none_started_result
         end
 
-        logger.debug { "Started task #{task.name} on #{target_count(response[:responded])}, task_id: #{task_id}" }
-        { failed_results: failed_results, targets: response[:responded].keys, task_id: task_id }
+        logger.debug { "Started task #{task.name} on #{target_count(started)}, task_id: #{task_id}" }
+        { failed_results: failed_results, targets: started.keys, task_id: task_id }
       end
 
       # Poll bolt_tasks.task_status until all targets complete or timeout.
@@ -128,9 +138,9 @@ module Bolt
           response = rpc_request('bolt_tasks', remaining, 'bolt_tasks.task_status') do |client|
             client.task_status(task_id: task_id)
           end
-          next { rpc_failed: true, done: {} } if response[:rpc_failed]
+          next { rpc_failed: true } if response[:rpc_failed]
 
-          done = response[:errors].dup
+          done = response[:errors]
 
           response[:responded].each do |target, data|
             if data.nil?
@@ -149,14 +159,8 @@ module Bolt
         end
 
         remaining_errors = poll_result[:remaining].each_with_object({}) do |target, errors|
-          errors[target] =
-            if poll_result[:rpc_persistent_failure]
-              error_output("RPC requests to poll task status on #{target.safe_name} failed persistently",
-                           'bolt/choria-poll-failed')
-            else
-              error_output("Task #{task.name} timed out after #{timeout} seconds on #{target.safe_name}",
-                           'bolt/choria-task-timeout')
-            end
+          errors[target] = error_output("Task #{task.name} timed out after #{timeout} seconds on #{target.safe_name}",
+                                        'bolt/choria-task-timeout')
         end
 
         poll_result[:completed].merge(remaining_errors)
@@ -168,7 +172,7 @@ module Bolt
       # @param target [Bolt::Target] Target for logging and stdout unwrapping context
       # @return [Hash] Output hash from output() or error_output()
       def extract_task_output(data, target)
-        exitcode = exitcode_from(data, target, 'task')
+        exitcode = exitcode_from(data[:exitcode], target, 'task')
         output(stdout: unwrap_bolt_tasks_stdout(data[:stdout]),
                stderr: data[:stderr], exitcode: exitcode)
       end

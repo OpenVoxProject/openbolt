@@ -70,15 +70,24 @@ module Bolt
       def prepend_env_vars(target, command, env_vars, context)
         return command unless env_vars&.any?
 
-        env_vars.each_key { |key| validate_env_key!(key, context) }
-
         if windows_target?(target)
-          set_stmts = env_vars.map { |key, val| "$env:#{key} = '#{ps_escape(val)}'" }
-          "#{set_stmts.join('; ')}; & #{command}"
+          "#{powershell_env_statements(env_vars, context)}; & #{command}"
         else
+          env_vars.each_key { |key| validate_env_key!(key, context) }
           env_str = env_vars.map { |key, val| "#{key}=#{Shellwords.shellescape(val)}" }.join(' ')
           "/usr/bin/env #{env_str} #{command}"
         end
+      end
+
+      # Build the PowerShell statements that set environment variables,
+      # after validating each name.
+      #
+      # @param env_vars [Hash{String => String}] Variable names to values
+      # @param context [String] Description for error messages (e.g., 'task argument')
+      # @return [String] The statements joined with '; '
+      def powershell_env_statements(env_vars, context)
+        env_vars.each_key { |key| validate_env_key!(key, context) }
+        env_vars.map { |key, val| "$env:#{key} = '#{ps_escape(val)}'" }.join('; ')
       end
 
       # Build a command that pipes data to another command via stdin.
@@ -137,6 +146,17 @@ module Bolt
         str.gsub("'", "''")
       end
 
+      # Build the command that runs an executable, through the interpreter
+      # when one is given.
+      #
+      # @param target [Bolt::Target] Used for platform detection
+      # @param path [String] Absolute path to the executable on the remote node
+      # @param interpreter [String, Array<String>, nil] Interpreter command, or nil to run the file directly
+      # @return [String] Shell command
+      def executable_command(target, path, interpreter)
+        (Array(interpreter) + [path]).map { |part| escape_arg(target, part) }.join(' ')
+      end
+
       # Build the full command string for task execution via the shell agent,
       # handling interpreter selection, environment variable injection, and
       # stdin piping.
@@ -149,9 +169,7 @@ module Bolt
       # @return [String] The fully constructed shell command
       def build_task_command(target, remote_task_path, arguments, input_method, interpreter_options)
         interpreter = select_interpreter(remote_task_path, interpreter_options)
-        cmd = interpreter ?
-          "#{Array(interpreter).map { |part| escape_arg(target, part) }.join(' ')} #{escape_arg(target, remote_task_path)}" :
-          escape_arg(target, remote_task_path)
+        cmd = executable_command(target, remote_task_path, interpreter)
 
         needs_env = Bolt::Task::ENVIRONMENT_METHODS.include?(input_method)
         needs_stdin = Bolt::Task::STDIN_METHODS.include?(input_method)
@@ -161,11 +179,9 @@ module Bolt
           # requires a script block. Pipeline data doesn't automatically
           # flow through a script block to inner commands, so we
           # explicitly forward $input via a pipe.
-          env_params = envify_params(arguments)
-          env_params.each_key { |key| validate_env_key!(key, 'task argument') }
-          set_stmts = env_params.map { |key, val| "$env:#{key} = '#{ps_escape(val)}'" }
+          env_statements = powershell_env_statements(envify_params(arguments), 'task argument')
           cmd = stdin_pipe_command(target, arguments.to_json,
-                                   "{ #{set_stmts.join('; ')}; $input | & #{cmd} }")
+                                   "{ #{env_statements}; $input | & #{cmd} }")
         else
           if needs_env
             cmd = prepend_env_vars(target, cmd, envify_params(arguments), 'task argument')

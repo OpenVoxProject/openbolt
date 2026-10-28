@@ -27,8 +27,6 @@ module Bolt
         timeout = first_target.options['command-timeout']
         command = prepend_env_vars(first_target, command, options[:env_vars], 'run_command env_vars')
 
-        shell_targets.each { |target| callback&.call(type: :node_start, target: target) }
-
         pending, start_failures = shell_start(shell_targets, command)
         results += emit_results(start_failures, **result_opts, &callback)
         results += emit_results(wait_for_shell_results(pending, timeout), **result_opts, &callback)
@@ -62,11 +60,9 @@ module Bolt
 
         script_content = File.binread(script)
 
-        shell_targets.each { |target| callback&.call(type: :node_start, target: target) }
-
         begin
           remote_path = join_path(first_target, tmpdir, File.basename(script))
-          active_targets = shell_targets.dup
+          active_targets = shell_targets
 
           # Create a temp directory with restricted permissions
           failures = shell_run(active_targets,
@@ -75,27 +71,17 @@ module Bolt
           results += emit_results(failures, **result_opts, &callback)
           active_targets -= failures.keys
 
-          # Upload the script file
+          # Upload the script file and make it executable
           if active_targets.any?
-            failures = upload_file_content(active_targets, script_content, remote_path)
-            results += emit_results(failures, **result_opts, &callback)
-            active_targets -= failures.keys
-          end
-
-          # Make the script executable (no-op on Windows)
-          chmod_cmd = make_executable_command(first_target, remote_path)
-          if active_targets.any? && chmod_cmd
-            failures = shell_run(active_targets, chmod_cmd, description: 'chmod script')
-            results += emit_results(failures, **result_opts, &callback)
-            active_targets -= failures.keys
+            active_targets, stage_results = stage_executable(active_targets, first_target, script_content,
+                                                             remote_path, result_opts, &callback)
+            results += stage_results
           end
 
           # Execute the script asynchronously and poll for completion
           if active_targets.any?
-            interpreter = select_interpreter(script, first_target.options['interpreters'])
-            cmd_parts = []
-            cmd_parts += Array(interpreter).map { |part| escape_arg(first_target, part) } if interpreter && options[:script_interpreter]
-            cmd_parts << escape_arg(first_target, remote_path)
+            interpreter = select_interpreter(script, first_target.options['interpreters']) if options[:script_interpreter]
+            cmd_parts = [executable_command(first_target, remote_path, interpreter)]
             cmd_parts += arguments.map { |arg| escape_arg(first_target, arg) }
 
             pending, start_failures = shell_start(active_targets, cmd_parts.join(' '))
@@ -114,8 +100,7 @@ module Bolt
       # @param target [Bolt::Target] Target whose platform and tmpdir config determine the base path
       # @return [String] Absolute path to a unique temporary directory
       def generate_tmpdir_path(target)
-        base = target.options['tmpdir']
-        base = 'C:\Windows\Temp' if base == '/tmp' && windows_target?(target)
+        base = target.options['tmpdir'] || (windows_target?(target) ? 'C:\Windows\Temp' : '/tmp')
         join_path(target, base, "bolt-choria-#{SecureRandom.uuid}")
       end
 
@@ -125,9 +110,11 @@ module Bolt
       # @param targets [Array<Bolt::Target>] Targets to clean up on
       # @param tmpdir [String] Absolute path to the temporary directory to remove
       def cleanup_tmpdir(targets, tmpdir)
-        return unless targets.first.options.fetch('cleanup', true)
+        return unless targets.first.options['cleanup']
 
-        unless File.basename(tmpdir).start_with?('bolt-choria-')
+        # A Windows target's tmpdir is joined with backslashes, which
+        # File.basename does not split on when the controller runs on Linux.
+        unless tmpdir.split(%r{[/\\]}).last.to_s.start_with?('bolt-choria-')
           logger.warn { "Refusing to delete unexpected tmpdir path: #{tmpdir}" }
           return
         end
@@ -163,19 +150,18 @@ module Bolt
         # platforms need different base paths (e.g., /tmp vs C:\Windows\Temp).
         begin
           targets.group_by { |target| select_implementation(target, task) }.each do |implementation, impl_targets|
-            start_result = upload_and_start_task(impl_targets, task, implementation,
+            tmpdir = generate_tmpdir_path(impl_targets.first)
+            cleanup_entries << { targets: impl_targets, tmpdir: tmpdir }
+            start_result = upload_and_start_task(impl_targets, task, implementation, tmpdir,
                                                  arguments, result_opts, &callback)
             results += start_result[:failed_results]
             all_pending.merge!(start_result[:pending])
-            cleanup_entries << { targets: impl_targets, tmpdir: start_result[:tmpdir] }
           end
 
           # Poll all handles in one loop. Unlike bolt_tasks (which needs
           # separate polls per task_id), shell handles are interchangeable.
-          unless all_pending.empty?
-            timeout = targets.first.options['task-timeout']
-            results += emit_results(wait_for_shell_results(all_pending, timeout), **result_opts, &callback)
-          end
+          timeout = targets.first.options['task-timeout']
+          results += emit_results(wait_for_shell_results(all_pending, timeout), **result_opts, &callback)
         ensure
           cleanup_entries.each { |entry| cleanup_tmpdir(entry[:targets], entry[:tmpdir]) }
         end
@@ -188,20 +174,19 @@ module Bolt
       # @param targets [Array<Bolt::Target>] Targets sharing the same implementation
       # @param task [Bolt::Task] Task being executed
       # @param implementation [Hash] Task implementation with 'path', 'name', 'input_method', 'files' keys
+      # @param tmpdir [String] Remote tmpdir path to create, which the caller cleans up
       # @param arguments [Hash] Task parameter names to values
       # @param result_opts [Hash] Options passed through to emit_results (:action, :name, :position)
       # @param callback [Proc] Called with :node_start and :node_result events
       # @return [Hash] with keys:
       #   - :failed_results [Array<Bolt::Result>] Error results from setup phase
       #   - :pending [Hash] Targets mapped to { handle: uuid } for polling
-      #   - :tmpdir [String] Remote tmpdir path for cleanup
-      def upload_and_start_task(targets, task, implementation, arguments, result_opts, &callback)
+      def upload_and_start_task(targets, task, implementation, tmpdir, arguments, result_opts, &callback)
         arguments = arguments.dup
         executable = implementation['path']
         input_method = implementation['input_method']
         extra_files = implementation['files']
         first_target = targets.first
-        tmpdir = generate_tmpdir_path(first_target)
 
         executable_content = File.binread(executable)
         extra_file_contents = {}
@@ -211,7 +196,7 @@ module Bolt
         end
 
         failed_results = []
-        active_targets = targets.dup
+        active_targets = targets
         task_dir = tmpdir
 
         # Create the tmpdir
@@ -248,32 +233,52 @@ module Bolt
           end
         end
 
-        # Upload the main task executable
-        remote_task_path = join_path(first_target, task_dir, File.basename(executable)) if active_targets.any?
-        if remote_task_path
-          failures = upload_file_content(active_targets, executable_content, remote_task_path)
-          failed_results += emit_results(failures, **result_opts, &callback)
-          active_targets -= failures.keys
-        end
-
-        # Make the task executable (no-op on Windows)
-        chmod_cmd = make_executable_command(first_target, remote_task_path) if remote_task_path
-        if active_targets.any? && chmod_cmd
-          failures = shell_run(active_targets, chmod_cmd, description: 'chmod task')
-          failed_results += emit_results(failures, **result_opts, &callback)
-          active_targets -= failures.keys
+        # Upload the main task executable and make it executable
+        if active_targets.any?
+          remote_task_path = join_path(first_target, task_dir, File.basename(executable))
+          active_targets, stage_results = stage_executable(active_targets, first_target, executable_content,
+                                                           remote_task_path, result_opts, &callback)
+          failed_results += stage_results
         end
 
         # Start the task asynchronously
         pending = {}
-        if active_targets.any? && remote_task_path
+        if active_targets.any?
           full_cmd = build_task_command(first_target, remote_task_path, arguments, input_method,
                                         first_target.options['interpreters'])
           pending, start_failures = shell_start(active_targets, full_cmd)
           failed_results += emit_results(start_failures, **result_opts, &callback)
         end
 
-        { failed_results: failed_results, pending: pending, tmpdir: tmpdir }
+        { failed_results: failed_results, pending: pending }
+      end
+
+      # Upload an executable to the same path on the targets and make it
+      # executable (no-op on Windows), emitting a result for each target
+      # that fails a step.
+      #
+      # @param targets [Array<Bolt::Target>] Targets to stage the executable on, at least 1
+      # @param first_target [Bolt::Target] Target whose platform determines the commands
+      # @param content [String] Raw file content (binary-safe)
+      # @param remote_path [String] Absolute path on the remote node
+      # @param result_opts [Hash] Options passed through to emit_results (:action, :name, :position)
+      # @param callback [Proc] Called with :node_result events
+      # @return [Array] 2-element array:
+      #   - [Array<Bolt::Target>] Targets that have the executable in place
+      #   - [Array<Bolt::Result>] Error results for the targets that failed a step
+      def stage_executable(targets, first_target, content, remote_path, result_opts, &callback)
+        failures = upload_file_content(targets, content, remote_path)
+        results = emit_results(failures, **result_opts, &callback)
+        targets -= failures.keys
+
+        chmod_cmd = make_executable_command(first_target, remote_path)
+        if targets.any? && chmod_cmd
+          failures = shell_run(targets, chmod_cmd, description: "chmod #{result_opts[:action]}")
+          results += emit_results(failures, **result_opts, &callback)
+          targets -= failures.keys
+        end
+
+        [targets, results]
       end
 
       # Execute a synchronous command on targets via the shell.run RPC action.
@@ -282,12 +287,11 @@ module Bolt
       #
       # @param targets [Array<Bolt::Target>] Targets to run the command on
       # @param command [String] Shell command to execute
-      # @param description [String, nil] Human-readable label for logging (defaults to command)
+      # @param description [String] Human-readable label for logs and error messages
       # @return [Hash{Bolt::Target => Hash}] Failures only; empty hash means all succeeded
-      def shell_run(targets, command, description: nil)
-        label = description || command
+      def shell_run(targets, command, description:)
         command = powershell_cmd(command) if windows_target?(targets.first)
-        response = rpc_request('shell', targets, label) do |client|
+        response = rpc_request('shell', targets, description) do |client|
           client.run(command: command)
         end
 
@@ -296,11 +300,11 @@ module Bolt
         failures = response[:errors]
         response[:responded].each do |target, data|
           data ||= {}
-          exitcode = exitcode_from(data, target, label)
+          exitcode = exitcode_from(data[:exitcode], target, description)
           next if exitcode.zero?
 
           failures[target] = error_output(
-            "#{label} failed on #{target.safe_name} (exit code #{exitcode}): #{data[:stderr]}",
+            "#{description} failed on #{target.safe_name} (exit code #{exitcode}): #{data[:stderr]}",
             'bolt/choria-operation-failed',
             stdout: data[:stdout], stderr: data[:stderr], exitcode: exitcode
           )
@@ -363,31 +367,14 @@ module Bolt
       # @param timeout [Numeric] Maximum seconds to wait before killing remaining processes
       # @return [Hash{Bolt::Target => Hash}] Output hash for every target (success and error)
       def wait_for_shell_results(pending, timeout)
-        return {} if pending.empty?
-
         poll_result = poll_with_retries(pending, timeout, 'shell.list') do |remaining|
-          completed, rpc_failed = shell_list(remaining)
-          next { rpc_failed: true, done: {} } if rpc_failed
+          finished, failed, rpc_failed = shell_list(remaining)
+          next { rpc_failed: true } if rpc_failed
 
-          done = {}
-          fetch_targets = {}
-          completed.each do |target, value|
-            if value[:error]
-              done[target] = value
-            else
-              fetch_targets[target] = value
-            end
-          end
-
-          unless fetch_targets.empty?
-            logger.debug { "Fetching output from #{target_count(fetch_targets)}" }
-            fetched = shell_statuses(fetch_targets)
-            fetch_targets.each_key do |target|
-              done[target] = fetched[target] || error_output(
-                "Command completed on #{target.safe_name} but output could not be fetched",
-                'bolt/choria-result-processing-error'
-              )
-            end
+          done = failed
+          unless finished.empty?
+            logger.debug { "Fetching output from #{target_count(finished)}" }
+            done.merge!(shell_statuses(finished))
           end
 
           { rpc_failed: false, done: done }
@@ -395,21 +382,12 @@ module Bolt
 
         remaining_errors = {}
         unless poll_result[:remaining].empty?
-          if poll_result[:rpc_persistent_failure]
-            poll_result[:remaining].each_key do |target|
-              remaining_errors[target] = error_output(
-                "RPC requests to poll shell status on #{target.safe_name} failed persistently",
-                'bolt/choria-poll-failed'
-              )
-            end
-          else
-            kill_timed_out_processes(poll_result[:remaining])
-            poll_result[:remaining].each_key do |target|
-              remaining_errors[target] = error_output(
-                "Command timed out after #{timeout} seconds on #{target.safe_name}",
-                'bolt/choria-command-timeout'
-              )
-            end
+          kill_timed_out_processes(poll_result[:remaining])
+          poll_result[:remaining].each_key do |target|
+            remaining_errors[target] = error_output(
+              "Command timed out after #{timeout} seconds on #{target.safe_name}",
+              'bolt/choria-command-timeout'
+            )
           end
         end
 
@@ -421,22 +399,25 @@ module Bolt
       #
       # @param remaining [Hash{Bolt::Target => Hash}] Targets still pending, each mapped to
       #   { handle: uuid_string }
-      # @return [Array] Two-element array:
-      #   - done [Hash{Bolt::Target => Hash}] Completed targets mapped to handle state or error hash
+      # @return [Array] 3-element array:
+      #   - finished [Hash{Bolt::Target => Hash}] Targets whose process finished, mapped to
+      #     { handle: uuid_string }
+      #   - failed [Hash{Bolt::Target => Hash}] Targets whose poll failed, mapped to error hashes
       #   - rpc_failed [Boolean] True when the entire RPC call failed
       def shell_list(remaining)
         response = rpc_request('shell', remaining.keys, 'shell.list') do |client|
           client.list
         end
-        return [{}, true] if response[:rpc_failed]
+        return [{}, {}, true] if response[:rpc_failed]
 
-        done = response[:errors]
-        logger.debug { "shell.list: #{target_count(response[:responded])} responded, #{target_count(done)} failed" } unless done.empty?
+        finished = {}
+        failed = response[:errors]
+        logger.debug { "shell.list: #{target_count(response[:responded])} responded, #{target_count(failed)} failed" } unless failed.empty?
 
         response[:responded].each do |target, data|
           if data.nil?
-            done[target] = error_output("shell.list on #{target.safe_name} returned success but no data",
-                                        'bolt/choria-missing-data')
+            failed[target] = error_output("shell.list on #{target.safe_name} returned success but no data",
+                                          'bolt/choria-missing-data')
             next
           end
 
@@ -449,7 +430,7 @@ module Bolt
               "shell.list on #{target.safe_name}: handle #{handle} not found, " \
               "available handles: #{job_handles.inspect}"
             }
-            done[target] = error_output(
+            failed[target] = error_output(
               "Handle #{handle} not found in shell.list on #{target.safe_name}. " \
               "The process may have been cleaned up or the agent may have restarted.",
               'bolt/choria-handle-not-found'
@@ -459,10 +440,10 @@ module Bolt
 
           status = job['status']&.to_s
           logger.debug { "shell.list on #{target.safe_name}: handle #{handle} status: #{status}" }
-          done[target] = remaining[target] if SHELL_DONE_STATUSES.include?(status)
+          finished[target] = remaining[target] if SHELL_DONE_STATUSES.include?(status)
         end
 
-        [done, false]
+        [finished, failed, false]
       end
 
       # Fetch stdout/stderr/exitcode from completed targets via the
@@ -472,7 +453,7 @@ module Bolt
       # @return [Hash{Bolt::Target => Hash}] Output hash for each target
       def shell_statuses(targets)
         handles = targets.transform_values { |data| data[:handle] }
-        logger.debug { "Fetching shell.statuses for #{target_count(targets.keys)}" }
+        logger.debug { "Fetching shell.statuses for #{target_count(targets)}" }
 
         results = {}
         response = rpc_request('shell', targets.keys, 'shell.statuses') do |client|
@@ -518,10 +499,10 @@ module Bolt
             results[target] = error_output(
               "Process failed on #{target.safe_name}: #{stderr}",
               'bolt/choria-process-failed',
-              stdout: stdout, stderr: stderr, exitcode: 1
+              stdout: stdout, stderr: stderr
             )
           else
-            exitcode = exitcode_from(status_data, target, 'shell.statuses')
+            exitcode = exitcode_from(status_data['exitcode'], target, 'shell.statuses')
             results[target] = output(stdout: stdout, stderr: stderr, exitcode: exitcode)
           end
         end
@@ -548,11 +529,12 @@ module Bolt
       def kill_timed_out_processes(targets)
         logger.debug { "Killing timed-out processes on #{target_count(targets)}" }
         targets.each do |target, state|
-          rpc_request('shell', target, 'shell.kill') do |client|
+          response = rpc_request('shell', target, 'shell.kill') do |client|
             client.kill(handle: state[:handle])
           end
-        rescue StandardError => e
-          logger.warn { "Failed to kill process on #{target.safe_name}: #{e.message}" }
+          response[:errors].each_value do |output|
+            logger.warn { "Failed to kill process on #{target.safe_name}: #{output[:error]}" }
+          end
         end
       end
     end
