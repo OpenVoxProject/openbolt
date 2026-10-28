@@ -172,7 +172,7 @@ begin
               short: switch.short.first,
               long: switch.long.first,
               arg: switch.arg,
-              desc: switch.desc.map { |d| d.gsub("<", "&lt;") }.join("<p>")
+              desc: switch.desc.map { |d| d.gsub("<", "&lt;") }.join(" ")
             }
           end
 
