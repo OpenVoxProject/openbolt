@@ -355,8 +355,8 @@ module Bolt
           "run-as-command" => {
             type: Array,
             description: "The command to elevate permissions. OpenBolt appends the user and command strings to the " \
-                         "configured `run-as-command` before running it on the target. This command must not require  " \
-                         "aninteractive password prompt, and the `sudo-password` option is ignored when " \
+                         "configured `run-as-command` before running it on the target. This command must not require " \
+                         "an interactive password prompt, and the `sudo-password` option is ignored when " \
                          "`run-as-command` is specified. The `run-as-command` must be specified as an array.",
             items: {
               type: String
