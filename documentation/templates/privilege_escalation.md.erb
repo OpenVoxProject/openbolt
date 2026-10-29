@@ -57,18 +57,18 @@ You can configure escalation privilege in your `inventory.yaml` or
 <% @run_as.each do |option, data| -%>
 #### `<%= option %>`
 
-<%= data[:desc] %>
+<%= data[:description] %>
 
 <% if data.key?(:type) -%>
 - **Type:** <%= data[:type] %>
 <% end -%>
-<% if data.key?(:def) -%>
-- **Default:** <%= data[:def] %>
+<% if data.key?(:_default) -%>
+- **Default:** <%= data[:_default] %>
 <% end -%>
 
-<% if data.key?(:exmp) -%>
+<% if data.key?(:_example) -%>
 ```yaml
-<%= { option => data[:exmp] }.to_yaml(indentation: 2).split("\n").drop(1).join("\n") %>
+<%= { option => data[:_example] }.to_yaml(indentation: 2).split("\n").drop(1).join("\n") %>
 ```
 <% end %>
 <% end %>
