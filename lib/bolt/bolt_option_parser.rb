@@ -216,21 +216,21 @@ module Bolt
           command           Run a command remotely
           file              Copy files between the controller and targets
           group             Show the list of groups in the inventory
-          guide             View guides for Bolt concepts and features
+          guide             View guides for OpenBolt concepts and features
           inventory         Show the list of targets an action would run on
-          module            Manage Bolt project modules
+          module            Manage OpenBolt project modules
           lookup            Look up a value with Hiera
-          plan              Convert, create, show, and run Bolt plans
+          plan              Convert, create, show, and run plans
           plugin            Show available plugins
           policy            Apply, create, and show policies
-          project           Create and migrate Bolt projects
+          project           Create and migrate OpenBolt projects
           script            Upload a local script and run it remotely
           secret            Create encryption keys and encrypt and decrypt values
-          task              Show and run Bolt tasks
+          task              Show and run tasks
 
       #{colorize(:cyan, 'Guides')}
-          For a list of guides on Bolt's concepts and features, run 'bolt guide'.
-          Find Bolt's documentation at https://bolt.guide.
+          For a list of guides on OpenBolt's concepts and features, run 'bolt guide'.
+          Find OpenBolt's documentation at https://docs.openvoxproject.org/openbolt/latest/.
     HELP
 
     APPLY_HELP = <<~HELP
@@ -385,7 +385,7 @@ module Bolt
           bolt guide [topic] [options]
 
       #{colorize(:cyan, 'Description')}
-          View guides for Bolt's concepts and features.
+          View guides for OpenBolt's concepts and features.
 
           Omitting a topic will display a list of available guides,
           while providing a topic will display the relevant guide.
@@ -445,7 +445,7 @@ module Bolt
           Look up a value with Hiera.
 
       #{colorize(:cyan, 'Documentation')}
-          Learn more about using Hiera with Bolt at https://docs.openvoxproject.org/openbolt/latest/hiera.html.
+          Learn more about using Hiera with OpenBolt at https://docs.openvoxproject.org/openbolt/latest/hiera.html.
 
       #{colorize(:cyan, 'Examples')}
           bolt lookup password --targets servers
@@ -460,16 +460,16 @@ module Bolt
           bolt module <action> [options]
 
       #{colorize(:cyan, 'Description')}
-          Manage Bolt project modules.
+          Manage OpenBolt project modules.
 
       #{colorize(:cyan, 'Documentation')}
-          To learn more about Bolt modules run 'bolt guide module'.
+          To learn more about modules, run 'bolt guide module'.
 
       #{colorize(:cyan, 'Actions')}
           add                   Add a module to the project
           generate-types        Generate type references to register in plans
           install               Install the project's modules
-          show                  List modules available to the Bolt project
+          show                  List modules available to the OpenBolt project
     HELP
 
     MODULE_ADD_HELP = <<~HELP
@@ -483,11 +483,11 @@ module Bolt
           Add a module to the project.
 
           Module declarations are loaded from the project's configuration
-          file. Bolt will automatically resolve all module dependencies,
+          file. OpenBolt will automatically resolve all module dependencies,
           generate a Puppetfile, and install the modules.
 
       #{colorize(:cyan, 'Documentation')}
-          To learn more about Bolt modules, run 'bolt guide module'.
+          To learn more about modules, run 'bolt guide module'.
     HELP
 
     MODULE_GENERATETYPES_HELP = <<~HELP
@@ -499,10 +499,10 @@ module Bolt
 
       #{colorize(:cyan, 'Description')}
           Generate type references to register in plans. To learn more about
-          Bolt modules, run 'bolt guide module'.
+          modules, run 'bolt guide module'.
 
       #{colorize(:cyan, 'Documentation')}
-          To learn more about Bolt modules, run 'bolt guide module'.
+          To learn more about modules, run 'bolt guide module'.
     HELP
 
     MODULE_INSTALL_HELP = <<~HELP
@@ -516,11 +516,11 @@ module Bolt
           Install the project's modules.
 
           Module declarations are loaded from the project's configuration
-          file. Bolt will automatically resolve all module dependencies,
+          file. OpenBolt will automatically resolve all module dependencies,
           generate a Puppetfile, and install the modules.
 
       #{colorize(:cyan, 'Documentation')}
-          To learn more about Bolt modules, run 'bolt guide module'.
+          To learn more about modules, run 'bolt guide module'.
     HELP
 
     MODULE_SHOW_HELP = <<~HELP
@@ -531,13 +531,13 @@ module Bolt
           bolt module show [module name] [options]
 
       #{colorize(:cyan, 'Description')}
-          List modules available to the Bolt project.
+          List modules available to the OpenBolt project.
 
           Providing the name of a module will display detailed documentation for
           the module.
 
       #{colorize(:cyan, 'Documentation')}
-          To learn more about Bolt modules, run 'bolt guide module'.
+          To learn more about modules, run 'bolt guide module'.
     HELP
 
     PLAN_HELP = <<~HELP
@@ -548,13 +548,13 @@ module Bolt
           bolt plan <action> [options]
 
       #{colorize(:cyan, 'Description')}
-          Convert, create, show, and run Bolt plans.
+          Convert, create, show, and run plans.
 
       #{colorize(:cyan, 'Documentation')}
-          Learn more about Bolt plans at https://docs.openvoxproject.org/openbolt/latest/plans.html.
+          Learn more about plans at https://docs.openvoxproject.org/openbolt/latest/plans.html.
 
       #{colorize(:cyan, 'Actions')}
-          convert       Convert a YAML plan to a Bolt plan
+          convert       Convert a YAML plan to a Puppet language plan
           new           Create a new plan in the current project
           run           Run a plan on the specified targets
           show          Show available plans and plan documentation
@@ -576,7 +576,7 @@ module Bolt
           functionality. Note that the converted plan is not written to a file.
 
       #{colorize(:cyan, 'Documentation')}
-          Learn more about Bolt plans at https://docs.openvoxproject.org/openbolt/latest/plans.html.
+          Learn more about plans at https://docs.openvoxproject.org/openbolt/latest/plans.html.
 
       #{colorize(:cyan, 'Examples')}
           bolt plan convert myproject::myplan
@@ -594,7 +594,7 @@ module Bolt
           Create a new plan in the current project.
 
       #{colorize(:cyan, 'Documentation')}
-          Learn more about Bolt plans at https://docs.openvoxproject.org/openbolt/latest/plans.html.
+          Learn more about plans at https://docs.openvoxproject.org/openbolt/latest/plans.html.
 
       #{colorize(:cyan, 'Examples')}
           bolt plan new myproject::myplan
@@ -611,7 +611,7 @@ module Bolt
           Run a plan on the specified targets.
 
       #{colorize(:cyan, 'Documentation')}
-          Learn more about Bolt plans at https://docs.openvoxproject.org/openbolt/latest/plans.html.
+          Learn more about plans at https://docs.openvoxproject.org/openbolt/latest/plans.html.
 
       #{colorize(:cyan, 'Examples')}
           bolt plan run canary --targets target1,target2 command=hostname
@@ -628,13 +628,13 @@ module Bolt
           Show available plans and plan documentation.
 
           Omitting the name of a plan will display a list of plans available
-          in the Bolt project.
+          in the OpenBolt project.
 
           Providing the name of a plan will display detailed documentation for
           the plan, including a list of available parameters.
 
       #{colorize(:cyan, 'Documentation')}
-          Learn more about Bolt plans at https://docs.openvoxproject.org/openbolt/latest/plans.html.
+          Learn more about plans at https://docs.openvoxproject.org/openbolt/latest/plans.html.
 
       #{colorize(:cyan, 'Examples')}
           Display a list of available plans
@@ -654,7 +654,7 @@ module Bolt
           Show available plugins.
 
       #{colorize(:cyan, 'Documentation')}
-          Learn more about Bolt plugins at https://docs.openvoxproject.org/openbolt/latest/using_plugins.html.
+          Learn more about plugins at https://docs.openvoxproject.org/openbolt/latest/using_plugins.html.
 
       #{colorize(:cyan, 'Actions')}
           show          Show available plugins
@@ -671,7 +671,7 @@ module Bolt
           Show available plugins.
 
       #{colorize(:cyan, 'Documentation')}
-          Learn more about Bolt plugins at https://docs.openvoxproject.org/openbolt/latest/using_plugins.html.
+          Learn more about plugins at https://docs.openvoxproject.org/openbolt/latest/using_plugins.html.
     HELP
 
     POLICY_HELP = <<~HELP
@@ -731,14 +731,14 @@ module Bolt
           bolt project <action> [options]
 
       #{colorize(:cyan, 'Description')}
-          Create and migrate Bolt projects
+          Create and migrate OpenBolt projects
 
       #{colorize(:cyan, 'Documentation')}
-          To learn more about Bolt projects, run 'bolt guide project'.
+          To learn more about OpenBolt projects, run 'bolt guide project'.
 
       #{colorize(:cyan, 'Actions')}
-          init              Create a new Bolt project
-          migrate           Migrate a Bolt project to the latest version
+          init              Create a new OpenBolt project
+          migrate           Migrate an OpenBolt project to the latest version
     HELP
 
     PROJECT_INIT_HELP = <<~HELP
@@ -749,19 +749,19 @@ module Bolt
           bolt project init [name] [options]
 
       #{colorize(:cyan, 'Description')}
-          Create a new Bolt project in the current working directory.
+          Create a new OpenBolt project in the current working directory.
 
-          Specify a name for the Bolt project. Defaults to the basename of the current working directory.
+          Specify a name for the OpenBolt project. Defaults to the basename of the current working directory.
 
       #{colorize(:cyan, 'Documentation')}
-          To learn more about Bolt projects, run 'bolt guide project'.
+          To learn more about OpenBolt projects, run 'bolt guide project'.
 
       #{colorize(:cyan, 'Examples')}
-          Create a new Bolt project using the directory as the project name.
+          Create a new OpenBolt project using the directory as the project name.
             bolt project init
-          Create a new Bolt project with a specified name.
+          Create a new OpenBolt project with a specified name.
             bolt project init myproject
-          Create a new Bolt project with existing modules.
+          Create a new OpenBolt project with existing modules.
             bolt project init --modules puppetlabs-apt,puppetlabs-ntp
     HELP
 
@@ -773,11 +773,11 @@ module Bolt
           bolt project migrate [options]
 
       #{colorize(:cyan, 'Description')}
-          Migrate a Bolt project to use current best practices and the latest version of
+          Migrate an OpenBolt project to use current best practices and the latest version of
           configuration files.
 
       #{colorize(:cyan, 'Documentation')}
-          To learn more about Bolt projects, run 'bolt guide project'.
+          To learn more about OpenBolt projects, run 'bolt guide project'.
     HELP
 
     SCRIPT_HELP = <<~HELP
@@ -888,13 +888,13 @@ module Bolt
           bolt task <action> [options]
 
       #{colorize(:cyan, 'Description')}
-          Show and run Bolt tasks.
+          Show and run tasks.
 
       #{colorize(:cyan, 'Documentation')}
-          Learn more about Bolt tasks at https://docs.openvoxproject.org/openbolt/latest/tasks.html.
+          Learn more about tasks at https://docs.openvoxproject.org/openbolt/latest/tasks.html.
 
       #{colorize(:cyan, 'Actions')}
-          run          Run a Bolt task
+          run          Run a task
           show         Show available tasks and task documentation
     HELP
 
@@ -912,7 +912,7 @@ module Bolt
           Parameters take the form parameter=value.
 
       #{colorize(:cyan, 'Documentation')}
-          Learn more about Bolt tasks at https://docs.openvoxproject.org/openbolt/latest/tasks.html.
+          Learn more about tasks at https://docs.openvoxproject.org/openbolt/latest/tasks.html.
 
       #{colorize(:cyan, 'Examples')}
           bolt task run package --targets target1,target2 action=status name=bash
@@ -929,13 +929,13 @@ module Bolt
           Show available tasks and task documentation.
 
           Omitting the name of a task will display a list of tasks available
-          in the Bolt project.
+          in the OpenBolt project.
 
           Providing the name of a task will display detailed documentation for
           the task, including a list of available parameters.
 
       #{colorize(:cyan, 'Documentation')}
-          Learn more about Bolt tasks at https://docs.openvoxproject.org/openbolt/latest/tasks.html.
+          Learn more about tasks at https://docs.openvoxproject.org/openbolt/latest/tasks.html.
 
       #{colorize(:cyan, 'Examples')}
           Display a list of available tasks
@@ -962,7 +962,7 @@ module Bolt
              "Available filters are 'all', 'failure', and 'success'.") do |rerun|
         @options[:rerun] = rerun
       end
-      define('--noop', 'See what changes Bolt will make without actually executing the changes.') do |_|
+      define('--noop', 'See what changes OpenBolt will make without actually executing the changes.') do |_|
         @options[:noop] = true
       end
       define('--params PARAMETERS',
@@ -1042,7 +1042,7 @@ module Bolt
         end
       end
       define('--project PATH',
-             'Path to load the Bolt project from (default: autodiscovered from current dir).') do |path|
+             'Path to load the OpenBolt project from (default: autodiscovered from current dir).') do |path|
         @options[:project] = path
       end
       define('--hiera-config PATH',
@@ -1161,7 +1161,7 @@ module Bolt
       separator "\n#{self.class.colorize(:cyan, 'Module options')}"
       define('--[no-]resolve',
              'Use --no-resolve to install modules listed in the Puppetfile without resolving modules configured',
-             'in Bolt project configuration.') do |resolve|
+             'in OpenBolt project configuration.') do |resolve|
         @options[:resolve] = resolve
       end
 
@@ -1210,7 +1210,7 @@ module Bolt
       end
       define('--stream',
              'Stream output from scripts and commands to the console.',
-             'Run with --no-verbose to prevent Bolt from displaying output',
+             'Run with --no-verbose to prevent OpenBolt from displaying output',
              'a second time after the action is completed.') do |_|
         @options[:stream] = true
       end

@@ -8,7 +8,7 @@ require 'bolt/logger'
 # > **Note:** Not available in apply block
 Puppet::Functions.create_function(:wait, Puppet::Functions::InternalFunction) do
   # Wait for Futures to finish.
-  # @param futures A Bolt Future object or array of Bolt Futures to wait on.
+  # @param futures A Future object or array of Futures to wait on.
   # @param options A hash of additional options.
   # @option options [Boolean] _catch_errors Whether to catch raised errors.
   # @return A Result or Results from the Futures
@@ -57,7 +57,7 @@ Puppet::Functions.create_function(:wait, Puppet::Functions::InternalFunction) do
   end
 
   # Wait for Futures to finish with timeout.
-  # @param futures A Bolt Future object or array of Bolt Futures to wait on.
+  # @param futures A Future object or array of Futures to wait on.
   # @param timeout How long to wait for Futures to finish before raising a Timeout error.
   # @param options A hash of additional options.
   # @option options [Boolean] _catch_errors Whether to catch raised errors.

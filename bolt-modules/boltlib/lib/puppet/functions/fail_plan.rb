@@ -5,7 +5,7 @@ require 'bolt/error'
 # Raises a `Bolt::PlanFailure` exception to signal to callers that the plan failed.
 #
 # Plan authors should call this function when their plan is not successful. The
-# error may then be caught by another plans `run_plan` function or in Bolt itself
+# error may then be caught by another plans `run_plan` function or in OpenBolt itself
 #
 # > **Note:** Not available in apply block
 Puppet::Functions.create_function(:fail_plan) do

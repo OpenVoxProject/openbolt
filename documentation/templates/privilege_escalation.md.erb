@@ -1,20 +1,20 @@
 ---
 layout: default
-title: Escalating privilege with Bolt
+title: Escalating privilege with OpenBolt
 ---
 
-# Escalating privilege with Bolt
+# Escalating privilege with OpenBolt
 
-By default, Bolt connects to, and executes on, remote systems as the same user.
+By default, OpenBolt connects to, and executes on, remote systems as the same user.
 Sometimes, connection and execution need to be done as separate users. For
 example, you might need to install a package as the root user on a system that
-doesn't allow incoming connections as the root user.  Bolt has several
+doesn't allow incoming connections as the root user.  OpenBolt has several
 configuration options for setting which user to execute as, how to escalate to
 that user, and how to run commands as that user.
 
 ## Limitations
 
-Bolt will only use the `run-as` user if:
+OpenBolt will only use the `run-as` user if:
 
 * The target shell is Bash
 * The transport is Local or SSH
@@ -24,20 +24,20 @@ Bolt will only use the `run-as` user if:
 ### Escalating privilege must be generalized
 
 Limiting privilege escalation permission to certain commands will not work well
-when running Bolt tasks, scripts, and some plans. Bolt often uses a temporary
-directory to copy content to remote systems and execute, which prevents Bolt's
-remote commands from being predictable. Furthermore, Bolt is an automation
+when running tasks, scripts, and some plans. OpenBolt often uses a temporary
+directory to copy content to remote systems and execute, which prevents OpenBolt's
+remote commands from being predictable. Furthermore, OpenBolt is an automation
 tool, and many organizations enforce specific security policies to prevent the
-kind of automated interaction that Bolt is performing. As a result, you will
-need to allow arbitrary script execution for any users who need to use Bolt to
-run tasks or scripts. We recommend either having a dedicated user to run Bolt
+kind of automated interaction that OpenBolt is performing. As a result, you will
+need to allow arbitrary script execution for any users who need to use OpenBolt to
+run tasks or scripts. We recommend either having a dedicated user to run OpenBolt
 on target systems and managing access to that user, or using [Puppet Enterprise
 to limit which tasks a user can run on which
 targets](https://puppet.com/docs/pe/latest/rbac_permissions_intro.html#user_permissions).
 
 ## Configuring `run-as`
 
-You can use privilege escalation from the command-line, or set it up using Bolt's configuration files.
+You can use privilege escalation from the command-line, or set it up using OpenBolt's configuration files.
 
 ### Command-line options
 
@@ -52,7 +52,7 @@ You can use privilege escalation from the command-line, or set it up using Bolt'
 
 You can configure escalation privilege in your `inventory.yaml` or
 `bolt-defaults.yaml` files. For more information on which file to use, see
-[Configuring Bolt](configuring_bolt.html).
+[Configuring OpenBolt](configuring_bolt.html).
 
 <% @run_as.each do |option, data| -%>
 #### `<%= option %>`
@@ -75,7 +75,7 @@ You can configure escalation privilege in your `inventory.yaml` or
 
 ## How `run-as` works
 
-Each time Bolt executes, it builds a command string to run on the remote
+Each time OpenBolt executes, it builds a command string to run on the remote
 system. The command is built from many configuration options, including
 interpreters, task input method, and the `run-as` configuration. When `run-as`
 is set, the following is prepended to the command:
@@ -100,10 +100,10 @@ will prepend the following to the command being run:
 
 This enables using any executable and command-line options to change users. Keep in mind that:
 - The `run-as-command` is non-interactive. If you set `run-as-command` and the
-  system prompts for a password, Bolt will error instead of supplying the password.
-- Bolt always appends the specified `run-as` user to the specified `run-as-command`,
+  system prompts for a password, OpenBolt will error instead of supplying the password.
+- OpenBolt always appends the specified `run-as` user to the specified `run-as-command`,
   which can be limiting for some escalating commands.
-- Bolt will not use the `run-as-command` option if `run-as` is not set.
+- OpenBolt will not use the `run-as-command` option if `run-as` is not set.
 
 ## Escalating privilege over WinRM
 
@@ -132,12 +132,12 @@ If you want to securely pass credentials into a Powershell script, you have two 
   pass the parameters as static values to a task, or compute them per target and use a
   plan to pass them to the task.
 - **Use a remote task:** If your secrets are unique to each target and you don't want
-  to write a Bolt plan, you can use a remote task. This option requires you to manage
-  the connection to the target yourself, rather than letting Bolt manage the connection.
+  to write a plan, you can use a remote task. This option requires you to manage
+  the connection to the target yourself, rather than letting OpenBolt manage the connection.
 
 If you're not sure where to start, we recommend using a task with sensitive
 parameters. If your secrets are unique to targets, you must also use an
-inventory plugin and a Bolt plan. [This method is demonstrated in the example
+inventory plugin and a plan. [This method is demonstrated in the example
 below](#example).
 
 If your secrets are the same for every target, you can pass sensitive
@@ -145,7 +145,7 @@ parameters to a task as static values. If your secrets are unique to each
 target, or the secrets need to be computed or fetched, set the secrets as data
 on the target in the inventory. For the purposes of escalating as a secondary
 user, you can set arbitrary variables on targets in the inventory which you
-can then access from a Bolt plan.
+can then access from a plan.
 
 You can set [variables on the target
 object](inventory_files.html#target-object) in your
@@ -158,14 +158,14 @@ Remote tasks run on localhost and pass the entire target object as JSON to the
 task as a metaparameter `_target`. You can write a task to get the secret, and
 then connect to the remote target and use the secret there. Put another way, if
 you're using a remote task, you have to manage the connection to the remote
-target in your task rather than letting Bolt manage it for you.  You should
+target in your task rather than letting OpenBolt manage it for you.  You should
 only use a remote task if you are comfortable managing connections in a script
 and don't want to write a plan, or are unable to connect directly to the target
-using Bolt.
+using OpenBolt.
 
 ### Example
 
-This example uses a task with sensitive parameters, together with a Bolt plan
+This example uses a task with sensitive parameters, together with a plan
 and the PKCS7 inventory plugin.
 
 The inventory file below uses the PKCS7 plugin to set the 

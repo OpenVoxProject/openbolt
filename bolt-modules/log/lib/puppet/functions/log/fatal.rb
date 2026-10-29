@@ -9,7 +9,7 @@ require 'bolt/util/format'
 # `fatal` level if a service is unavailable and the plan cannot continue running
 # without it.
 #
-# See [Logs](logs.md) for more information about Bolt's log levels.
+# See [Logs](logs.md) for more information about OpenBolt's log levels.
 #
 # > **Note:** Not available in apply block
 Puppet::Functions.create_function(:'log::fatal') do

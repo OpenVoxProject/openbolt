@@ -6,7 +6,7 @@
 #   The inventory configuration for the target. This function returns the
 #   configuration set directly on the target in `inventory.yaml` or set in
 #   a plan using `Target.new` or `set_config()`. It does not return default
-#   configuration values or configuration set in Bolt configuration files.
+#   configuration values or configuration set in OpenBolt configuration files.
 # @param facts
 #   The target's facts. This function does not look up facts for a target and
 #   only returns the facts specified in an `inventory.yaml` file or set on a
@@ -49,7 +49,7 @@
 #   The transport used to connect to the target.
 # @!method transport_config
 #   The merged configuration for the target's `transport`. This function returns
-#   configuration that includes defaults set by Bolt, configuration set in
+#   configuration that includes defaults set by OpenBolt, configuration set in
 #   `inventory.yaml`, configuration set in `bolt-defaults.yaml`, and configuration
 #   set in a plan using `set_config()`.
 # @!method user

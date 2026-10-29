@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-# For each target that you execute an action on, Bolt returns a `Result` object
+# For each target that you execute an action on, OpenBolt returns a `Result` object
 # and adds the `Result` to a `ResultSet` object. In the case of [apply
-# actions](applying_manifest_blocks.md), Bolt returns a `ResultSet` with one or
+# actions](applying_manifest_blocks.md), OpenBolt returns a `ResultSet` with one or
 # more `ApplyResult` objects.
 #
 # @param results

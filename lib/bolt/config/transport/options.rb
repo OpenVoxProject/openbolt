@@ -19,8 +19,8 @@ module Bolt
           "batch-mode" => {
             type: [TrueClass, FalseClass],
             description: "Whether to disable password querying. When set to `false`, SSH will fall back to " \
-                         "prompting for a password if key authentication fails. This might cause Bolt to hang. " \
-                         "To prevent Bolt from hanging, you can configure `ssh-command` to use an SSH utility " \
+                         "prompting for a password if key authentication fails. This might cause OpenBolt to hang. " \
+                         "To prevent OpenBolt from hanging, you can configure `ssh-command` to use an SSH utility " \
                          "such as sshpass that supports providing a password non-interactively. For more " \
                          "information, see [Providing a password non-interactively using " \
                          "`native-ssh`](troubleshooting.md#providing-a-password-non-interactively-using-native-ssh).",
@@ -29,7 +29,7 @@ module Bolt
             _example: false
           },
           "bundled-ruby" => {
-            description: "Whether to use the Ruby bundled with Bolt packages for local targets.",
+            description: "Whether to use the Ruby bundled with OpenBolt packages for local targets.",
             type: [TrueClass, FalseClass],
             _plugin: false,
             _example: true,
@@ -44,7 +44,7 @@ module Bolt
           "cleanup" => {
             type: [TrueClass, FalseClass],
             description: "Whether to clean up temporary files created on targets. When running commands on a target, " \
-                         "Bolt might create temporary files. After completing the command, these files are " \
+                         "OpenBolt might create temporary files. After completing the command, these files are " \
                          "automatically deleted. This value can be set to 'false' if you wish to leave these " \
                          "temporary files on the target.",
             _plugin: true,
@@ -104,7 +104,7 @@ module Bolt
           "connect-timeout" => {
             type: Integer,
             description: "How long to wait in seconds when establishing connections. Set this value higher if you " \
-                         "frequently encounter connection timeout errors when running Bolt.",
+                         "frequently encounter connection timeout errors when running OpenBolt.",
             minimum: 1,
             _plugin: true,
             _default: 10,
@@ -112,7 +112,7 @@ module Bolt
           },
           "copy-command" => {
             type: [Array, String],
-            description: "The command to use when copying files using native SSH. Bolt runs `<copy-command> <src> " \
+            description: "The command to use when copying files using native SSH. OpenBolt runs `<copy-command> <src> " \
                          "<dest>`. This option is used when you need support for features or algorithms that are not " \
                          "supported by the net-ssh Ruby library. **This option is experimental.** You can read more " \
                          "about this option in [Native SSH transport](experimental_features.md#native-ssh-transport).",
@@ -203,7 +203,7 @@ module Bolt
                          "override the shebang defined in a task executable. The extension can optionally be " \
                          "specified with the `.` character (`.py` and `py` both map to a task executable " \
                          "`task.py`) and the extension is case sensitive. When a target's name is `localhost`, " \
-                         "Ruby tasks run with the Bolt Ruby interpreter by default.",
+                         "Ruby tasks run with the OpenBolt Ruby interpreter by default.",
             additionalProperties: {
               type: [String, Array],
               _plugin: false
@@ -239,7 +239,7 @@ module Bolt
           },
           "login-shell" => {
             type: String,
-            description: "Which login shell Bolt should expect on the target. Supported shells are " \
+            description: "Which login shell OpenBolt should expect on the target. Supported shells are " \
                          "#{LOGIN_SHELLS.join(', ')}. **This option is experimental.**",
             enum: LOGIN_SHELLS,
             _plugin: true,
@@ -354,9 +354,9 @@ module Bolt
           },
           "run-as-command" => {
             type: Array,
-            description: "The command to elevate permissions. Bolt appends the user and command strings to the " \
-                         "configured `run-as-command` before running it on the target. This command must not require  " \
-                         "aninteractive password prompt, and the `sudo-password` option is ignored when " \
+            description: "The command to elevate permissions. OpenBolt appends the user and command strings to the " \
+                         "configured `run-as-command` before running it on the target. This command must not require " \
+                         "an interactive password prompt, and the `sudo-password` option is ignored when " \
                          "`run-as-command` is specified. The `run-as-command` must be specified as an array.",
             items: {
               type: String

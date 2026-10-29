@@ -10,7 +10,7 @@ require 'bolt/util/format'
 # planning to make a breaking change to your plan in a future release and
 # want to notify users.
 #
-# See [Logs](logs.md) for more information about Bolt's log levels.
+# See [Logs](logs.md) for more information about OpenBolt's log levels.
 #
 # > **Note:** Not available in apply block
 Puppet::Functions.create_function(:'log::warn') do

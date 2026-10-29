@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 # Delete a file on localhost using ruby's `File.delete`. This will only delete
-# files on the machine you run Bolt on.
+# files on the machine you run OpenBolt on.
 Puppet::Functions.create_function(:'file::delete') do
   # @param filename Absolute path.
   # @example Delete a file from disk

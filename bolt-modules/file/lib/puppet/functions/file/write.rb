@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 # Write a string to a file on localhost using ruby's `File.write`. This will
-# only write files to the machine you run Bolt on. Use `write_file()` to write
+# only write files to the machine you run OpenBolt on. Use `write_file()` to write
 # to remote targets.
 Puppet::Functions.create_function(:'file::write') do
   # @param filename Absolute path.

@@ -9,7 +9,7 @@ Puppet::Functions.create_function(:background, Puppet::Functions::InternalFuncti
   # Returns a Future object.
   # @param name An optional name for legible logs.
   # @param block The code block to run in the background.
-  # @return A Bolt Future object
+  # @return A Future object
   # @example Start a long-running process
   #   background() || {
   #     run_task('superlong::task', $targets)

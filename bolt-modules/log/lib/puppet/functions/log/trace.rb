@@ -8,7 +8,7 @@ require 'bolt/util/format'
 # about what a plan is doing. For example, you might log a message at the `trace`
 # level that describes how a plan is manipulating data.
 #
-# See [Logs](logs.md) for more information about Bolt's log levels.
+# See [Logs](logs.md) for more information about OpenBolt's log levels.
 #
 # > **Note:** Not available in apply block
 Puppet::Functions.create_function(:'log::trace') do

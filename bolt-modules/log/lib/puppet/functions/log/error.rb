@@ -9,7 +9,7 @@ require 'bolt/util/format'
 # `error` level if you want to inform the user an action running on a target
 # failed but that the plan will continue running.
 #
-# See [Logs](logs.md) for more information about Bolt's log levels.
+# See [Logs](logs.md) for more information about OpenBolt's log levels.
 #
 # > **Note:** Not available in apply block
 Puppet::Functions.create_function(:'log::error') do

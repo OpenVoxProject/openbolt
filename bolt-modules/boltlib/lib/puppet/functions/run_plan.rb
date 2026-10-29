@@ -12,7 +12,7 @@ Puppet::Functions.create_function(:run_plan, Puppet::Functions::InternalFunction
   # @option args [Boolean] _catch_errors Whether to catch raised errors.
   # @option args [String] _run_as User to run as using privilege escalation.
   #   This option sets the [run-as user](privilege_escalation.md) for all
-  #   targets whenever Bolt connects to a target. This is set for all functions
+  #   targets whenever OpenBolt connects to a target. This is set for all functions
   #   in the called plan, including `run_plan()`.
   # @return [PlanResult] The result of running the plan. Undef if plan does not explicitly return results.
   # @example Run a plan
@@ -35,7 +35,7 @@ Puppet::Functions.create_function(:run_plan, Puppet::Functions::InternalFunction
   # @option args [Boolean] _catch_errors Whether to catch raised errors.
   # @option args [String] _run_as User to run as using privilege escalation.
   #   This option sets the [run-as user](privilege_escalation.md) for all
-  #   targets whenever Bolt connects to a target. This is set for all functions
+  #   targets whenever OpenBolt connects to a target. This is set for all functions
   #   in the called plan, including `run_plan()`.
   # @return [PlanResult] The result of running the plan. Undef if plan does not explicitly return results.
   # @example Run a plan

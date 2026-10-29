@@ -269,7 +269,7 @@ namespace :pwsh do
             @pwsh_command[:options] << {
               name:                       'Name',
               ruby_short:                 'n',
-              help_msg:                   'The name of the Bolt project to create',
+              help_msg:                   'The name of the OpenBolt project to create',
               mandatory:                  false,
               type:                       'string',
               switch:                     false,
@@ -286,7 +286,7 @@ namespace :pwsh do
             @pwsh_command[:options] << {
               name:                       'Module',
               ruby_short:                 'md',
-              help_msg:                   'The name of the module to add to the Bolt project',
+              help_msg:                   'The name of the module to add to the OpenBolt project',
               mandatory:                  true,
               type:                       'string',
               switch:                     false,
