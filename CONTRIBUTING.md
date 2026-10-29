@@ -188,6 +188,37 @@ up` to create a `Windows Server 2016 Core` VM, and run tests with
 
     $ BOLT_WINRM_PORT=35985 BOLT_WINRM_SMB_PORT=3445 BOLT_WINRM_USER=vagrant BOLT_WINRM_PASSWORD=vagrant bundle exec rake ci:windows:agentful
 
+## Security Auditing
+
+OpenBolt includes [bundler-audit](https://github.com/rubysec/bundler-audit) and
+[ruby_audit](https://github.com/civisanalytics/ruby_audit) for scanning gem
+dependencies and the Ruby runtime against known CVEs.
+
+### Running locally
+
+Install the audit gems (included in the `:audit` Gemfile group) and run:
+
+    $ bundle exec bundler-audit check --update
+    $ bundle exec ruby-audit check
+
+`bundler-audit` scans the `Gemfile.lock` against the
+[ruby-advisory-db](https://github.com/rubysec/ruby-advisory-db).
+`ruby-audit` checks the running Ruby and RubyGems versions for known
+vulnerabilities.
+
+### CI workflow
+
+The `.github/workflows/audit.yaml` workflow runs both tools automatically:
+
+- On pull requests and pushes to `main` when `Gemfile`, `Gemfile.lock`, or
+  `*.gemspec` files change.
+- On a weekly schedule (Monday 08:00 UTC) to catch newly disclosed advisories.
+- Via manual dispatch.
+
+The workflow is **non-blocking** — vulnerabilities are reported in the GitHub
+Actions job summary but do not prevent merges. This allows the team to triage
+and address findings without halting development.
+
 ### `rubocop` on Windows
 
 To use `rubocop` on Windows, you must have a ruby install with a configured
