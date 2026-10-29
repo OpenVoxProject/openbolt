@@ -36,6 +36,7 @@ module Bolt
     COMMANDS = {
       'apply'     => %w[],
       'command'   => %w[run],
+      'completion' => %w[bash zsh],
       'file'      => %w[download upload],
       'group'     => %w[show],
       'guide'     => %w[],
@@ -114,6 +115,21 @@ module Bolt
 
         if options[:version]
           puts Bolt::VERSION
+          raise Bolt::CLIExit
+        end
+
+        # Print the shell completion script and exit: no project or config
+        # is loaded.
+        if options[:subcommand] == 'completion'
+          require_relative 'completion/generator'
+          if options[:action].nil?
+            # Display the completion help text
+            parser.update
+            puts parser.help
+            raise Bolt::CLIExit
+          end
+
+          puts Bolt::Completion::Generator.render(options[:action])
           raise Bolt::CLIExit
         end
 
@@ -321,6 +337,7 @@ module Bolt
       end
 
       return if %w[guide module plan project secret].include?(options[:subcommand]) ||
+                options[:subcommand] == 'completion' ||
                 %w[convert new show].include?(options[:action]) ||
                 options[:plan_hierarchy]
 
