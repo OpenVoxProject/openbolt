@@ -57,7 +57,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency "logging", "~> 2.2"
   spec.add_dependency "minitar", ">= 0.6", "< 2.0"
   spec.add_dependency "net-scp", ">= 1.2", "< 5.0"
-  spec.add_dependency "net-ssh", ">= 4.0", "< 8.0"
+  spec.add_dependency "net-ssh", ">= 4.0", "< 9.0"
   spec.add_dependency "net-ssh-krb", "~> 0.5"
   spec.add_dependency "openvox", "~> 9.0"
   spec.add_dependency "openvox-strings", '>= 5.0', '< 8'
