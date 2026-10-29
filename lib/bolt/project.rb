@@ -132,6 +132,15 @@ module Bolt
         @rerunfile = File.expand_path(@data['rerunfile'], @path)
       end
 
+      if @data['puppetfile'].is_a?(String)
+        expanded = File.expand_path(@data['puppetfile'], @path)
+        unless expanded.start_with?(@path.to_s + '/')
+          raise Bolt::ValidationError,
+                "Option 'puppetfile' must be a relative path within the project directory."
+        end
+        @puppetfile = Pathname.new(expanded)
+      end
+
       validate if project_file?
     end
 
