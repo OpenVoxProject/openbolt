@@ -245,7 +245,22 @@ describe Bolt::Transport::Choria do
       expect(response[:aborted]).to be_empty
     end
 
-    it 'routes statuscode 1 to :responded with its data and to :aborted with its status message' do
+    it 'routes statuscode 1 to :errors with the status message by default' do
+      result = make_rpc_result(
+        sender: target, statuscode: 1,
+        statusmsg: 'You are not authorized to call this agent or action', data: {}
+      )
+      allow(mock_rpc_client).to receive(:ping).and_return([result])
+
+      response = transport.rpc_request('rpcutil', [target], 'test') { |client| client.ping }
+      expect(response[:responded]).to be_empty
+      expect(response[:aborted]).to be_empty
+      expect(response[:errors][target][:error_kind]).to eq('bolt/choria-rpc-error')
+      expect(response[:errors][target][:error])
+        .to eq('test on choria://node1.example.com returned RPC error: You are not authorized to call this agent or action (code 1)')
+    end
+
+    it 'keeps a statuscode 1 reply under :responded with its data and :aborted with its status message when accepted' do
       result = make_rpc_result(
         sender: target, statuscode: 1,
         statusmsg: 'Task failed with exit code 1',
@@ -253,7 +268,7 @@ describe Bolt::Transport::Choria do
       )
       allow(mock_rpc_client).to receive(:ping).and_return([result])
 
-      response = transport.rpc_request('rpcutil', [target], 'test') { |client| client.ping }
+      response = transport.rpc_request('rpcutil', [target], 'test', accept_aborted: true) { |client| client.ping }
       expect(response[:responded]).to have_key(target)
       expect(response[:responded][target][:exitcode]).to eq(1)
       expect(response[:errors]).to be_empty

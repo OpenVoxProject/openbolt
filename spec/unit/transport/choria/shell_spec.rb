@@ -179,6 +179,20 @@ describe Bolt::Transport::Choria do
         expect(results.first.error_hash['msg']).to include('Unknown action start for agent shell')
       end
 
+      it 'reports a shell.start reply with statuscode 1 as an RPC error with its status message, without polling' do
+        stub_agents(target, %w[rpcutil shell])
+        refused = make_rpc_result(sender: target, statuscode: 1,
+                                  statusmsg: 'You are not authorized to call this agent or action', data: {})
+        allow(mock_rpc_client).to receive(:start).and_return([refused])
+        expect(mock_rpc_client).not_to receive(:list)
+
+        results = transport.batch_command([target], 'hostname', {})
+        expect(results.length).to eq(1)
+        expect(results.first.error_hash['kind']).to eq('bolt/choria-rpc-error')
+        expect(results.first.error_hash['msg'])
+          .to eq('shell.start on choria://node1.example.com returned RPC error: You are not authorized to call this agent or action (code 1)')
+      end
+
       it 'returns error results for all targets when start raises, without polling' do
         stub_agents(target, %w[rpcutil shell])
 
@@ -988,6 +1002,26 @@ describe Bolt::Transport::Choria do
       expect(warnings).to include(
         'Failed to kill process on choria://node1.example.com: shell.kill on ' \
         'choria://node1.example.com returned RPC error: Could not kill the process (code 5)'
+      )
+    end
+
+    it 'still returns timeout error and warns when kill answers statuscode 1' do
+      pending_map = { target => { handle: 'h1' } }
+      warnings = []
+
+      allow(transport).to receive(:shell_list).and_return([{}, {}, false])
+      allow(mock_rpc_client).to receive(:kill).and_return(
+        [make_rpc_result(sender: target, statuscode: 1, statusmsg: 'You are not authorized to call this agent or action', data: {})]
+      )
+      allow(transport.logger).to receive(:warn) { |*args, &block| warnings << (block ? block.call : args.first) }
+
+      inventory.set_config(target, %w[choria command-timeout], 1)
+      outputs = transport.wait_for_shell_results(pending_map, 1)
+
+      expect(outputs[target][:error_kind]).to eq('bolt/choria-command-timeout')
+      expect(warnings).to include(
+        'Failed to kill process on choria://node1.example.com: shell.kill on choria://node1.example.com ' \
+        'returned RPC error: You are not authorized to call this agent or action (code 1)'
       )
     end
 

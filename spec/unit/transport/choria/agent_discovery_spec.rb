@@ -111,6 +111,22 @@ describe Bolt::Transport::Choria do
     end
 
     describe 'error handling' do
+      it 'warns with the status message and leaves the target undiscovered when agent_inventory answers statuscode 1' do
+        refused = make_rpc_result(sender: target, statuscode: 1,
+                                  statusmsg: 'You are not authorized to call this agent or action', data: {})
+        allow(mock_rpc_client).to receive(:agent_inventory).and_return([refused])
+        warnings = []
+        allow(transport.logger).to receive(:warn) { |*args, &block| warnings << (block ? block.call : args.first) }
+
+        transport.discover_agents([target])
+
+        expect(transport.discovered?(target)).to be false
+        expect(warnings).to include(
+          'agent_inventory failed for choria://node1.example.com: rpcutil.agent_inventory on ' \
+          'choria://node1.example.com returned RPC error: You are not authorized to call this agent or action (code 1)'
+        )
+      end
+
       it 'returns nil for all targets when agent_inventory raises' do
         allow(mock_rpc_client).to receive(:agent_inventory).and_raise(StandardError, 'NATS timeout')
 

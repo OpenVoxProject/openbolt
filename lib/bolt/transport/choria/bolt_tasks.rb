@@ -67,12 +67,12 @@ module Bolt
 
         # Download task files
         logger.debug { "Downloading task #{task.name} files via bolt_tasks to #{target_count(targets)}" }
-        response = rpc_request('bolt_tasks', targets, 'bolt_tasks.download') do |client|
+        response = rpc_request('bolt_tasks', targets, 'bolt_tasks.download', accept_aborted: true) do |client|
           client.download(task: task.name, files: file_specs_json, environment: environment)
         end
         # The bolt_tasks agent uses reply.fail! with statuscode 1 for download
-        # failures, which rpc_request routes to :responded since statuscode 0-1
-        # means the action completed. Check :aborted to catch these and
+        # failures, which rpc_request keeps under :responded here since the
+        # call accepts aborted replies. Check :aborted to catch these and
         # report the download failure clearly instead of letting run_no_wait
         # fail with a confusing "task not available" error.
         dl_errors = response[:errors]
@@ -89,7 +89,7 @@ module Bolt
 
         # Start task execution
         logger.debug { "Starting task #{task.name} on #{target_count(remaining)}" }
-        response = rpc_request('bolt_tasks', remaining, 'bolt_tasks.run_no_wait') do |client|
+        response = rpc_request('bolt_tasks', remaining, 'bolt_tasks.run_no_wait', accept_aborted: true) do |client|
           client.run_no_wait(task: task.name, input_method: input_method,
                              files: file_specs_json, input: arguments.to_json)
         end
@@ -135,7 +135,9 @@ module Bolt
         timeout = targets.first.options['task-timeout']
 
         poll_result = poll_with_retries(targets, timeout, 'bolt_tasks.task_status') do |remaining|
-          response = rpc_request('bolt_tasks', remaining, 'bolt_tasks.task_status') do |client|
+          # The agent answers statuscode 1 for a task that ran and failed,
+          # with the exit code and output in the data.
+          response = rpc_request('bolt_tasks', remaining, 'bolt_tasks.task_status', accept_aborted: true) do |client|
             client.task_status(task_id: task_id)
           end
           next { rpc_failed: true } if response[:rpc_failed]

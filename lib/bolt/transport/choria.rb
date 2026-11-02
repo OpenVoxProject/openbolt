@@ -173,7 +173,8 @@ module Bolt
         first_target = targets.first
         configure_client(first_target)
 
-        response = rpc_request('rpcutil', targets, 'rpcutil.ping') do |client|
+        # A target that denies the caller still answers, so it counts as connected.
+        response = rpc_request('rpcutil', targets, 'rpcutil.ping', accept_aborted: true) do |client|
           client.ping
         end
         response[:responded].length == targets.length

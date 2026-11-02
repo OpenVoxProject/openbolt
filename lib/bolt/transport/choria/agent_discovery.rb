@@ -21,10 +21,6 @@ module Bolt
         logger.debug { "Discovering agents on #{target_count(uncached)}" }
         discover_agent_list(uncached)
         discover_os_family(uncached)
-
-        uncached.each do |target|
-          logger.warn { "No response from #{choria_identity(target)} during agent discovery" } unless discovered?(target)
-        end
       end
 
       def discovered?(target)
@@ -47,7 +43,7 @@ module Bolt
         response = rpc_request('rpcutil', targets, 'rpcutil.agent_inventory') do |client|
           client.agent_inventory
         end
-        response[:errors].each { |target, output| logger.debug { "agent_inventory failed for #{target.safe_name}: #{output[:error]}" } }
+        response[:errors].each { |target, output| logger.warn { "agent_inventory failed for #{target.safe_name}: #{output[:error]}" } }
 
         response[:responded].each do |target, data|
           sender = choria_identity(target)

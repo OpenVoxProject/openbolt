@@ -296,11 +296,15 @@ behaviors:
 Model for why this is necessary.
 
 **Error classification**: Splits results into three categories:
-- **Success** (statuscode 0 or 1): The agent responded. Statuscode 1 means
-  "application error but action completed" (the task ran but had issues).
-- **Agent error** (statuscode >= 2): The agent itself had a problem. Returned
-  as failures with `bolt/choria-agent-error`.
-- **No response**: Target didn't reply. Returned as failures with
+- **Success** (statuscode 0, or 1 when the caller passes `accept_aborted:
+  true`): The agent responded. The `bolt_tasks` calls accept statuscode 1,
+  which that agent answers for a task that ran and failed, and so does the
+  ping behind `batch_connected?`. The status message of such a reply is
+  returned under `:aborted`.
+- **Agent error** (statuscode >= 2, or 1 for every other call): The action
+  did not run or failed, as when an action policy denies the caller. Returned
+  as failures with `bolt/choria-rpc-error`.
+- **No response**: Target did not reply. Returned as failures with
   `bolt/choria-no-response`.
 
 **Absorption of StandardError**: If the RPC call raises a `StandardError`

@@ -87,6 +87,15 @@ describe Bolt::Transport::Choria do
       expect(transport.batch_connected?([target, target2])).to be true
     end
 
+    it 'returns true when a target answers the ping with statuscode 1' do
+      r1 = make_rpc_result(sender: target)
+      r2 = make_rpc_result(sender: target2, statuscode: 1,
+                           statusmsg: 'You are not authorized to call this agent or action', data: {})
+      allow(mock_rpc_client).to receive(:ping).and_return([r1, r2])
+
+      expect(transport.batch_connected?([target, target2])).to be true
+    end
+
     it 'returns false when some targets do not respond' do
       r1 = make_rpc_result(sender: target)
       allow(mock_rpc_client).to receive(:ping).and_return([r1])

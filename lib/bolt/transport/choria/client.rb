@@ -137,13 +137,14 @@ module Bolt
       #
       # Results are split based on MCollective RPC statuscodes:
       # - statuscode 0: action completed successfully (:responded)
-      # - statuscode 1 (RPCAborted): action completed but reported a
-      #   problem (:responded). The data is preserved rather than
-      #   discarded because some agents (notably bolt_tasks) use
-      #   statuscode 1 for application-level failures where the
-      #   response data is still valid and meaningful (e.g., a task
-      #   that ran but exited non-zero). Callers must handle this
-      #   case and not assume :responded means success.
+      # - statuscode 1 (RPCAborted): the action could not run or reported a
+      #   problem. An error (:errors) by default, since the shell and rpcutil
+      #   agents never answer 1 with data the transport can use, and a denied
+      #   action policy answers 1 as well. With accept_aborted set the reply
+      #   stays under :responded with its data and its status message goes
+      #   under :aborted, which bolt_tasks needs, since it answers 1 for a
+      #   task that ran and failed with the data still valid. Such a caller
+      #   must not assume :responded means success.
       # - statuscode 2-5: RPC infrastructure error (:errors)
       # - no response: target didn't reply (:errors)
       # - exception: total RPC failure (rpc_failed: true)
@@ -156,16 +157,17 @@ module Bolt
       # @param agent [String] MCollective agent name (e.g. 'shell', 'bolt_tasks', 'rpcutil')
       # @param targets [Bolt::Target, Array<Bolt::Target>] One or more targets to address
       # @param context [String] Human-readable label for logging (e.g. 'shell.start')
+      # @param accept_aborted [Boolean] Whether a statuscode 1 reply counts as a response, default is false
       # @yield [MCollective::RPC::Client] The configured RPC client to invoke an action on
       # @return [Hash] with keys:
-      #   - :responded [Hash] Targets where the action completed (statuscode 0-1),
-      #     mapped to their response data
+      #   - :responded [Hash] Targets where the action completed (statuscode 0, or 1 with
+      #     accept_aborted), mapped to their response data
       #   - :errors [Hash] Targets with RPC errors or no response, mapped to error output hashes
       #   - :rpc_failed [Boolean] True when the entire RPC call failed
       #   - :aborted [Hash] Targets in :responded whose reply had statuscode 1,
       #     mapped to the agent's status message, so a caller can report the
       #     agent's reason
-      def rpc_request(agent, targets, context)
+      def rpc_request(agent, targets, context, accept_aborted: false)
         targets = Array(targets)
         rpc_results = @rpc_mutex.synchronize do
           rpc_timeout = targets.first.options['rpc-timeout']
@@ -184,7 +186,7 @@ module Bolt
               "No response from #{target.safe_name} for #{context}",
               'bolt/choria-no-response'
             )
-          elsif rpc_result[:statuscode] > 1
+          elsif rpc_result[:statuscode] > 1 || (rpc_result[:statuscode] == 1 && !accept_aborted)
             errors[target] = error_output(
               "#{context} on #{target.safe_name} returned RPC error: " \
               "#{rpc_result[:statusmsg]} (code #{rpc_result[:statuscode]})",
