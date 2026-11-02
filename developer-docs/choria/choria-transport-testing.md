@@ -41,12 +41,12 @@ ssh $PRIMARY "sudo rsync -av /tmp/openbolt-lib/ $BOLT_GEM/"
 
 ### Install the choria-mcorpc-support gem
 
-The Choria transport depends on `choria-mcorpc-support ~> 2.26`. This gem is
-included in OpenBolt 5.4.0. But when testing against and older version, install it into the packaged
+The Choria transport depends on `choria-mcorpc-support ~> 2.28`. When the
+packaged OpenBolt has an older version, install it into the packaged
 OpenBolt's gem environment:
 
 ```bash
-sudo /opt/puppetlabs/bolt/bin/gem install choria-mcorpc-support --version '~> 2.26' --no-document
+sudo /opt/puppetlabs/bolt/bin/gem install choria-mcorpc-support --version '~> 2.28' --no-document
 ```
 
 Verify it's loadable:
