@@ -160,8 +160,11 @@ describe Bolt::Transport::Choria do
       transport.create_rpc_client('shell', [target], 60)
     end
 
-    it 'disables progress output' do
-      expect(mock_rpc_client).to receive(:progress=).with(false)
+    it 'asks for no progress output through the client options alone' do
+      expect(MCollective::RPC::Client).to receive(:new) do |_agent, opts|
+        expect(opts[:options][:progress_bar]).to be_falsey
+        mock_rpc_client
+      end
       transport.create_rpc_client('shell', [target], 60)
     end
 
@@ -195,16 +198,16 @@ describe Bolt::Transport::Choria do
       transport.create_rpc_client('shell', [target], 10)
     end
 
-    it 'passes rpc-timeout as the RPC call timeout' do
+    # The gem's client replaces a timeout of exactly 5 in its options with
+    # the DDL timeout plus the discovery timeout while it is built, so the
+    # timeout goes through the accessor afterwards, where it is set correctly.
+    it 'sets rpc-timeout on the client after building it' do
       transport.configure_client(target)
-      inventory.set_config(target, %w[choria rpc-timeout], 120)
+      inventory.set_config(target, %w[choria rpc-timeout], 5)
 
       allow(mock_rpc_client).to receive(:ping).and_return([make_rpc_result(sender: target)])
-
-      expect(MCollective::RPC::Client).to receive(:new) do |_agent, opts|
-        expect(opts[:options][:timeout]).to eq(120)
-        mock_rpc_client
-      end
+      expect(MCollective::RPC::Client).to receive(:new).ordered.and_return(mock_rpc_client)
+      expect(mock_rpc_client).to receive(:timeout=).with(5).ordered
 
       transport.rpc_request('rpcutil', [target], 'test') { |client| client.ping }
     end
@@ -239,10 +242,25 @@ describe Bolt::Transport::Choria do
       expect(response[:responded][target]).to eq(value: 'ok')
       expect(response[:errors]).to be_empty
       expect(response[:rpc_failed]).to be false
-      expect(response[:rpc_statuscodes][target]).to eq(0)
+      expect(response[:aborted]).to be_empty
     end
 
-    it 'routes statuscode 1 to :responded and preserves data' do
+    it 'routes statuscode 1 to :errors with the status message by default' do
+      result = make_rpc_result(
+        sender: target, statuscode: 1,
+        statusmsg: 'You are not authorized to call this agent or action', data: {}
+      )
+      allow(mock_rpc_client).to receive(:ping).and_return([result])
+
+      response = transport.rpc_request('rpcutil', [target], 'test') { |client| client.ping }
+      expect(response[:responded]).to be_empty
+      expect(response[:aborted]).to be_empty
+      expect(response[:errors][target][:error_kind]).to eq('bolt/choria-rpc-error')
+      expect(response[:errors][target][:error])
+        .to eq('test on choria://node1.example.com returned RPC error: You are not authorized to call this agent or action (code 1)')
+    end
+
+    it 'keeps a statuscode 1 reply under :responded with its data and :aborted with its status message when accepted' do
       result = make_rpc_result(
         sender: target, statuscode: 1,
         statusmsg: 'Task failed with exit code 1',
@@ -250,11 +268,11 @@ describe Bolt::Transport::Choria do
       )
       allow(mock_rpc_client).to receive(:ping).and_return([result])
 
-      response = transport.rpc_request('rpcutil', [target], 'test') { |client| client.ping }
+      response = transport.rpc_request('rpcutil', [target], 'test', accept_aborted: true) { |client| client.ping }
       expect(response[:responded]).to have_key(target)
       expect(response[:responded][target][:exitcode]).to eq(1)
       expect(response[:errors]).to be_empty
-      expect(response[:rpc_statuscodes][target]).to eq(1)
+      expect(response[:aborted]).to eq(target => 'Task failed with exit code 1')
     end
 
     it 'routes statuscode 2+ to :errors' do
@@ -265,7 +283,7 @@ describe Bolt::Transport::Choria do
       expect(response[:responded]).to be_empty
       expect(response[:errors]).to have_key(target)
       expect(response[:errors][target][:error]).to match(/Missing data.*code 3/)
-      expect(response[:rpc_statuscodes][target]).to eq(3)
+      expect(response[:aborted]).to be_empty
     end
 
     it 'reports no-response targets as errors' do
@@ -305,8 +323,7 @@ describe Bolt::Transport::Choria do
       response = transport.rpc_request('rpcutil', [target, target2], 'test') { |client| client.ping }
       expect(response[:responded]).to have_key(target)
       expect(response[:errors]).to have_key(target2)
-      expect(response[:rpc_statuscodes][target]).to eq(0)
-      expect(response[:rpc_statuscodes][target2]).to eq(4)
+      expect(response[:aborted]).to be_empty
     end
   end
 

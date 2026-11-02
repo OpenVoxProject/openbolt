@@ -75,6 +75,11 @@ describe 'Bolt::Transport::Choria command builders' do
       result = transport.prepend_env_vars(target, 'cmd', { 'A' => '1', 'B' => '2' }, 'test')
       expect(result).to eq('/usr/bin/env A=1 B=2 cmd')
     end
+
+    it 'refuses an unsafe variable name' do
+      expect { transport.prepend_env_vars(target, 'cmd', { 'BAD;id' => '1' }, 'run_command env_vars') }
+        .to raise_error(Bolt::Error, /Unsafe environment variable name 'BAD;id' in run_command env_vars/)
+    end
   end
 
   describe '#build_task_command' do
@@ -113,6 +118,11 @@ describe 'Bolt::Transport::Choria command builders' do
     it 'uses no interpreter when none is configured' do
       cmd = transport.build_task_command(target, '/tmp/mytask.sh', {}, 'both', nil)
       expect(cmd).to eq("printf '%s' \\{\\} | /tmp/mytask.sh")
+    end
+
+    it 'refuses an unsafe parameter name for the environment input_method' do
+      expect { transport.build_task_command(target, '/tmp/mytask.sh', { 'a;id' => 'value' }, 'environment', nil) }
+        .to raise_error(Bolt::Error, /Unsafe environment variable name 'PT_a;id' in task argument/)
     end
   end
 
@@ -167,6 +177,11 @@ describe 'Bolt::Transport::Choria command builders' do
       it 'handles multiple environment variables' do
         cmd = transport.prepend_env_vars(target, 'cmd', { 'A' => '1', 'B' => '2' }, 'test')
         expect(cmd).to eq("$env:A = '1'; $env:B = '2'; & cmd")
+      end
+
+      it 'refuses an unsafe variable name' do
+        expect { transport.prepend_env_vars(target, 'cmd', { 'BAD;id' => '1' }, 'test') }
+          .to raise_error(Bolt::Error, /Unsafe environment variable name 'BAD;id' in test/)
       end
     end
 
@@ -223,6 +238,11 @@ describe 'Bolt::Transport::Choria command builders' do
         cmd = transport.build_task_command(target, 'C:\temp\mytask.ps1',
                                            { 'key' => 'value' }, 'both', nil)
         expect(cmd).to eq("@'\n{\"key\":\"value\"}\n'@ | & { $env:PT_key = 'value'; $input | & 'C:\\temp\\mytask.ps1' }")
+      end
+
+      it 'refuses an unsafe parameter name for the both input_method' do
+        expect { transport.build_task_command(target, 'C:\temp\mytask.ps1', { 'a b' => 'value' }, 'both', nil) }
+          .to raise_error(Bolt::Error, /Unsafe environment variable name 'PT_a b' in task argument/)
       end
     end
   end

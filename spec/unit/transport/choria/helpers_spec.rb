@@ -130,8 +130,8 @@ describe 'Bolt::Transport::Choria helpers' do
   end
 
   describe '#exitcode_from' do
-    it 'returns the exitcode from data when present' do
-      result = transport.exitcode_from({ exitcode: 42 }, target, 'test command')
+    it 'returns the exitcode when present' do
+      result = transport.exitcode_from(42, target, 'test command')
       expect(result).to eq(42)
     end
 
@@ -139,21 +139,8 @@ describe 'Bolt::Transport::Choria helpers' do
       logger = transport.logger
       expect(logger).to receive(:warn)
 
-      result = transport.exitcode_from({ exitcode: nil }, target, 'test command')
+      result = transport.exitcode_from(nil, target, 'test command')
       expect(result).to eq(1)
-    end
-
-    it 'defaults to 1 when exitcode key is missing' do
-      logger = transport.logger
-      expect(logger).to receive(:warn)
-
-      result = transport.exitcode_from({}, target, 'test command')
-      expect(result).to eq(1)
-    end
-
-    it 'returns the exitcode when accessed via string key' do
-      result = transport.exitcode_from({ 'exitcode' => 42 }, target, 'test command')
-      expect(result).to eq(42)
     end
   end
 
@@ -288,16 +275,15 @@ describe 'Bolt::Transport::Choria helpers' do
 
       expect(result[:completed][target][:stdout]).to eq('ok')
       expect(result[:remaining]).to be_empty
-      expect(result[:rpc_persistent_failure]).to be false
     end
 
     it 'retries on rpc_failed and gives up after RPC_FAILURE_RETRIES' do
       round = { rpc_failed: true, done: {} }
       result = transport.poll_with_retries([target], 30, 'test') { round }
 
-      expect(result[:remaining]).to include(target)
-      expect(result[:rpc_persistent_failure]).to be true
-      expect(result[:completed]).to be_empty
+      expect(result[:remaining]).to be_empty
+      expect(result[:completed][target][:error_kind]).to eq('bolt/choria-poll-failed')
+      expect(result[:completed][target][:error]).to eq('RPC requests to poll test on choria://node1.example.com failed persistently')
     end
 
     it 'resets failure counter after a successful round' do
@@ -310,7 +296,6 @@ describe 'Bolt::Transport::Choria helpers' do
 
       expect(result[:completed][target][:stdout]).to eq('recovered')
       expect(result[:remaining]).to be_empty
-      expect(result[:rpc_persistent_failure]).to be false
     end
 
     it 'stops when deadline is exceeded' do
@@ -320,7 +305,7 @@ describe 'Bolt::Transport::Choria helpers' do
       end
 
       expect(result[:remaining]).to include(target)
-      expect(result[:rpc_persistent_failure]).to be false
+      expect(result[:completed]).to be_empty
     end
 
     it 'works with Hash targets (shell handles)' do
