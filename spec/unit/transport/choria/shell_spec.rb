@@ -184,6 +184,7 @@ describe Bolt::Transport::Choria do
 
         allow(mock_rpc_client).to receive(:start).and_raise(StandardError, 'NATS broker down')
         expect(mock_rpc_client).not_to receive(:list)
+        expect(transport).not_to receive(:sleep)
 
         results = transport.batch_command([target], 'hostname', {})
         expect(results.length).to eq(1)
@@ -313,6 +314,59 @@ describe Bolt::Transport::Choria do
         expect(finished_targets).to contain_exactly(target, target2)
       end
 
+      it 'excludes a target that fails the upload and starts the script on the rest' do
+        allow(mock_rpc_client).to receive(:run) do |args|
+          failing = args[:command].include?('base64 -d') ? ['node2.example.com'] : []
+          mock_rpc_client.options[:filter]['identity'].map do |name|
+            exitcode = failing.include?(name) ? 1 : 0
+            make_shell_run_result(name, stderr: exitcode.zero? ? '' : 'disk full', exitcode: exitcode)
+          end
+        end
+        started = nil
+        allow(mock_rpc_client).to receive(:start) do
+          started = mock_rpc_client.options[:filter]['identity'].dup
+          [make_shell_start_result(target, handle: 'h1')]
+        end
+        stub_shell_list({ target => { handle: 'h1' } })
+        stub_shell_status({ target => { handle: 'h1', stdout: 'hello' } })
+
+        results = transport.batch_script([target, target2], script_path, [], {})
+
+        expect(results.length).to eq(2)
+        expect(results.find { |result| result.target == target }.value['stdout']).to eq('hello')
+        failed = results.find { |result| result.target == target2 }
+        expect(failed.error_hash['kind']).to eq('bolt/choria-operation-failed')
+        expect(failed.error_hash['msg'])
+          .to match(%r{\Aupload /tmp/bolt-choria-test-uuid/test_script\.sh failed on .+ \(exit code 1\): disk full})
+        expect(started).to eq(['node1.example.com'])
+      end
+
+      it 'excludes a target that fails the chmod and starts the script on the rest' do
+        allow(mock_rpc_client).to receive(:run) do |args|
+          failing = args[:command].start_with?('chmod u+x') ? ['node2.example.com'] : []
+          mock_rpc_client.options[:filter]['identity'].map do |name|
+            exitcode = failing.include?(name) ? 1 : 0
+            make_shell_run_result(name, stderr: exitcode.zero? ? '' : 'read-only file system', exitcode: exitcode)
+          end
+        end
+        started = nil
+        allow(mock_rpc_client).to receive(:start) do
+          started = mock_rpc_client.options[:filter]['identity'].dup
+          [make_shell_start_result(target, handle: 'h1')]
+        end
+        stub_shell_list({ target => { handle: 'h1' } })
+        stub_shell_status({ target => { handle: 'h1', stdout: 'hello' } })
+
+        results = transport.batch_script([target, target2], script_path, [], {})
+
+        expect(results.length).to eq(2)
+        expect(results.find { |result| result.target == target }.value['stdout']).to eq('hello')
+        failed = results.find { |result| result.target == target2 }
+        expect(failed.error_hash['kind']).to eq('bolt/choria-operation-failed')
+        expect(failed.error_hash['msg']).to match(/\Achmod script failed on .+ \(exit code 1\): read-only file system/)
+        expect(started).to eq(['node1.example.com'])
+      end
+
       it 'returns all errors when all targets fail infrastructure setup' do
         stub_shell_run({ target => { stderr: 'no space', exitcode: 1 },
                          target2 => { stderr: 'no space', exitcode: 1 } })
@@ -323,6 +377,37 @@ describe Bolt::Transport::Choria do
           expect(result.ok?).to be false
           expect(result.error_hash['kind']).to eq('bolt/choria-operation-failed')
         end
+      end
+    end
+
+    context 'on a Windows target' do
+      before(:each) do
+        stub_agents(target, %w[rpcutil shell], os_family: 'windows')
+      end
+
+      it 'creates the tmpdir, uploads the script and removes the tmpdir without a chmod' do
+        scripts = []
+        allow(mock_rpc_client).to receive(:run) do |args|
+          scripts << Base64.decode64(args[:command].split.last).force_encoding('UTF-16LE').encode('UTF-8')
+          [make_rpc_result(sender: target, data: { exitcode: 0 })]
+        end
+        start_script = nil
+        allow(mock_rpc_client).to receive(:start) do |args|
+          start_script = Base64.decode64(args[:command].split.last).force_encoding('UTF-16LE').encode('UTF-8')
+          [make_shell_start_result(target, handle: 'h1')]
+        end
+        stub_shell_list({ target => { handle: 'h1' } })
+        stub_shell_status({ target => { handle: 'h1', stdout: 'hello' } })
+
+        results = transport.batch_script([target], script_path, ['x y'], {}, [])
+
+        expect(results.first.value['stdout']).to eq('hello')
+        expect(scripts).to match([
+                                   "New-Item -ItemType Directory -Force -Path 'C:\\Windows\\Temp\\bolt-choria-test-uuid'",
+                                   a_string_starting_with("[IO.File]::WriteAllBytes('C:\\Windows\\Temp\\bolt-choria-test-uuid\\test_script.sh', "),
+                                   "Remove-Item -Recurse -Force -Path 'C:\\Windows\\Temp\\bolt-choria-test-uuid'"
+                                 ])
+        expect(start_script).to include("'C:\\Windows\\Temp\\bolt-choria-test-uuid\\test_script.sh' 'x y'")
       end
     end
   end
@@ -359,6 +444,108 @@ describe Bolt::Transport::Choria do
 
       expect { transport.batch_task([target], task, {}) }.to raise_error(Interrupt)
       expect(commands.last).to eq('rm -rf /tmp/bolt-choria-test-uuid')
+    end
+
+    it 'removes the tmpdir when building the task command raises after the uploads' do
+      commands = []
+      allow(mock_rpc_client).to receive(:run) do |args|
+        commands << args[:command]
+        [make_rpc_result(sender: target, data: { exitcode: 0 })]
+      end
+
+      expect { transport.batch_task([target], task, { 'a;b' => 'value' }) }
+        .to raise_error(Bolt::Error, /Unsafe environment variable name 'PT_a;b' in task argument/)
+      expect(commands.last).to eq('rm -rf /tmp/bolt-choria-test-uuid')
+    end
+
+    it 'creates, uses and removes the tmpdir it generated' do
+      allow(SecureRandom).to receive(:uuid).and_return('uuid-1', 'uuid-2')
+      commands = []
+      allow(mock_rpc_client).to receive(:run) do |args|
+        commands << args[:command]
+        [make_rpc_result(sender: target, data: { exitcode: 0 })]
+      end
+      start_command = nil
+      allow(mock_rpc_client).to receive(:start) do |args|
+        start_command = args[:command]
+        [make_shell_start_result(target)]
+      end
+
+      transport.batch_task([target], task, {})
+
+      expect(commands).to match([
+                                  'mkdir -m 700 -p /tmp/bolt-choria-uuid-1',
+                                  a_string_matching(%r{\| base64 -d > /tmp/bolt-choria-uuid-1/mytask\.sh\z}),
+                                  'chmod u+x /tmp/bolt-choria-uuid-1/mytask.sh',
+                                  'rm -rf /tmp/bolt-choria-uuid-1'
+                                ])
+      expect(start_command).to include('/tmp/bolt-choria-uuid-1/mytask.sh')
+    end
+
+    it 'sends no poll and does not sleep when no target gets past the mkdir' do
+      stub_shell_run(stderr: 'no space', exitcode: 1)
+      expect(mock_rpc_client).not_to receive(:start)
+      expect(mock_rpc_client).not_to receive(:list)
+      expect(transport).not_to receive(:sleep)
+
+      results = transport.batch_task([target], task, {})
+
+      expect(results.length).to eq(1)
+      expect(results.first.error_hash['kind']).to eq('bolt/choria-operation-failed')
+      expect(results.first.error_hash['msg']).to match(/\Amkdir tmpdir failed on .+ \(exit code 1\): no space/)
+    end
+
+    it 'excludes a target that fails the task upload and starts the task on the rest' do
+      stub_agents([target, target2], %w[rpcutil shell])
+      inventory.set_config(target2, %w[choria task-agent], 'shell')
+      allow(mock_rpc_client).to receive(:run) do |args|
+        failing = args[:command].include?('base64 -d') ? ['node2.example.com'] : []
+        mock_rpc_client.options[:filter]['identity'].map do |name|
+          exitcode = failing.include?(name) ? 1 : 0
+          make_shell_run_result(name, stderr: exitcode.zero? ? '' : 'disk full', exitcode: exitcode)
+        end
+      end
+      started = nil
+      allow(mock_rpc_client).to receive(:start) do
+        started = mock_rpc_client.options[:filter]['identity'].dup
+        [make_shell_start_result(target)]
+      end
+
+      results = transport.batch_task([target, target2], task, {})
+
+      expect(results.length).to eq(2)
+      expect(results.find { |result| result.target == target }.value).to eq('result' => 'ok')
+      failed = results.find { |result| result.target == target2 }
+      expect(failed.error_hash['kind']).to eq('bolt/choria-operation-failed')
+      expect(failed.error_hash['msg'])
+        .to match(%r{\Aupload /tmp/bolt-choria-test-uuid/mytask\.sh failed on .+ \(exit code 1\): disk full})
+      expect(started).to eq(['node1.example.com'])
+    end
+
+    it 'excludes a target that fails the task chmod and starts the task on the rest' do
+      stub_agents([target, target2], %w[rpcutil shell])
+      inventory.set_config(target2, %w[choria task-agent], 'shell')
+      allow(mock_rpc_client).to receive(:run) do |args|
+        failing = args[:command].start_with?('chmod u+x') ? ['node2.example.com'] : []
+        mock_rpc_client.options[:filter]['identity'].map do |name|
+          exitcode = failing.include?(name) ? 1 : 0
+          make_shell_run_result(name, stderr: exitcode.zero? ? '' : 'read-only file system', exitcode: exitcode)
+        end
+      end
+      started = nil
+      allow(mock_rpc_client).to receive(:start) do
+        started = mock_rpc_client.options[:filter]['identity'].dup
+        [make_shell_start_result(target)]
+      end
+
+      results = transport.batch_task([target, target2], task, {})
+
+      expect(results.length).to eq(2)
+      expect(results.find { |result| result.target == target }.value).to eq('result' => 'ok')
+      failed = results.find { |result| result.target == target2 }
+      expect(failed.error_hash['kind']).to eq('bolt/choria-operation-failed')
+      expect(failed.error_hash['msg']).to match(/\Achmod task failed on .+ \(exit code 1\): read-only file system/)
+      expect(started).to eq(['node1.example.com'])
     end
 
     # Command-building details (stdin/environment/both input methods,

@@ -315,11 +315,10 @@ module Bolt
       end
 
       # Upload file content to the same path on multiple targets via base64.
-      # The entire file is base64-encoded and sent as a single RPC message,
-      # so file size is limited by the NATS max message size (default 1MB,
-      # configurable via plugin.choria.network.client_max_payload in the
-      # Choria broker config). Base64 adds ~33% overhead, so the effective
-      # file size limit is roughly 750KB with default settings.
+      # The whole file is base64-encoded into one shell.run command, and the
+      # shell agent's DDL caps a command at 10,240 characters, so a file can
+      # be about 7.5 KB on POSIX and under 3 KB on Windows, where the
+      # PowerShell wrapper is encoded as UTF-16LE base64 on top of that.
       # Once the file-transfer agent is implemented, we'll use chunked
       # transfers via that agent instead when it's available, removing this
       # size limitation.

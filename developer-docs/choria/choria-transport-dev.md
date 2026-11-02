@@ -433,10 +433,12 @@ handles its own concurrency: `batches()` groups targets by collective
   from its first target, so targets whose values differ get the first target's
   values. Batching by option values as well would serialize one batch per
   distinct set of values, which is far slower when the values vary per target.
-- **Base64 upload size:** The `upload_file_content` method sends files
-  in a single NATS message. After base64 encoding (~33% expansion) and RPC
-  overhead, the max raw file size is roughly 700-750KB with the default 1MB
-  message limit. This will be addressed in Phase 4 with chunked file transfer.
+- **Base64 upload size:** The `upload_file_content` method sends the whole
+  file base64-encoded inside one `shell.run` command, and the shell agent's
+  DDL caps a command at 10,240 characters, so a file can be about 7.5 KB on
+  POSIX and under 3 KB on Windows, where the PowerShell wrapper is encoded as
+  UTF-16LE base64 on top of that. This will be addressed in Phase 4 with
+  chunked file transfer.
 
 ## Testing
 
