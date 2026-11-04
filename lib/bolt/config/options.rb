@@ -484,6 +484,14 @@ module Bolt
           },
           _plugin: true
         },
+        "puppetfile" => {
+          description: "The path to the project's Puppetfile, used by `bolt module install` and " \
+                       "related commands. Relative paths are resolved from the project directory; " \
+                       "absolute paths are used as-is. Defaults to `Puppetfile` in the project directory.",
+          type: String,
+          _example: "control-repo/Puppetfile",
+          _plugin: true
+        },
         "rerunfile" => {
           description: "The path to the project's rerun file. The rerun file is used to store information " \
                        "about targets from the most recent run. Expands relative to the project directory.",
@@ -668,6 +676,7 @@ module Bolt
         policies
         puppetdb
         puppetdb-instances
+        puppetfile
         rerunfile
         save-rerun
         spinner
