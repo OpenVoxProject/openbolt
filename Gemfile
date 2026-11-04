@@ -15,9 +15,6 @@ end
 # Disable analytics when running in development
 ENV['BOLT_DISABLE_ANALYTICS'] = 'true'
 
-# Disable warning that Bolt may be installed as a gem
-ENV['BOLT_GEM'] = 'true'
-
 gemspec
 
 # Optional paint gem for rainbow outputter
