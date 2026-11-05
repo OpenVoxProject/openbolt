@@ -12,10 +12,14 @@ on:
         required: true
         type: string
       branch:
-        description: 'Branch to promote to (defaults to main)'
+        description: 'Branch to promote to'
         required: false
         default: 'main'
-        type: string
+        type: choice
+        options:
+          - main
+          - '5.x'
+
 
 permissions: {}
 
