@@ -244,7 +244,8 @@ runs directly with Puppet's Ruby.
 
 ### Puppetfile
 
-Some of the agent modules are on the Forge, but they are no longer being updated there. Add them from GitHub:
+The shell agent module on the Forge is older than the 1.2.1 OpenBolt needs,
+so it comes from GitHub. The other modules come from the Forge:
 
 ```ruby
 # Puppetfile (in the environment, e.g. production)
@@ -254,9 +255,7 @@ mod 'choria-mcollective_choria', :latest
 mod 'mcollective_agent_shell',
   git: 'https://github.com/choria-plugins/shell-agent',
   ref: '1.2.1'
-mod 'mcollective_agent_file_transfer',
-  git: 'https://github.com/overlookinfra/file_transfer-agent',
-  ref: 'main'
+mod 'overlookinfra-mcollective_agent_file_transfer', :latest
 ```
 
 The shell agent requires version 1.2.1 or later (for the batched `statuses`
