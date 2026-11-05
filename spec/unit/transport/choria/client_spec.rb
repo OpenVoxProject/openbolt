@@ -160,8 +160,10 @@ describe Bolt::Transport::Choria do
       transport.create_rpc_client('shell', [target], 60)
     end
 
-    it 'asks for no progress output through the client options alone' do
+    it 'leaves the publish timeout and threading to the client library and asks for no progress output' do
       expect(MCollective::RPC::Client).to receive(:new) do |_agent, opts|
+        expect(opts[:options]).not_to have_key(:publish_timeout)
+        expect(opts[:options]).not_to have_key(:threaded)
         expect(opts[:options][:progress_bar]).to be_falsey
         mock_rpc_client
       end

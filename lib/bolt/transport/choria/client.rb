@@ -117,17 +117,12 @@ module Bolt
       # @param timeout [Numeric] RPC call timeout in seconds
       # @return [MCollective::RPC::Client] Configured client with direct addressing enabled
       def create_rpc_client(agent_name, targets, timeout)
-        options = MCollective::Util.default_options
-        options[:connection_timeout] = targets.first.options['broker-timeout']
-        options[:collective] = collective_for(targets.first)
-
-        client = MCollective::RPC::Client.new(agent_name, options: options)
+        client = MCollective::RPC::Client.new(agent_name, options: client_options(targets))
         # Set after the build, which replaces a timeout of exactly 5, the
         # gem's default, with the DDL timeout plus the discovery timeout.
         client.timeout = timeout
 
-        identities = targets.map { |target| choria_identity(target) }.uniq
-        client.discover(nodes: identities)
+        client.discover(nodes: identities_of(targets))
 
         client
       end
@@ -170,8 +165,7 @@ module Bolt
       def rpc_request(agent, targets, context, accept_aborted: false)
         targets = Array(targets)
         rpc_results = @rpc_mutex.synchronize do
-          rpc_timeout = targets.first.options['rpc-timeout']
-          client = create_rpc_client(agent, targets, rpc_timeout)
+          client = create_rpc_client(agent, targets, targets.first.options['rpc-timeout'])
           yield(client)
         end
         by_sender = index_results_by_sender(rpc_results, targets, context)
@@ -210,6 +204,20 @@ module Bolt
                                       'bolt/choria-rpc-failed')
         end
         { responded: {}, errors: errors, rpc_failed: true, aborted: {} }
+      end
+
+      # The client options the targets' configuration gives: the broker
+      # timeout and the collective over the gem's defaults. The file
+      # transfer library builds its own clients from the same hash, under
+      # the same RPC mutex.
+      #
+      # @param targets [Array<Bolt::Target>] The targets of one batch
+      # @return [Hash]
+      def client_options(targets)
+        options = MCollective::Util.default_options
+        options[:connection_timeout] = targets.first.options['broker-timeout']
+        options[:collective] = collective_for(targets.first)
+        options
       end
 
       # Fire node_start for every target, configure the client, discover

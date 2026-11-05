@@ -3,10 +3,9 @@
 module Bolt
   module Transport
     class Choria
-      SHELL_MIN_VERSION = '1.2.1'
-
       AGENT_MIN_VERSIONS = {
-        'shell' => SHELL_MIN_VERSION
+        'shell' => '1.2.1',
+        'file_transfer' => '1.0.0'
       }.freeze
 
       # Discover agents and detect OS on targets via two batched RPC calls

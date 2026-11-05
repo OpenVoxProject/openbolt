@@ -165,16 +165,21 @@ module Bolt
       #
       # Transports may override this method to implement their own batch processing.
       def batch_download(targets, source, destination, options = {}, position = [], &callback)
-        require 'erb'
-
         assert_batch_size_one("batch_download()", targets)
         target = targets.first
         with_events(target, callback, 'download', position) do
-          escaped_name = ERB::Util.url_encode(target.safe_name)
-          target_destination = File.expand_path(escaped_name, destination)
+          target_destination = download_dir(destination, target)
           @logger.debug { "Downloading: '#{source}' on #{target.safe_name} to #{target_destination}" }
           download(target, source, target_destination, options)
         end
+      end
+
+      # The directory under the destination that receives one target's
+      # download, named after the target so that a batch keeps them apart.
+      def download_dir(destination, target)
+        require 'erb'
+
+        File.expand_path(ERB::Util.url_encode(target.safe_name), destination)
       end
 
       def batch_connected?(targets)
