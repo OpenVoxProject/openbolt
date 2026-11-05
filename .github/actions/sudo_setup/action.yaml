@@ -1,11 +1,8 @@
 name: Sudo test setup
-description: Setup Docker containers and non-Sudo user for Bolt tests that validate sudo usage
+description: Give the runner user a password and a sudo rule for the tests that escalate privileges
 runs:
   using: composite
   steps:
-    - name: Bring up containers
-      shell: bash
-      run: bundle exec rake acceptance:up
     - name: Create non-sudo user
       shell: bash
       run: |

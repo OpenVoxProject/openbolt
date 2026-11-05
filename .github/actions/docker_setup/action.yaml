@@ -1,8 +1,0 @@
-name: Docker containers
-description: Start Docker containers required for Bolt tests
-runs:
-  using: composite
-  steps:
-    - name: Bring up containers
-      shell: bash
-      run: bundle exec rake acceptance:up
