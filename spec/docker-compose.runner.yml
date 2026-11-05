@@ -1,0 +1,14 @@
+name: openbolt-runner
+services:
+  runner:
+    build:
+      context: .
+      dockerfile: Dockerfile.runner
+    command: ["sleep", "infinity"]
+    init: true
+    volumes:
+      - ..:/openbolt
+      - gems:/usr/local/bundle
+
+volumes:
+  gems:

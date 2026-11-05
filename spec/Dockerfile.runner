@@ -1,0 +1,21 @@
+ARG RUBY_VERSION=4.0
+FROM ruby:${RUBY_VERSION}
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends python3 rsync sudo \
+    && rm -rf /var/lib/apt/lists/*
+
+# The sudo-tagged tests run as the runner user with the password runner, the
+# way CI sets up its runner. Without the timeout sudo would remember the first
+# correct password and the wrong-password examples would never be asked for one.
+RUN useradd --create-home --shell /bin/bash runner \
+    && echo 'runner:runner' | chpasswd \
+    && printf 'Defaults timestamp_timeout=0\nrunner ALL=(ALL) PASSWD:ALL\n' > /etc/sudoers.d/runner \
+    && chmod 0440 /etc/sudoers.d/runner
+
+ENV BUNDLE_WITHOUT=packaging \
+    HOME=/home/runner \
+    USER=runner
+
+USER runner
+WORKDIR /openbolt
