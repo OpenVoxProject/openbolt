@@ -5,6 +5,4 @@ runs:
   steps:
     - name: Bring up containers
       shell: bash
-      run: |
-        docker compose -f spec/docker-compose.yml build --parallel
-        docker compose -f spec/docker-compose.yml up -d
+      run: bundle exec rake acceptance:up

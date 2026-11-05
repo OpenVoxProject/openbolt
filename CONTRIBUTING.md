@@ -144,12 +144,27 @@ Puppetfile and then run `bundle exec r10k puppetfile install`.
 ### Provisioning for *nix tests
 
 For Linux tests (recommended, if you're not sure), you'll need to have Docker installed to provision
-container infrastructure locally to test against. Once that's are installed, run the following from
-the root of the Bolt repo:
+container infrastructure locally to test against. Once it is installed, run the following from the
+root of the repo to build the images, start the containers and wait until they are healthy:
 
-```
-docker-compose -f spec/docker-compose.yml up -d --build
-```
+    $ bundle exec rake acceptance:up
+
+The `acceptance` namespace also has tasks that start the containers and then run one group of
+tests, such as `acceptance:ssh` or `acceptance:integration`. List them with
+`bundle exec rake -T acceptance`.
+
+To run a single spec file, set `SPEC`. You can either do this with one of the `acceptance` tasks,
+which runs `acceptance:up` to bring the containers up first and then runs the single spec:
+
+    $ SPEC=spec/integration/transport/ssh_spec.rb bundle exec rake acceptance:ssh
+
+Or on containers already running after having previously run `acceptance:up`:
+
+    $ SPEC=spec/integration/transport/ssh_spec.rb bundle exec rake ci:ssh_transport
+
+Stop and remove the containers with:
+
+    $ bundle exec rake acceptance:down
 
 ### Provisioning for Windows tests
 For Windows tests, execute `vagrant up` from the root of the Bolt repo to bring these up with the
