@@ -1,4 +1,3 @@
-version: "3"
 services:
   ubuntu_node:
     build: .
@@ -16,34 +15,51 @@ services:
       - "127.0.0.1:20025:22"
 
   postgres:
-    image: postgres:11.11
+    image: postgres:17
     environment:
-      POSTGRES_PASSWORD: puppetdb
-      POSTGRES_USER: puppetdb
-      POSTGRES_DB: puppetdb
+      POSTGRES_DB: openvoxdb
+      POSTGRES_USER: openvoxdb
+      POSTGRES_PASSWORD: openvoxdb
     volumes:
-      - ./fixtures/puppetdb/custom_source:/docker-entrypoint-initdb.d
+      - ./fixtures/openvoxdb/postgres-init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "openvoxdb", "-d", "openvoxdb"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
 
-  puppetdb:
-    build:
-      context: .
-      dockerfile: Dockerfile.puppetdb
+  # Serves the fixture certificates instead of fetching its own from the server
+  openvoxdb:
+    image: ghcr.io/openvoxproject/openvoxdb:8
+    hostname: openvoxdb
     depends_on:
-      - postgres
-      - puppetserver
+      postgres:
+        condition: service_healthy
     environment:
-      USE_PUPPETSERVER: 'false'
-      CERTNAME: pdb
+      USE_OPENVOXSERVER: 'false'
+    volumes:
+      - ./fixtures/ssl/cert.pem:/opt/puppetlabs/server/data/puppetdb/certs/certs/server.crt:ro
+      - ./fixtures/ssl/key.pem:/opt/puppetlabs/server/data/puppetdb/certs/private_keys/server.key:ro
+      - ./fixtures/ssl/ca.pem:/opt/puppetlabs/server/data/puppetdb/certs/certs/ca.pem:ro
+      - ./fixtures/openvoxdb/enable-ssl.sh:/container-custom-entrypoint.d/enable-ssl.sh:ro
     ports:
       - "127.0.0.1:18081:8081"
 
-  puppetserver:
-    build:
-      context: .
-      dockerfile: Dockerfile.puppetserver
-    image: puppet-server
+  # Runs without a CA, with the fixture certificates and the fixture modules in
+  # its production environment. The hostname is the CN of the fixture certificate.
+  openvoxserver:
+    image: ghcr.io/openvoxproject/openvoxserver:9
+    hostname: boltserver
+    environment:
+      CERTNAME: boltserver
+      OPENVOXSERVER_HOSTNAME: boltserver
+      CA_ENABLED: 'false'
+      USE_OPENVOXDB: 'false'
+    volumes:
+      - ./fixtures/ssl/cert.pem:/etc/puppetlabs/puppet/ssl/certs/boltserver.pem:ro
+      - ./fixtures/ssl/key.pem:/etc/puppetlabs/puppet/ssl/private_keys/boltserver.pem:ro
+      - ./fixtures/ssl/ca.pem:/etc/puppetlabs/puppet/ssl/certs/ca.pem:ro
+      - ./fixtures/ssl/crl.pem:/etc/puppetlabs/puppet/ssl/crl.pem:ro
+      - ./fixtures/modules:/etc/puppetlabs/code/environments/production/modules:ro
     ports:
       - "127.0.0.1:8140:8140"
-    volumes:
-      - ./fixtures/modules:/etc/puppetlabs/code/modules
-      - ./fixtures/bolt_server/projects:/etc/puppetlabs/code/projects
