@@ -99,6 +99,7 @@ module Bolt
       # `wait` call, Bolt should pause for long enough that something can
       # execute before checking again. This mitigates CPU
       # thrashing.
+      return if active_futures.empty?
       return unless active_futures.all? { |f| %i[returned_immediately unfinished].include?(f.value) }
 
       @logger.trace("Nothing can be resumed. Rechecking in 0.5 seconds.")

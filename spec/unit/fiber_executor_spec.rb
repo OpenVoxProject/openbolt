@@ -86,10 +86,19 @@ describe "Bolt::FiberExecutor" do
       @futures.each do |future|
         # Return true once, then return false as many times as it's called
         allow(future).to receive(:alive?).and_return(true, true, false)
-        allow(future).to receive(:resume).and_return(:returned_immediately, "Value")
+        allow(future).to receive(:resume) { future.value = :returned_immediately }
       end
 
-      expect(fiber_executor).to receive(:sleep)
+      expect(fiber_executor).to receive(:sleep).at_least(:once)
+      fiber_executor.round_robin until fiber_executor.plan_complete?
+    end
+
+    it "does not sleep after the last future finishes" do
+      @futures.each do |future|
+        allow(future).to receive(:alive?).and_return(true, false)
+      end
+
+      expect(fiber_executor).not_to receive(:sleep)
       fiber_executor.round_robin until fiber_executor.plan_complete?
     end
   end
