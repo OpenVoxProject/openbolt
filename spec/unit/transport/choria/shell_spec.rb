@@ -1137,4 +1137,150 @@ describe Bolt::Transport::Choria do
       )
     end
   end
+
+  describe 'shell job directories' do
+    include_context 'choria multi-target'
+
+    let(:handle) { '0f2d8c4e-1b3a-4c5d-8e9f-0a1b2c3d4e5f' }
+    let(:handle2) { '9a8b7c6d-5e4f-4a3b-9c2d-1e0f9a8b7c6d' }
+    let(:removals) { [] }
+
+    def start_two_jobs(first_handle, second_handle)
+      stub_shell_start({ target => { handle: first_handle }, target2 => { handle: second_handle } })
+      stub_shell_list({ target => { handle: first_handle }, target2 => { handle: second_handle } })
+      stub_shell_status({ target => { handle: first_handle, stdout: 'ok' }, target2 => { handle: second_handle, stdout: 'ok' } })
+      allow(mock_rpc_client).to receive(:run) do |args|
+        removals << [mock_rpc_client.options[:filter]['identity'].dup, args[:command]]
+        [make_shell_run_result(target), make_shell_run_result(target2)]
+      end
+    end
+
+    it 'removes the directories of the jobs that finished' do
+      stub_agents([target, target2], %w[rpcutil shell])
+      start_two_jobs(handle, handle2)
+
+      results = transport.batch_command([target, target2], 'hostname', {})
+
+      expect(results.map { |result| result.value['stdout'] }).to eq(%w[ok ok])
+      expect(removals).to eq([[%w[node1.example.com node2.example.com],
+                               "rm -rf /var/run/mcollective-shell/#{handle} /var/run/mcollective-shell/#{handle2}"]])
+    end
+
+    it 'keeps the directory of a job that timed out' do
+      stub_agents([target, target2], %w[rpcutil shell])
+      start_two_jobs(handle, handle2)
+      allow(mock_rpc_client).to receive(:list).and_return([make_shell_list_result(target, handle),
+                                                           make_shell_list_result(target2, handle2, status: 'running')])
+      stub_shell_kill
+      allow(Process).to receive(:clock_gettime).and_return(0, 0, 100)
+      inventory.set_config(target, %w[choria command-timeout], 1)
+
+      results = transport.batch_command([target, target2], 'hostname', {})
+
+      expect(results.find { |result| result.target == target2 }.error_hash['kind']).to eq('bolt/choria-command-timeout')
+      expect(removals).to eq([[%w[node1.example.com], "rm -rf /var/run/mcollective-shell/#{handle}"]])
+    end
+
+    it 'keeps the directory on a target that stopped answering' do
+      stub_agents([target, target2], %w[rpcutil shell])
+      start_two_jobs(handle, handle2)
+      allow(mock_rpc_client).to receive(:list).and_return([make_shell_list_result(target, handle)])
+
+      results = transport.batch_command([target, target2], 'hostname', {})
+
+      expect(results.find { |result| result.target == target2 }.error_hash['kind']).to eq('bolt/choria-no-response')
+      expect(removals).to eq([[%w[node1.example.com], "rm -rf /var/run/mcollective-shell/#{handle}"]])
+    end
+
+    it 'keeps the results and warns when the removal fails' do
+      stub_agents([target, target2], %w[rpcutil shell])
+      start_two_jobs(handle, handle2)
+      allow(mock_rpc_client).to receive(:run).and_raise(StandardError, 'broker went away')
+      warnings = []
+      allow(transport.logger).to receive(:warn) { |*args, &block| warnings << (block ? block.call : args.first) }
+
+      results = transport.batch_command([target, target2], 'hostname', {})
+
+      expect(results.map { |result| result.value['stdout'] }).to eq(%w[ok ok])
+      expect(warnings).to include(a_string_including('broker went away'))
+    end
+
+    it 'sends each platform its own removal command' do
+      stub_agents(target, %w[rpcutil shell], os_family: 'windows')
+      stub_agents(target2, %w[rpcutil shell])
+      transport.discover_agents([target, target2])
+      allow(mock_rpc_client).to receive(:run) do |args|
+        removals << [mock_rpc_client.options[:filter]['identity'].dup, args[:command]]
+        [make_shell_run_result(target), make_shell_run_result(target2)]
+      end
+
+      transport.remove_job_dirs({ target => { handle: handle }, target2 => { handle: handle2 } })
+
+      expect(removals.to_h.keys).to contain_exactly(%w[node1.example.com], %w[node2.example.com])
+      expect(removals.to_h[%w[node1.example.com]]).to start_with('powershell.exe ')
+      expect(removals.to_h[%w[node2.example.com]]).to eq("rm -rf /var/run/mcollective-shell/#{handle2}")
+    end
+
+    it 'removes the directories in groups of SHELL_JOB_DIR_BATCH_SIZE' do
+      stub_const('Bolt::Transport::Choria::SHELL_JOB_DIR_BATCH_SIZE', 1)
+      stub_agents([target, target2], %w[rpcutil shell])
+      start_two_jobs(handle, handle2)
+
+      transport.batch_command([target, target2], 'hostname', {})
+
+      expect(removals).to eq([[%w[node1.example.com], "rm -rf /var/run/mcollective-shell/#{handle}"],
+                              [%w[node2.example.com], "rm -rf /var/run/mcollective-shell/#{handle2}"]])
+    end
+
+    it 'removes the directories under the agent path on Windows targets' do
+      stub_agents([target, target2], %w[rpcutil shell], os_family: 'windows')
+      start_two_jobs(handle, handle2)
+
+      transport.batch_command([target, target2], 'hostname', {})
+
+      script = Base64.decode64(removals.first.last.split.last).force_encoding('UTF-16LE').encode('UTF-8')
+      expect(script).to eq("foreach ($path in @('C:/ProgramData/mcollective-shell/#{handle}', " \
+                           "'C:/ProgramData/mcollective-shell/#{handle2}')) { if (Test-Path -LiteralPath $path) " \
+                           '{ Remove-Item -LiteralPath $path -Recurse -Force -ErrorAction Stop } }')
+    end
+
+    it 'leaves out a handle that is not a UUID' do
+      stub_agents([target, target2], %w[rpcutil shell])
+      start_two_jobs('../../etc', handle2)
+
+      transport.batch_command([target, target2], 'hostname', {})
+
+      expect(removals).to eq([[%w[node2.example.com], "rm -rf /var/run/mcollective-shell/#{handle2}"]])
+    end
+
+    it 'leaves out a handle with more text after the UUID' do
+      stub_agents([target, target2], %w[rpcutil shell])
+      start_two_jobs("#{handle}\necho injected", handle2)
+
+      transport.batch_command([target, target2], 'hostname', {})
+
+      expect(removals).to eq([[%w[node2.example.com], "rm -rf /var/run/mcollective-shell/#{handle2}"]])
+    end
+
+    it 'keeps the directory of a target whose cleanup option is off' do
+      inventory.set_config(target, %w[choria cleanup], false)
+      stub_agents([target, target2], %w[rpcutil shell])
+      start_two_jobs(handle, handle2)
+
+      transport.batch_command([target, target2], 'hostname', {})
+
+      expect(removals).to eq([[%w[node2.example.com], "rm -rf /var/run/mcollective-shell/#{handle2}"]])
+    end
+
+    it 'keeps the directories when cleanup is false' do
+      inventory.set_config(target, %w[choria cleanup], false)
+      inventory.set_config(target2, %w[choria cleanup], false)
+      stub_agents([target, target2], %w[rpcutil shell])
+      start_two_jobs(handle, handle2)
+
+      transport.batch_command([target, target2], 'hostname', {})
+
+      expect(removals).to be_empty
+    end
+  end
 end
