@@ -14,7 +14,7 @@ module Bolt
       #
       # @param targets [Array<Bolt::Target>] Targets to discover agents on
       # @return [Hash{Bolt::Target => Hash}] The error output of each uncached target that the
-      #   agent_inventory call failed for, other than by not answering. Empty otherwise.
+      #   agent_inventory call failed for, including one that did not answer. Empty otherwise.
       def discover_agents(targets)
         uncached = targets.reject { |target| discovered?(target) }
         return {} if uncached.empty?
@@ -41,28 +41,31 @@ module Bolt
       # and populate @agent_cache with agent lists.
       #
       # @param targets [Array<Bolt::Target>] Targets to query for agent inventory
-      # @return [Hash{Bolt::Target => Hash}] The error output of each target that answered with
-      #   an RPC error, or of every target when the call failed as a whole, such as when the
-      #   client could not connect. A target that did not answer is left out.
+      # @return [Hash{Bolt::Target => Hash}] The error output of each target that did not answer,
+      #   answered with an RPC error or answered without an agent list, or of every target when
+      #   the call failed as a whole, such as when the client could not connect.
       def discover_agent_list(targets)
         response = rpc_request('rpcutil', targets, 'rpcutil.agent_inventory') do |client|
           client.agent_inventory
         end
         response[:errors].each { |target, output| logger.warn { "agent_inventory failed for #{target.safe_name}: #{output[:error]}" } }
 
+        malformed = {}
         response[:responded].each do |target, data|
           sender = choria_identity(target)
           # A node can send data that isn't a hash, which would raise and stop
           # discovery for every target after it
           agents = filter_agents(sender, data[:agents]) if data.is_a?(Hash)
           unless agents
-            logger.warn { "Unexpected agent_inventory response from #{sender}. This target will be treated as unreachable." }
+            logger.warn { "Unexpected agent_inventory response from #{sender}" }
+            malformed[target] = error_output("rpcutil.agent_inventory on #{target.safe_name} returned no agent list",
+                                             'bolt/choria-missing-data')
             next
           end
           @agent_cache[sender] = { agents: agents }
           logger.debug { "Discovered agents on #{sender}: #{agents.join(', ')}" }
         end
-        response[:errors].reject { |_target, output| output[:error_kind] == 'bolt/choria-no-response' }
+        response[:errors].merge(malformed)
       rescue StandardError => e
         raise if e.is_a?(Bolt::Error)
 
@@ -119,6 +122,8 @@ module Bolt
         return nil unless agent_list.is_a?(Array)
 
         agent_list.filter_map do |entry|
+          next unless entry.is_a?(Hash)
+
           name = entry['agent']
           next unless name
 

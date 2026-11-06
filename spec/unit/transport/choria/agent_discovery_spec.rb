@@ -128,15 +128,34 @@ describe Bolt::Transport::Choria do
       expect(transport.has_agent?(target, 'shell')).to be false
     end
 
-    it 'treats only that target as unreachable when its agent_inventory data is not a hash' do
+    it 'reports only that target when its agent_inventory data is not a hash' do
       malformed = make_rpc_result(sender: target, data: [])
       answered = make_rpc_result(sender: target2, data: { agents: [{ 'agent' => 'rpcutil' }] })
       allow(mock_rpc_client).to receive_messages(agent_inventory: [malformed, answered],
                                                  get_fact: [make_rpc_result(sender: target2, data: { value: 'RedHat' })])
 
+      failures = transport.discover_agents([target, target2])
+
+      expect(failures.keys).to eq([target])
+      expect(failures[target]).to include(
+        error: 'rpcutil.agent_inventory on choria://node1.example.com returned no agent list',
+        error_kind: 'bolt/choria-missing-data'
+      )
+      expect(transport.discovered?(target)).to be false
+      expect(transport.has_agent?(target2, 'rpcutil')).to be true
+    end
+
+    it 'skips agent_inventory entries that are not hashes and keeps discovering the other targets' do
+      odd = make_rpc_result(sender: target, data: { agents: [5, nil, 'shell_agent', { 'agent' => 'rpcutil' }] })
+      answered = make_rpc_result(sender: target2, data: { agents: [{ 'agent' => 'rpcutil' }] })
+      allow(mock_rpc_client).to receive_messages(agent_inventory: [odd, answered],
+                                                 get_fact: [make_rpc_result(sender: target, data: { value: 'RedHat' }),
+                                                            make_rpc_result(sender: target2, data: { value: 'RedHat' })])
+
       transport.discover_agents([target, target2])
 
-      expect(transport.discovered?(target)).to be false
+      expect(transport.has_agent?(target, 'rpcutil')).to be true
+      expect(transport.has_agent?(target, 'agent')).to be false
       expect(transport.has_agent?(target2, 'rpcutil')).to be true
     end
 
@@ -201,7 +220,9 @@ describe Bolt::Transport::Choria do
       it 'returns the RPC error of a target that answered agent_inventory with one' do
         refused = make_rpc_result(sender: target, statuscode: 1,
                                   statusmsg: 'You are not authorized to call this agent or action', data: {})
-        allow(mock_rpc_client).to receive(:agent_inventory).and_return([refused])
+        answered = make_rpc_result(sender: target2, data: { agents: [{ 'agent' => 'rpcutil' }] })
+        allow(mock_rpc_client).to receive_messages(agent_inventory: [refused, answered],
+                                                   get_fact: [make_rpc_result(sender: target2, data: { value: 'RedHat' })])
 
         failures = transport.discover_agents([target, target2])
 
@@ -213,10 +234,16 @@ describe Bolt::Transport::Choria do
         )
       end
 
-      it 'returns no failures when only some targets do not answer' do
+      it 'returns a no-response error for a target that does not answer' do
         stub_agents(target, %w[rpcutil])
 
-        expect(transport.discover_agents([target, target2])).to eq({})
+        failures = transport.discover_agents([target, target2])
+
+        expect(failures.keys).to eq([target2])
+        expect(failures[target2]).to include(
+          error: 'No response from choria://node2.example.com for rpcutil.agent_inventory',
+          error_kind: 'bolt/choria-no-response'
+        )
       end
     end
   end
