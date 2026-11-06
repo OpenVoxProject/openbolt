@@ -166,6 +166,20 @@ Stop and remove the containers with:
 
     $ bundle exec rake acceptance:down
 
+The local transport tests tagged `sudo` expect to run as a user named `runner` with the password
+`runner`, which is how CI sets up its runner. To run them on your machine, run them in a Linux
+container that has that user. `acceptance:local:up` builds the image, starts the container and
+installs the gems into a Docker volume, and `acceptance:local` does that and then runs the local
+transport suite inside the container:
+
+    $ bundle exec rake acceptance:local
+
+`SPEC` works here too, for example `SPEC=spec/integration/local_spec.rb` for the escalation
+examples of the local integration spec. Repeated runs reuse the installed gems until you stop and
+remove the container together with its gems volume:
+
+    $ bundle exec rake acceptance:local:down
+
 ### Provisioning for Windows tests
 For Windows tests, execute `vagrant up` from the root of the Bolt repo to bring these up with the
 provided Vagrantfile. Any tests that require this are tagged with `:winrm` or `:ssh` in rspec.
