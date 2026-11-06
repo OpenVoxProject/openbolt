@@ -471,6 +471,15 @@ describe Bolt::Transport::Choria do
       expect(events.select { |event| event[:type] == :node_result }.map { |event| event[:result].target }).to contain_exactly(target, target2)
     end
 
+    it 'reports why discovery failed for every target when the client cannot make the discovery call' do
+      allow(MCollective::RPC::Client).to receive(:new).and_raise(StandardError, 'The Choria client cannot be run as root')
+
+      results = transport.batch_task_with([target, target2], task, { target => {}, target2 => {} }, {}, [])
+
+      expect(results.map(&:target)).to contain_exactly(target, target2)
+      expect(results.map(&:error_hash)).to all(include('kind' => 'bolt/choria-rpc-failed', 'msg' => /The Choria client cannot be run as root/))
+    end
+
     it 'runs the task on the other targets when the first has no matching implementation' do
       stub_agents(target, %w[rpcutil bolt_tasks])
       stub_agents(target2, %w[rpcutil bolt_tasks], os_family: 'windows')
