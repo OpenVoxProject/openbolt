@@ -325,9 +325,6 @@ module Bolt
       # shell agent's DDL caps a command at 10,240 characters, so a file can
       # be about 7.5 KB on POSIX and under 3 KB on Windows, where the
       # PowerShell wrapper is encoded as UTF-16LE base64 on top of that.
-      # Once the file-transfer agent is implemented, we'll use chunked
-      # transfers via that agent instead when it's available, removing this
-      # size limitation.
       #
       # @param targets [Array<Bolt::Target>] Targets to upload to
       # @param content [String] Raw file content (binary-safe)
