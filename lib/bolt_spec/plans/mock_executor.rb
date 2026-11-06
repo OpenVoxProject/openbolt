@@ -279,6 +279,10 @@ module BoltSpec
         yield
       end
 
+      def run_in_new_fiber
+        yield
+      end
+
       def in_parallel?
         false
       end

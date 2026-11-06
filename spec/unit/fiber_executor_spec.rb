@@ -108,7 +108,7 @@ describe "Bolt::FiberExecutor" do
       before :each do
         h = { 'lion' => 2, 'tiger' => 2, 'bear' => 3 }
         @futures = h.map do |val, p_id|
-          dbl = double("future_#{val}", value: val + 's', original_plan: p_id, fiber: nil)
+          dbl = double("future_#{val}", value: val + 's', original_plan: p_id, fiber: nil, nested_fibers: [])
           allow(dbl).to receive(:alive?).and_return(true, false)
           dbl
         end
@@ -187,6 +187,111 @@ describe "Bolt::FiberExecutor" do
         expect(fiber_executor.wait(@futures, catch_errors: true))
           .to eq(@futures.map(&:value))
       end
+    end
+  end
+
+  describe "#run_in_new_fiber" do
+    before :each do
+      # round_robin sleeps when no future can make progress
+      allow(fiber_executor).to receive(:sleep)
+    end
+
+    def run_until_complete
+      fiber_executor.round_robin until fiber_executor.plan_complete?
+    end
+
+    it "runs the block on the current Fiber when no future is running" do
+      current = Fiber.current
+      expect(fiber_executor.run_in_new_fiber { Fiber.current }).to eq(current)
+    end
+
+    it "runs each nested block on a new Fiber that belongs to the future" do
+      seen = {}
+      future = fiber_executor.create_future(plan_id: plan_id) do
+        fiber_executor.run_in_new_fiber do
+          fiber_executor.run_in_new_fiber do
+            seen[:fiber] = Fiber.current
+            seen[:future] = fiber_executor.get_current_future(fiber: Fiber.current)
+            seen[:nested] = seen[:future].nested_fibers.length
+            'result'
+          end
+        end
+      end
+      run_until_complete
+
+      expect(future.value).to eq('result')
+      expect(seen[:fiber]).not_to eq(future.fiber)
+      expect(seen[:future]).to eq(future)
+      expect(seen[:nested]).to eq(2)
+      expect(future.nested_fibers).to be_empty
+    end
+
+    it "passes what the block yields to the scheduler and returns the block's value" do
+      future = fiber_executor.create_future(plan_id: plan_id) do
+        fiber_executor.run_in_new_fiber do
+          Fiber.yield(:unfinished)
+          'done'
+        end
+      end
+
+      fiber_executor.round_robin
+      expect(future.value).to eq(:unfinished)
+      expect(future).to be_alive
+
+      run_until_complete
+      expect(future.value).to eq('done')
+    end
+
+    it "raises an error raised into the future, like a wait() timeout, inside the block" do
+      received = nil
+      timeout_error = Bolt::FutureTimeoutError.new('slow', 0.1)
+      future = fiber_executor.create_future(plan_id: plan_id) do
+        fiber_executor.run_in_new_fiber do
+          Fiber.yield(:unfinished)
+        rescue Bolt::FutureTimeoutError => e
+          received = e
+          raise
+        end
+      rescue Bolt::FutureTimeoutError
+        nil
+      end
+
+      fiber_executor.round_robin
+      future.raise(timeout_error)
+
+      expect(received).to equal(timeout_error)
+      expect(future).not_to be_alive
+      expect(future.nested_fibers).to be_empty
+    end
+
+    it "returns the block's value when the block rescues an error raised into the future" do
+      returned = nil
+      future = fiber_executor.create_future(plan_id: plan_id) do
+        returned = fiber_executor.run_in_new_fiber do
+          Fiber.yield(:unfinished)
+        rescue Bolt::FutureTimeoutError
+          'recovered'
+        end
+      end
+
+      fiber_executor.round_robin
+      future.raise(Bolt::FutureTimeoutError.new('slow', 0.1))
+
+      expect(returned).to eq('recovered')
+      expect(future).not_to be_alive
+      expect(future.nested_fibers).to be_empty
+    end
+
+    it "raises an error from the block in the calling Fiber" do
+      future = fiber_executor.create_future(plan_id: plan_id) do
+        fiber_executor.run_in_new_fiber { raise Bolt::Error.new('nested plan failed', 'bolt/test-error') }
+      rescue Bolt::Error => e
+        e
+      end
+      run_until_complete
+
+      expect(future.value.message).to eq('nested plan failed')
+      expect(future.nested_fibers).to be_empty
     end
   end
 end
