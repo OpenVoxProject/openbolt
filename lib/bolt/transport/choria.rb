@@ -22,8 +22,8 @@ module Bolt
     #
     #   bolt_tasks agent only: Only run_task works, via the bolt_tasks agent
     #     which downloads task files from an OpenVox/Puppet Server and executes
-    #     them via task_wrapper. All other operations fail with an actionable
-    #     error directing the user to install the shell agent.
+    #     them via task_wrapper. All other operations fail with an error that
+    #     names the agent they need.
     #
     #   shell agent installed (>= 1.2.1): run_command, run_script, and
     #     run_task work. run_task uses the bolt_tasks agent by default.
