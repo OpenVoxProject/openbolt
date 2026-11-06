@@ -401,6 +401,10 @@ module Bolt
       @fiber_executor.get_current_plan_id(fiber: fiber)
     end
 
+    def run_in_new_fiber(&block)
+      @fiber_executor.run_in_new_fiber(&block)
+    end
+
     def plan_complete?
       @fiber_executor.plan_complete?
     end

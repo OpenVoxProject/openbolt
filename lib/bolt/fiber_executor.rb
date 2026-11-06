@@ -5,6 +5,11 @@ require_relative '../bolt/plan_future'
 
 module Bolt
   class FiberExecutor
+    # Limits how many plans one future can nest, so a plan that runs itself
+    # with no condition that stops it fails instead of starting Fibers until
+    # memory runs out.
+    MAX_NESTED_PLANS = 1000
+
     attr_reader :active_futures, :finished_futures
 
     def initialize
@@ -99,6 +104,7 @@ module Bolt
       # `wait` call, Bolt should pause for long enough that something can
       # execute before checking again. This mitigates CPU
       # thrashing.
+      return if active_futures.empty?
       return unless active_futures.all? { |f| %i[returned_immediately unfinished].include?(f.value) }
 
       @logger.trace("Nothing can be resumed. Rechecking in 0.5 seconds.")
@@ -121,7 +127,45 @@ module Bolt
     # Get the PlanFuture object that is currently executing
     #
     def get_current_future(fiber:)
-      all_futures.select { |f| f.fiber == fiber }.first
+      all_futures.find { |f| f.fiber == fiber || f.nested_fibers.include?(fiber) }
+    end
+
+    # Run the block on a new Fiber, so it starts with an empty stack instead
+    # of adding to the current one. Every plan a plan runs adds dozens of
+    # frames, and a Fiber's stack is small and fixed. Values the block yields
+    # while it waits are yielded on to the scheduler, and an error raised into
+    # the current Fiber, like a wait() timeout, is raised inside the block.
+    #
+    def run_in_new_fiber(&block)
+      future = get_current_future(fiber: Fiber.current)
+      return yield unless future
+
+      if future.nested_fibers.length >= MAX_NESTED_PLANS
+        msg = "Plans cannot be nested more than #{MAX_NESTED_PLANS} levels deep. Check for a " \
+              "plan that runs itself without a condition that stops it."
+        # A plain error, not a Bolt::Error, so plans can't catch it with
+        # _catch_errors or catch_errors() and keep a runaway plan going.
+        raise msg
+      end
+
+      fiber = Fiber.new(&block)
+      future.nested_fibers.push(fiber)
+      @logger.trace("Running a nested plan on a new Fiber in future '#{future.name}'")
+      begin
+        value = fiber.resume
+        while fiber.alive?
+          begin
+            resumed_with = Fiber.yield(value)
+          rescue StandardError => e
+            value = fiber.raise(e)
+            next
+          end
+          value = fiber.resume(resumed_with)
+        end
+        value
+      ensure
+        future.nested_fibers.delete(fiber)
+      end
     end
 
     # Get the plan invocation ID for the PlanFuture that is currently executing
@@ -146,7 +190,7 @@ module Bolt
         # finished. This ensures that we include futures created inside of
         # futures being waited on.
         until (futures = get_futures_for_plan(plan_id: plan_id)).map(&:alive?).none?
-          if futures.map(&:fiber).include?(Fiber.current)
+          if futures.include?(get_current_future(fiber: Fiber.current))
             msg = "The wait() function cannot be called with no arguments inside a " \
                   "background block in the same plan."
             raise Bolt::Error.new(msg, 'bolt/infinite-wait')

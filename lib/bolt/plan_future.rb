@@ -4,7 +4,7 @@ require 'fiber'
 
 module Bolt
   class PlanFuture
-    attr_reader :fiber, :id, :scope
+    attr_reader :fiber, :id, :scope, :nested_fibers
     attr_accessor :value, :plan_stack
 
     def initialize(fiber, id, plan_id:, name: nil, scope: nil)
@@ -24,6 +24,10 @@ module Bolt
       # since now we're in the calling plan. These IDs are unique to each plan
       # invocation, not just plan names.
       @plan_stack = [plan_id]
+
+      # Fibers this Future started with FiberExecutor#run_in_new_fiber, which
+      # still belong to this Future
+      @nested_fibers = []
     end
 
     def original_plan

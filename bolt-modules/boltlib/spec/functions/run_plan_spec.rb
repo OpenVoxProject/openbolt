@@ -114,6 +114,13 @@ describe 'run_plan' do
       is_expected.to run.with_params('test::run_me')
                         .and_raise_error(/Plan language function 'run_plan' cannot be used/)
     end
+
+    it 'fails and reports that run_plan is not available when there is no executor' do
+      Puppet.override(bolt_executor: nil) do
+        is_expected.to run.with_params('test::run_me')
+                          .and_raise_error(/Plan language function 'run_plan' cannot be used/)
+      end
+    end
   end
 
   it 'parameters with type TargetSpec are added to inventory' do

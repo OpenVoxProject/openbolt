@@ -49,11 +49,34 @@ Puppet::Functions.create_function(:run_plan, Puppet::Functions::InternalFunction
   end
 
   def run_plan_with_targetspec(scope, plan_name, targets, args = {})
-    run_inner_plan(scope, plan_name, targets, args)
+    run_in_new_fiber { run_inner_plan(scope, plan_name, targets, args) }
   end
 
   def run_plan(scope, plan_name, args = {})
-    run_inner_plan(scope, plan_name, nil, args)
+    run_in_new_fiber { run_inner_plan(scope, plan_name, nil, args) }
+  end
+
+  # Load and run each plan on a new Fiber, so plans that run plans don't pile
+  # their frames onto one Fiber's small stack.
+  def run_in_new_fiber
+    # The tasks setting is off in catalog compiles, which have no executor,
+    # so run the block inline and let run_inner_plan raise its usual error.
+    return yield unless Puppet[:tasks]
+
+    # A next() in a plan's parameter defaults jumps to the run_plan() call
+    # that started the plan, which a new Fiber can't reach. Catch it on the
+    # new Fiber and throw it again on this one.
+    finished = false
+    value = Puppet.lookup(:bolt_executor).run_in_new_fiber do
+      catch(:next) do
+        result = yield
+        finished = true
+        result
+      end
+    end
+    return value if finished
+
+    throw :next, value
   end
 
   def run_inner_plan(scope, plan_name, targets, args = {})
