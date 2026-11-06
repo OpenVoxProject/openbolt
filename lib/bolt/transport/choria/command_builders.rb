@@ -107,13 +107,13 @@ module Bolt
         end
       end
 
-      # Escape a string for use as a shell argument on the target platform.
+      # Escape a value for use as a shell argument on the target platform.
       #
       # @param target [Bolt::Target] Used for platform detection
-      # @param str [String] The string to escape
+      # @param str [Object] The value to escape, turned into a string first
       # @return [String] Escaped string (single-quoted on Windows, sh-escaped on POSIX)
       def escape_arg(target, str)
-        windows_target?(target) ? "'#{ps_escape(str)}'" : Shellwords.shellescape(str)
+        windows_target?(target) ? "'#{ps_escape(str.to_s)}'" : Shellwords.shellescape(str)
       end
 
       # Join path segments using the target platform's separator.
