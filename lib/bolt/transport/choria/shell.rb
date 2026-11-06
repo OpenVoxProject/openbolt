@@ -102,7 +102,7 @@ module Bolt
 
           # Create a temp directory with restricted permissions
           failures = shell_run(active_targets,
-                               make_dir_command(first_target, tmpdir),
+                               make_tmpdir_command(first_target, tmpdir),
                                description: 'mkdir tmpdir')
           results += emit_results(failures, **result_opts, &callback)
           active_targets -= failures.keys
@@ -240,7 +240,7 @@ module Bolt
 
         # Create the tmpdir
         failures = shell_run(active_targets,
-                             make_dir_command(first_target, tmpdir),
+                             make_tmpdir_command(first_target, tmpdir),
                              description: 'mkdir tmpdir')
         failed_results += emit_results(failures, **result_opts, &callback)
         active_targets -= failures.keys

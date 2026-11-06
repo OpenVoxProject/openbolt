@@ -88,6 +88,12 @@ describe 'Bolt::Transport::Choria command builders' do
     end
   end
 
+  describe '#make_tmpdir_command (POSIX)' do
+    it 'creates the tmpdir with mode 700' do
+      expect(transport.make_tmpdir_command(target, '/tmp/bolt-choria-test')).to eq('mkdir -m 700 -p /tmp/bolt-choria-test')
+    end
+  end
+
   describe '#executable_command (POSIX)' do
     it 'escapes the interpreter and the path without a call operator' do
       cmd = transport.executable_command(target, '/tmp/my task.rb', ['/usr/bin/env', 'ruby'])
@@ -187,6 +193,22 @@ describe 'Bolt::Transport::Choria command builders' do
       it 'joins multiple paths into a comma-separated list' do
         cmd = transport.make_dir_command(target, 'C:\temp\bolt-dir', 'C:\temp\bolt-dir\lib')
         expect(cmd).to eq("New-Item -ItemType Directory -Force -Path 'C:\\temp\\bolt-dir', 'C:\\temp\\bolt-dir\\lib'")
+      end
+    end
+
+    describe '#make_tmpdir_command' do
+      it 'creates the tmpdir and leaves it open only to the agent account and Administrators' do
+        cmd = transport.make_tmpdir_command(target, "C:\\Windows\\Temp\\bolt-it's")
+        expect(cmd).to eq(
+          "$ErrorActionPreference = 'Stop'; $dir = 'C:\\Windows\\Temp\\bolt-it''s'; " \
+          '$null = New-Item -ItemType Directory -Force -Path $dir; ' \
+          '$acl = Get-Acl -LiteralPath $dir; $acl.SetAccessRuleProtection($true, $false); ' \
+          'foreach ($sid in @([Security.Principal.WindowsIdentity]::GetCurrent().User, ' \
+          "(New-Object Security.Principal.SecurityIdentifier('S-1-5-32-544')))) { " \
+          '$acl.AddAccessRule((New-Object Security.AccessControl.FileSystemAccessRule($sid, ' \
+          "'FullControl', 'ContainerInherit, ObjectInherit', 'None', 'Allow'))) }; " \
+          'Set-Acl -LiteralPath $dir -AclObject $acl'
+        )
       end
     end
 
