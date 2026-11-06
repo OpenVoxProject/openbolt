@@ -154,6 +154,27 @@ module BoltSpec
       allow(mock_rpc_client).to receive(:kill)
     end
 
+    # Rebuild the files that shell.run upload commands wrote, from the
+    # commands in the order they ran. Returns a hash of path to content.
+    #
+    #   uploaded_files(run_commands)['/tmp/bolt-choria-test-uuid/bolt_run.sh']
+    def uploaded_files(commands)
+      commands.each_with_object({}) do |command, files|
+        if command.start_with?('powershell.exe ')
+          script = Base64.decode64(command.split.last).force_encoding('UTF-16LE').encode('UTF-8')
+          if (write = script.match(/\A\[IO\.File\]::WriteAllBytes\('(.*)', \[Convert\]::FromBase64String\('(.*)'\)\)\z/))
+            files[write[1].gsub("''", "'")] = Base64.decode64(write[2])
+          elsif (append = script.match(/FromBase64String\('(.*?)'\); \$stream = \[IO\.File\]::Open\('(.*)', 'Append', 'Write'\)/))
+            files[append[2].gsub("''", "'")] += Base64.decode64(append[1])
+          end
+        elsif (upload = command.match(/\Aprintf '%s' (\S+) \| base64 -d (>>?) (.+)\z/))
+          content = Base64.decode64(Shellwords.split(upload[1]).first)
+          path = Shellwords.split(upload[3]).first
+          upload[2] == '>>' ? files[path] += content : files[path] = content
+        end
+      end
+    end
+
     private
 
     # Normalize arguments into a hash of { target => options }.

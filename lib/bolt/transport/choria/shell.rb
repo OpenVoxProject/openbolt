@@ -91,6 +91,7 @@ module Bolt
         timeout = first_target.options['command-timeout']
         tmpdir = generate_tmpdir_path(first_target)
         remote_path = join_path(first_target, tmpdir, File.basename(script))
+        run_file = run_file_path(first_target, tmpdir)
 
         # Built before the first shell agent call, so a rejected env var name
         # fails before the script reaches the nodes
@@ -118,9 +119,15 @@ module Bolt
             results += stage_results
           end
 
+          if active_targets.any?
+            active_targets, run_file_results = stage_run_file(active_targets, first_target, command, run_file,
+                                                              result_opts, &callback)
+            results += run_file_results
+          end
+
           # Execute the script asynchronously and poll for completion
           if active_targets.any?
-            pending, start_failures = shell_start(active_targets, command)
+            pending, start_failures = shell_start(active_targets, run_file_command(first_target, run_file))
             results += emit_results(start_failures, **result_opts, &callback)
             results += emit_results(wait_for_shell_results(pending, timeout), **result_opts, &callback)
           end
@@ -278,12 +285,21 @@ module Bolt
           failed_results += stage_results
         end
 
-        # Start the task asynchronously
-        pending = {}
+        run_file = run_file_path(first_target, tmpdir)
         if active_targets.any?
           full_cmd = build_task_command(first_target, remote_task_path, arguments, input_method,
                                         first_target.options['interpreters'])
-          pending, start_failures = shell_start(active_targets, full_cmd)
+          # build_task_command pipes the task input into the task for these methods
+          pipeline = Bolt::Task::STDIN_METHODS.include?(input_method)
+          active_targets, run_file_results = stage_run_file(active_targets, first_target, full_cmd, run_file,
+                                                            result_opts, pipeline: pipeline, &callback)
+          failed_results += run_file_results
+        end
+
+        # Start the task asynchronously
+        pending = {}
+        if active_targets.any?
+          pending, start_failures = shell_start(active_targets, run_file_command(first_target, run_file))
           failed_results += emit_results(start_failures, **result_opts, &callback)
         end
 
@@ -316,6 +332,27 @@ module Bolt
         end
 
         [targets, results]
+      end
+
+      # Upload a job's command to its run file, emitting a result for each
+      # target that fails. The command goes to the nodes through shell.run,
+      # which removes its own job directory when the upload finishes, so the
+      # values in it are not kept the way a shell.start command is.
+      #
+      # @param targets [Array<Bolt::Target>] Targets to upload the run file to, at least 1
+      # @param first_target [Bolt::Target] Target whose platform determines the file content
+      # @param command [String] The command the run file contains
+      # @param run_file [String] Absolute path to the run file on the remote node
+      # @param result_opts [Hash] Options passed through to emit_results (:action, :name, :position)
+      # @param pipeline [Boolean] Whether the command is a pipeline, default is false
+      # @param callback [Proc] Called with :node_result events
+      # @return [Array] 2-element array:
+      #   - [Array<Bolt::Target>] Targets that have the run file
+      #   - [Array<Bolt::Result>] Error results for the targets that failed the upload
+      def stage_run_file(targets, first_target, command, run_file, result_opts, pipeline: false, &callback)
+        content = run_file_content(first_target, command, pipeline: pipeline)
+        failures = upload_file_content(targets, content, run_file)
+        [targets - failures.keys, emit_results(failures, **result_opts, &callback)]
       end
 
       # Execute a synchronous command on targets via the shell.run RPC action.
