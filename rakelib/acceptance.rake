@@ -123,4 +123,7 @@ namespace :acceptance do
       sh(*choria_compose, 'logs', '--no-color')
     end
   end
+
+  desc 'Start the Choria containers and run the Choria transport tests'
+  task choria: %w[choria:up ci:choria_transport]
 end

@@ -84,6 +84,11 @@ begin
     end
 
     desc ''
+    RSpec::Core::RakeTask.new(:choria_transport) do |t|
+      t.pattern = "spec/integration/transport/choria_spec.rb"
+    end
+
+    desc ''
     RSpec::Core::RakeTask.new(:docker_transport) do |t|
       t.pattern = "spec/integration/transport/docker_spec.rb"
     end
