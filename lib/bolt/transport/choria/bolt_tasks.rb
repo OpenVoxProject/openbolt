@@ -15,13 +15,13 @@ module Bolt
       # @return [Array<Bolt::Result>] Results for all targets
       def run_task_via_bolt_tasks(targets, task, arguments, result_opts, &callback)
         logger.debug { "Running task #{task.name} via bolt_tasks agent on #{target_count(targets)}" }
-        results = []
+        groups, results = group_by_implementation(targets, task, result_opts, &callback)
 
         # Start all implementation groups. Each gets its own download +
         # run_no_wait sequence. Tasks begin executing on nodes as soon as
         # run_no_wait returns.
         started_groups = []
-        targets.group_by { |target| select_implementation(target, task) }.each do |implementation, impl_targets|
+        groups.each do |implementation, impl_targets|
           start_result = download_and_start_task(impl_targets, task, implementation,
                                                  arguments, result_opts, &callback)
           results += start_result[:failed_results]

@@ -72,6 +72,29 @@ module Bolt
         impl
       end
 
+      # Groups the targets by the implementation each selects. A target
+      # without a suitable implementation gets its error result instead of
+      # failing the whole batch.
+      #
+      # @param targets [Array<Bolt::Target>] Targets to run the task on
+      # @param task [Bolt::Task] Task with the implementations to select from
+      # @param result_opts [Hash] Options passed through to emit_results (:action, :name, :position)
+      # @param callback [Proc] Called with :node_result events
+      # @return [Array] 2-element array:
+      #   - [Hash{Hash => Array<Bolt::Target>}] Each implementation and the targets that selected it
+      #   - [Array<Bolt::Result>] Error results for the targets without an implementation
+      def group_by_implementation(targets, task, result_opts, &callback)
+        selected = {}
+        failures = {}
+        targets.each do |target|
+          selected[target] = select_implementation(target, task)
+        rescue Bolt::NoImplementationError => e
+          logger.debug { "No suitable implementation of #{task.name} for #{target.safe_name}" }
+          failures[target] = error_output(e.message, e.kind)
+        end
+        [selected.keys.group_by { |target| selected[target] }, emit_results(failures, **result_opts, &callback)]
+      end
+
       # Group targets by collective so each batch uses a single RPC client
       # scope. MCollective RPC calls are published to a collective-specific
       # NATS subject, so targets in different collectives must be in separate

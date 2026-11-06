@@ -9,6 +9,15 @@ describe Bolt::Transport::Choria do
   include_context 'choria task'
   include BoltSpec::Sensitive
 
+  # The only implementation needs the shell feature, which a Windows target lacks
+  let(:shell_only_task) do
+    Bolt::Task.new(task_name, { 'input_method' => 'both', 'implementations' => [{ 'name' => 'mytask.sh', 'requirements' => ['shell'] }] },
+                   [{ 'name' => 'mytask.sh', 'path' => task_executable }])
+  end
+  let(:no_implementation_for_target2) do
+    { 'kind' => 'bolt/no-implementation', 'msg' => 'No suitable implementation of mymod::mytask for choria://node2.example.com' }
+  end
+
   describe '#configure_client mcollective-certname' do
     before(:each) do
       ENV.delete('MCOLLECTIVE_CERTNAME')
@@ -331,6 +340,70 @@ describe Bolt::Transport::Choria do
         expect(started_targets).to contain_exactly(target, target2)
         expect(finished_targets).to contain_exactly(target, target2)
       end
+
+      it 'fails only the target without a matching implementation and runs the task on the others via bolt_tasks' do
+        stub_agents(target, %w[rpcutil bolt_tasks])
+        stub_agents(target2, %w[rpcutil bolt_tasks], os_family: 'windows')
+        allow(mock_rpc_client).to receive_messages(download: [make_download_result(target)],
+                                                   run_no_wait: [make_task_run_result(target)],
+                                                   task_status: [make_task_status_result(target)])
+        events = []
+        callback = proc { |event| events << event }
+
+        results = transport.batch_task([target2, target], shell_only_task, {}, {}, [], &callback)
+
+        expect(results.find { |result| result.target == target }.value).to eq('result' => 'ok')
+        expect(results.find { |result| result.target == target2 }.error_hash).to include(no_implementation_for_target2)
+        finished_targets = events.select { |event| event[:type] == :node_result }.map { |event| event[:result].target }
+        expect(finished_targets).to contain_exactly(target, target2)
+      end
+
+      it 'fails only the target without a matching implementation and runs the task on the others via the shell agent' do
+        inventory.set_config(target, %w[choria task-agent], 'shell')
+        inventory.set_config(target2, %w[choria task-agent], 'shell')
+        stub_agents(target, %w[rpcutil shell])
+        stub_agents(target2, %w[rpcutil shell], os_family: 'windows')
+        allow(mock_rpc_client).to receive_messages(
+          run: [make_shell_run_result(target)],
+          start: [make_shell_start_result(target, handle: 'h1')],
+          list: [make_shell_list_result(target, 'h1')],
+          statuses: [make_shell_statuses_result(target, 'h1', stdout: '{"result":"ok"}')]
+        )
+
+        events = []
+        callback = proc { |event| events << event }
+
+        results = transport.batch_task([target2, target], shell_only_task, {}, {}, [], &callback)
+
+        expect(results.find { |result| result.target == target }.value).to eq('result' => 'ok')
+        expect(results.find { |result| result.target == target2 }.error_hash).to include(no_implementation_for_target2)
+        finished_targets = events.select { |event| event[:type] == :node_result }.map { |event| event[:result].target }
+        expect(finished_targets).to contain_exactly(target, target2)
+      end
+
+      it 'fails every target and runs nothing via bolt_tasks when none has a matching implementation' do
+        stub_agents([target, target2], %w[rpcutil bolt_tasks], os_family: 'windows')
+        expect(mock_rpc_client).not_to receive(:download)
+        expect(mock_rpc_client).not_to receive(:run_no_wait)
+
+        results = transport.batch_task([target, target2], shell_only_task, {})
+
+        expect(results.map(&:target)).to contain_exactly(target, target2)
+        expect(results.map { |result| result.error_hash['kind'] }).to eq(['bolt/no-implementation'] * 2)
+      end
+
+      it 'fails every target and runs nothing via the shell agent when none has a matching implementation' do
+        inventory.set_config(target, %w[choria task-agent], 'shell')
+        inventory.set_config(target2, %w[choria task-agent], 'shell')
+        stub_agents([target, target2], %w[rpcutil shell], os_family: 'windows')
+        expect(mock_rpc_client).not_to receive(:run)
+        expect(mock_rpc_client).not_to receive(:start)
+
+        results = transport.batch_task([target, target2], shell_only_task, {})
+
+        expect(results.map(&:target)).to contain_exactly(target, target2)
+        expect(results.map { |result| result.error_hash['kind'] }).to eq(['bolt/no-implementation'] * 2)
+      end
     end
   end
 
@@ -396,6 +469,32 @@ describe Bolt::Transport::Choria do
       expect(results.map(&:action).uniq).to eq(['task'])
       expect(events.select { |event| event[:type] == :node_start }.map { |event| event[:target] }).to contain_exactly(target, target2)
       expect(events.select { |event| event[:type] == :node_result }.map { |event| event[:result].target }).to contain_exactly(target, target2)
+    end
+
+    it 'runs the task on the other targets when the first has no matching implementation' do
+      stub_agents(target, %w[rpcutil bolt_tasks])
+      stub_agents(target2, %w[rpcutil bolt_tasks], os_family: 'windows')
+      allow(mock_rpc_client).to receive_messages(download: [make_download_result(target)],
+                                                 run_no_wait: [make_task_run_result(target)],
+                                                 task_status: [make_task_status_result(target)])
+
+      results = transport.batch_task_with([target2, target], shell_only_task, { target => {}, target2 => {} }, {}, [])
+
+      expect(results.find { |result| result.target == target }.value).to eq('result' => 'ok')
+      expect(results.find { |result| result.target == target2 }.error_hash).to include(no_implementation_for_target2)
+    end
+
+    it 'keeps the result of a target that ran before one without a matching implementation' do
+      stub_agents(target, %w[rpcutil bolt_tasks])
+      stub_agents(target2, %w[rpcutil bolt_tasks], os_family: 'windows')
+      allow(mock_rpc_client).to receive_messages(download: [make_download_result(target)],
+                                                 run_no_wait: [make_task_run_result(target)],
+                                                 task_status: [make_task_status_result(target)])
+
+      results = transport.batch_task_with([target, target2], shell_only_task, { target => {}, target2 => {} }, {}, [])
+
+      expect(results.find { |result| result.target == target }.value).to eq('result' => 'ok')
+      expect(results.find { |result| result.target == target2 }.error_hash).to include(no_implementation_for_target2)
     end
   end
 end
