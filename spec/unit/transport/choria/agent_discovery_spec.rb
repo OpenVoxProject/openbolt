@@ -119,11 +119,12 @@ describe Bolt::Transport::Choria do
       expect(transport.has_agent?(target, 'shell')).to be true
     end
 
-    it 'treats target as unreachable when agent_inventory returns non-Array agents' do
+    it 'reports a missing-data error when agent_inventory returns no agents' do
       result = make_rpc_result(sender: target, data: { agents: nil })
       allow(mock_rpc_client).to receive(:agent_inventory).and_return([result])
 
-      transport.discover_agents([target])
+      failures = transport.discover_agents([target])
+      expect(failures[target]).to include(error_kind: 'bolt/choria-missing-data')
       expect(transport.has_agent?(target, 'rpcutil')).to be false
       expect(transport.has_agent?(target, 'shell')).to be false
     end
@@ -159,11 +160,12 @@ describe Bolt::Transport::Choria do
       expect(transport.has_agent?(target2, 'rpcutil')).to be true
     end
 
-    it 'treats target as unreachable when agents is a string instead of Array' do
+    it 'reports a missing-data error when agents is a string instead of an Array' do
       result = make_rpc_result(sender: target, data: { agents: 'corrupted' })
       allow(mock_rpc_client).to receive(:agent_inventory).and_return([result])
 
-      transport.discover_agents([target])
+      failures = transport.discover_agents([target])
+      expect(failures[target]).to include(error_kind: 'bolt/choria-missing-data')
       expect(transport.has_agent?(target, 'rpcutil')).to be false
     end
 

@@ -13,8 +13,8 @@ module Bolt
       # Populates @agent_cache with { agents: [...], os: 'redhat' | 'windows' | ... }.
       #
       # @param targets [Array<Bolt::Target>] Targets to discover agents on
-      # @return [Hash{Bolt::Target => Hash}] The error output of each uncached target that the
-      #   agent_inventory call failed for, including one that did not answer. Empty otherwise.
+      # @return [Hash{Bolt::Target => Hash}] What discover_agent_list returns for the uncached
+      #   targets, or an empty hash when every target was already discovered.
       def discover_agents(targets)
         uncached = targets.reject { |target| discovered?(target) }
         return {} if uncached.empty?
@@ -43,7 +43,8 @@ module Bolt
       # @param targets [Array<Bolt::Target>] Targets to query for agent inventory
       # @return [Hash{Bolt::Target => Hash}] The error output of each target that did not answer,
       #   answered with an RPC error or answered without an agent list, or of every target when
-      #   the call failed as a whole, such as when the client could not connect.
+      #   the call failed as a whole, such as when the client could not connect. An empty hash
+      #   when discovery itself raises, which leaves those targets undiscovered.
       def discover_agent_list(targets)
         response = rpc_request('rpcutil', targets, 'rpcutil.agent_inventory') do |client|
           client.agent_inventory
