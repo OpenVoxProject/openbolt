@@ -29,4 +29,18 @@ describe "When plans run other plans" do
     result = run_cli_json(%w[plan run nested::next_caller] + config_flags)
     expect(result).to eq('caller got 7')
   end
+
+  it 'fails with a clear error when plans are nested past the limit' do
+    stub_const('Bolt::FiberExecutor::MAX_NESTED_PLANS', 5)
+    result = run_cli_json(%w[plan run nested::depth levels=10] + config_flags, rescue_exec: true)
+    expect(result).to include('kind' => 'bolt/pal-error',
+                              'msg' => /nested more than 5 levels deep/)
+  end
+
+  it 'stops plans nested past the limit even when they catch errors' do
+    stub_const('Bolt::FiberExecutor::MAX_NESTED_PLANS', 5)
+    result = run_cli_json(%w[plan run nested::catch_depth levels=10] + config_flags, rescue_exec: true)
+    expect(result).to include('kind' => 'bolt/pal-error',
+                              'msg' => /nested more than 5 levels deep/)
+  end
 end

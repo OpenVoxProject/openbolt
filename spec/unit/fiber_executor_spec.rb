@@ -293,5 +293,35 @@ describe "Bolt::FiberExecutor" do
       expect(future.value.message).to eq('nested plan failed')
       expect(future.nested_fibers).to be_empty
     end
+
+    it "runs plans nested up to the limit" do
+      stub_const('Bolt::FiberExecutor::MAX_NESTED_PLANS', 2)
+      future = fiber_executor.create_future(plan_id: plan_id) do
+        fiber_executor.run_in_new_fiber do
+          fiber_executor.run_in_new_fiber { 'at the limit' }
+        end
+      end
+      run_until_complete
+
+      expect(future.value).to eq('at the limit')
+    end
+
+    it "raises a clear error for plans nested past the limit" do
+      stub_const('Bolt::FiberExecutor::MAX_NESTED_PLANS', 2)
+      future = fiber_executor.create_future(plan_id: plan_id) do
+        fiber_executor.run_in_new_fiber do
+          fiber_executor.run_in_new_fiber do
+            fiber_executor.run_in_new_fiber { 'past the limit' }
+          end
+        end
+      rescue RuntimeError => e
+        e
+      end
+      run_until_complete
+
+      expect(future.value).not_to be_a(Bolt::Error)
+      expect(future.value.message).to match(/nested more than 2 levels deep/)
+      expect(future.nested_fibers).to be_empty
+    end
   end
 end

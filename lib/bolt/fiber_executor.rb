@@ -5,6 +5,11 @@ require_relative '../bolt/plan_future'
 
 module Bolt
   class FiberExecutor
+    # Limits how many plans one future can nest, so a plan that runs itself
+    # with no condition that stops it fails instead of starting Fibers until
+    # memory runs out.
+    MAX_NESTED_PLANS = 1000
+
     attr_reader :active_futures, :finished_futures
 
     def initialize
@@ -134,6 +139,14 @@ module Bolt
     def run_in_new_fiber(&block)
       future = get_current_future(fiber: Fiber.current)
       return yield unless future
+
+      if future.nested_fibers.length >= MAX_NESTED_PLANS
+        msg = "Plans cannot be nested more than #{MAX_NESTED_PLANS} levels deep. Check for a " \
+              "plan that runs itself without a condition that stops it."
+        # A plain error, not a Bolt::Error, so plans can't catch it with
+        # _catch_errors or catch_errors() and keep a runaway plan going.
+        raise msg
+      end
 
       fiber = Fiber.new(&block)
       future.nested_fibers.push(fiber)
