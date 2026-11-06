@@ -231,6 +231,30 @@ describe Bolt::Transport::Choria do
           transport.batch_task([target], task, {})
         end
 
+        it 'passes a powershell input_method task its arguments as named parameters via the shell agent' do
+          stub_agents(target, %w[rpcutil shell], os_family: 'windows')
+          inventory.set_config(target, %w[choria task-agent], 'shell')
+          powershell_task = Bolt::Task.new('mymod::wintask', { 'input_method' => 'powershell' },
+                                           [{ 'name' => 'wintask.ps1', 'path' => '/path/to/wintask.ps1' }])
+          allow(File).to receive(:binread).with('/path/to/wintask.ps1').and_return('param($name) Write-Output $name')
+          started = nil
+          allow(mock_rpc_client).to receive(:start) do |args|
+            started = Base64.decode64(args[:command].split.last).force_encoding('UTF-16LE').encode('UTF-8')
+            [make_shell_start_result(target, handle: 'h1')]
+          end
+          allow(mock_rpc_client).to receive_messages(
+            run: [make_shell_run_result(target)],
+            list: [make_shell_list_result(target, 'h1')],
+            statuses: [make_shell_statuses_result(target, 'h1', stdout: '{"result":"ok"}')]
+          )
+
+          result = transport.batch_task([target], powershell_task, { 'name' => 'value' }).first
+
+          expect(result.value).to eq('result' => 'ok')
+          expect(started).to include('& "C:\Windows\Temp\bolt-choria-test-uuid\wintask.ps1" @taskArgs')
+          expect(JSON.parse(Base64.decode64(started[/FromBase64String\('([^']*)'\)/, 1]))).to eq('name' => 'value')
+        end
+
         it 'returns error when forced agent is not available on target' do
           stub_agents(target, %w[rpcutil bolt_tasks])
           inventory.set_config(target, %w[choria task-agent], 'shell')

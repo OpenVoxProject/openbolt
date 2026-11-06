@@ -138,6 +138,12 @@ module Bolt
             "${boltBaseDir}\\hiera\\lib;" +
             $ENV:RUBYLIB
 
+            #{json_functions.chomp}
+            PS
+          end
+
+          def json_functions
+            <<~PS
             function ConvertFrom-PSCustomObject
             {
             PARAM([Parameter(ValueFromPipeline = $true)] $InputObject)

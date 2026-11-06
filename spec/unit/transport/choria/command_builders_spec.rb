@@ -127,6 +127,11 @@ describe 'Bolt::Transport::Choria command builders' do
       expect(cmd).to eq("printf '%s' \\{\\} | /tmp/mytask.sh")
     end
 
+    it 'runs the task without arguments for the powershell input_method' do
+      cmd = transport.build_task_command(target, '/tmp/mytask.ps1', { 'key' => 'value' }, 'powershell', nil)
+      expect(cmd).to eq('/tmp/mytask.ps1')
+    end
+
     it 'refuses an unsafe parameter name for the environment input_method' do
       expect { transport.build_task_command(target, '/tmp/mytask.sh', { 'a;id' => 'value' }, 'environment', nil) }
         .to raise_error(Bolt::Error, /Unsafe environment variable name 'PT_a;id' in task argument/)
@@ -257,6 +262,23 @@ describe 'Bolt::Transport::Choria command builders' do
         cmd = transport.build_task_command(target, 'C:\temp\mytask.ps1',
                                            { 'key' => 'value' }, 'both', nil)
         expect(cmd).to eq("@'\n{\"key\":\"value\"}\n'@ | & { $env:PT_key = 'value'; $input | & 'C:\\temp\\mytask.ps1' }")
+      end
+
+      it 'passes the arguments as named parameters for the powershell input_method' do
+        arguments = { 'name' => "it's", 'config' => { 'nested' => true }, '_task' => 'mymod::mytask' }
+        cmd = transport.build_task_command(target, 'C:\temp\mytask.ps1', arguments, 'powershell', nil)
+
+        encoded = cmd[/FromBase64String\('([^']*)'\)/, 1]
+        expect(JSON.parse(Base64.decode64(encoded))).to eq(arguments)
+        expect(cmd).to include('function Get-ContentAsJson')
+        expect(cmd).to include('& "C:\temp\mytask.ps1" @taskArgs')
+        expect(cmd).not_to include('$env:PT_')
+      end
+
+      it 'runs a task file other than .ps1 without arguments for the powershell input_method' do
+        cmd = transport.build_task_command(target, 'C:\temp\mytask.rb', { 'name' => 'value' }, 'powershell',
+                                           { '.rb' => 'C:\ruby\bin\ruby.exe' })
+        expect(cmd).to eq("& 'C:\\ruby\\bin\\ruby.exe' 'C:\\temp\\mytask.rb'")
       end
 
       it 'refuses an unsafe parameter name for the both input_method' do
