@@ -334,6 +334,15 @@ describe Bolt::Transport::Choria do
         transport.batch_script([target], script_path, ['arg'], { env_vars: { 'MY_VAR' => 'hello world' } }, [])
         expect(captured_cmd).to eq('/usr/bin/env MY_VAR=hello\ world /tmp/bolt-choria-test-uuid/test_script.sh arg')
       end
+
+      it 'rejects an unsafe env var name before any remote work' do
+        expect(mock_rpc_client).not_to receive(:run)
+        expect(mock_rpc_client).not_to receive(:start)
+
+        expect {
+          transport.batch_script([target], script_path, [], { env_vars: { 'MY-VAR' => '1' } }, [])
+        }.to raise_error(Bolt::Error, /Unsafe environment variable name 'MY-VAR'/)
+      end
     end
 
     describe 'infrastructure step failures' do
