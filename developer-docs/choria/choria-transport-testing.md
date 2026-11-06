@@ -244,14 +244,27 @@ runs directly with Puppet's Ruby.
 
 ### Puppetfile
 
+r10k installs only the modules a Puppetfile names and does not resolve their
+dependencies, so the Puppetfile lists the Choria modules' dependencies too.
 The shell agent module on the Forge is older than the 1.2.1 OpenBolt needs,
-so it comes from GitHub. The other modules come from the Forge:
+so it comes from GitHub. Everything else comes from the Forge:
 
 ```ruby
 # Puppetfile (in the environment, e.g. production)
+mod 'puppetlabs-stdlib', :latest
+mod 'puppetlabs-apt', :latest
+mod 'puppetlabs-concat', :latest
+mod 'puppetlabs-inifile', :latest
+mod 'puppet-systemd', :latest
 mod 'choria-choria', :latest
 mod 'choria-mcollective', :latest
 mod 'choria-mcollective_choria', :latest
+mod 'choria-mcollective_agent_puppet', :latest
+mod 'choria-mcollective_agent_package', :latest
+mod 'choria-mcollective_agent_service', :latest
+mod 'choria-mcollective_agent_filemgr', :latest
+mod 'choria-mcollective_util_actionpolicy', :latest
+mod 'choria-mcollective_agent_bolt_tasks', :latest
 mod 'mcollective_agent_shell',
   git: 'https://github.com/choria-plugins/shell-agent',
   ref: '1.2.1'
@@ -262,8 +275,8 @@ The shell agent requires version 1.2.1 or later (for the batched `statuses`
 action). The file_transfer agent requires version 1.0.0 or later, and its
 module also has to be applied on the OpenBolt controller with
 `client => true`, since it carries the client library the transport uses.
-The `bolt_tasks` agent is included in a standard Choria install and does not
-need a separate Puppetfile entry.
+The `bolt_tasks` agent comes from the `choria-mcollective_agent_bolt_tasks`
+module. Choria does not install it by default.
 
 Deploy with r10k:
 
