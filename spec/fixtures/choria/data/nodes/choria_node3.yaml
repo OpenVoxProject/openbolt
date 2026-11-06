@@ -1,0 +1,6 @@
+---
+# A node without the agents OpenBolt uses, for the error cases
+mcollective::plugin_classes_exclude:
+  - mcollective_agent_bolt_tasks
+  - mcollective_agent_shell
+  - mcollective_agent_file_transfer

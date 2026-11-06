@@ -1,0 +1,32 @@
+---
+choria::manage_package_repo: true
+choria::server: true
+choria::manage_service: false
+choria::broker::manage_service: false
+choria::logfile: stdout
+choria::status_write_interval: 5
+
+choria::server_config:
+  plugin.choria.puppetserver_host: boltserver
+  plugin.choria.puppetserver_port: 8140
+  plugin.choria.puppetca_host: boltserver
+  plugin.choria.puppetca_port: 8140
+  plugin.choria.middleware_hosts: "choria_broker:4222"
+  plugin.choria.use_srv: false
+
+mcollective::site_policies:
+  - action: allow
+    callers: "/.*/"
+    actions: "*"
+    facts: "*"
+    classes: "*"
+
+mcollective::plugin_classes:
+  - mcollective_agent_bolt_tasks
+  - mcollective_agent_shell
+  - mcollective_agent_file_transfer
+
+# The module pins the gem at 2.27.0 for OpenVox 9 agents, which does not load
+# on their Ruby 4.0. Remove once choria-mcollective_choria ships the fix.
+mcollective_choria::gem_dependencies:
+  choria-mcorpc-support: present

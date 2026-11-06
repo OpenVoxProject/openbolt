@@ -16,6 +16,8 @@
 /test/version_tmp/
 /tmp/
 /spec/tmp/
+/spec/fixtures/choria/ssl/
+/spec/fixtures/choria/modules/
 
 ## Documentation cache and generated files:
 .yardoc/

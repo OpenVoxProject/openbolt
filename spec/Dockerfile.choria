@@ -1,0 +1,23 @@
+FROM ubuntu:26.04
+
+ARG DEBIAN_FRONTEND=noninteractive
+
+ADD --chmod=0644 https://apt.voxpupuli.org/openvox9-release-ubuntu26.04.deb /tmp/openvox9-release.deb
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ca-certificates /tmp/openvox9-release.deb \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends git openssh-client openvox-agent \
+    && rm -rf /var/lib/apt/lists/* /tmp/openvox9-release.deb
+
+ARG ENVIRONMENT=/etc/puppetlabs/code/environments/production
+COPY fixtures/choria/Puppetfile fixtures/choria/hiera.yaml $ENVIRONMENT/
+COPY fixtures/choria/data $ENVIRONMENT/data
+COPY fixtures/choria/manifests $ENVIRONMENT/manifests
+RUN /opt/puppetlabs/puppet/bin/gem install --no-document r10k \
+    && /opt/puppetlabs/puppet/bin/r10k puppetfile install --puppetfile $ENVIRONMENT/Puppetfile --moduledir $ENVIRONMENT/modules
+
+# OpenVox writes the node's identity and reads its per-node data from the
+# certname, so each container gets its own image from this argument
+ARG CERTNAME
+RUN /opt/puppetlabs/bin/puppet config set certname $CERTNAME --section main \
+    && /opt/puppetlabs/bin/puppet apply --environment production $ENVIRONMENT/manifests/site.pp
