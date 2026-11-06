@@ -179,10 +179,10 @@ module Bolt
         # discover it again and wait out the timeout again, so it gets its
         # error here instead.
         configure_client(targets.first)
-        discover_agents(targets)
+        discovery_failures = discover_agents(targets)
         discovered, silent = targets.partition { |target| discovered?(target) }
 
-        silent_errors = silent.to_h { |target| [target, undiscovered_error(target)] }
+        silent_errors = silent.to_h { |target| [target, discovery_failures[target] || undiscovered_error(target)] }
         silent.each { |target| callback&.call(type: :node_start, target: target) }
         results = emit_results(silent_errors, action: 'task', name: task.name, position: position, &callback)
         discovered.each do |target|

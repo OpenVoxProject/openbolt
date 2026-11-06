@@ -13,13 +13,16 @@ module Bolt
       # Populates @agent_cache with { agents: [...], os: 'redhat' | 'windows' | ... }.
       #
       # @param targets [Array<Bolt::Target>] Targets to discover agents on
+      # @return [Hash{Bolt::Target => Hash}] The error output of each uncached target that the
+      #   agent_inventory call failed for, other than by not answering. Empty otherwise.
       def discover_agents(targets)
         uncached = targets.reject { |target| discovered?(target) }
-        return if uncached.empty?
+        return {} if uncached.empty?
 
         logger.debug { "Discovering agents on #{target_count(uncached)}" }
-        discover_agent_list(uncached)
+        failures = discover_agent_list(uncached)
         discover_os_family(uncached)
+        failures
       end
 
       def discovered?(target)
@@ -38,6 +41,9 @@ module Bolt
       # and populate @agent_cache with agent lists.
       #
       # @param targets [Array<Bolt::Target>] Targets to query for agent inventory
+      # @return [Hash{Bolt::Target => Hash}] The error output of each target that answered with
+      #   an RPC error, or of every target when the call failed as a whole, such as when the
+      #   client could not connect. A target that did not answer is left out.
       def discover_agent_list(targets)
         response = rpc_request('rpcutil', targets, 'rpcutil.agent_inventory') do |client|
           client.agent_inventory
@@ -54,10 +60,12 @@ module Bolt
           @agent_cache[sender] = { agents: agents }
           logger.debug { "Discovered agents on #{sender}: #{agents.join(', ')}" }
         end
+        response[:errors].reject { |_target, output| output[:error_kind] == 'bolt/choria-no-response' }
       rescue StandardError => e
         raise if e.is_a?(Bolt::Error)
 
         logger.warn { "Agent discovery failed: #{e.class}: #{e.message}" }
+        {}
       end
 
       # Detect the OS family on targets via rpcutil.get_fact and update

@@ -281,6 +281,25 @@ describe Bolt::Transport::Choria do
         expect(results.first.error_hash['msg']).to match(/NATS broker down/)
       end
     end
+
+    it 'reports why discovery failed when the client cannot make the discovery call' do
+      allow(MCollective::RPC::Client).to receive(:new).and_raise(StandardError, 'The Choria client cannot be run as root')
+
+      results = transport.batch_command([target, target2], 'hostname')
+
+      expect(results.map(&:target)).to contain_exactly(target, target2)
+      expect(results.map(&:error_hash)).to all(include('kind' => 'bolt/choria-rpc-failed', 'msg' => /The Choria client cannot be run as root/))
+    end
+
+    it 'reports the RPC error of a node that answered discovery with one' do
+      refused = make_rpc_result(sender: target, statuscode: 1,
+                                statusmsg: 'You are not authorized to call this agent or action', data: {})
+      allow(mock_rpc_client).to receive(:agent_inventory).and_return([refused])
+
+      result = transport.batch_command([target], 'hostname').first
+
+      expect(result.error_hash).to include('kind' => 'bolt/choria-rpc-error', 'msg' => /You are not authorized to call this agent or action/)
+    end
   end
 
   describe '#batch_script' do
