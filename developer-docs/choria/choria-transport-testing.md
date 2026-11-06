@@ -832,7 +832,7 @@ the library's wait, and mco's own `--timeout` has no effect on this command, sin
 the gem replaces a client timeout of exactly 5 with the agent's DDL
 timeout plus the discovery timeout, and the library sets its own timeout
 after building the client to keep the value given. A target OpenBolt cannot
-reach fails during agent discovery with `bolt/choria-agent-not-available`
+reach fails during agent discovery with `bolt/choria-no-response`
 before the library runs, so the bolt command cannot show this case.
 
 **Checksum change during a download**

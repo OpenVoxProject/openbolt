@@ -250,12 +250,13 @@ module Bolt
         [capable, incapable_results]
       end
 
-      # The error output for a target that did not answer discovery.
+      # The error output for a target that discovery has no agent list and no
+      # failure for, which happens when discovery raised before it finished.
       #
       # @param target [Bolt::Target]
       # @return [Hash] An error output hash
       def undiscovered_error(target)
-        error_output("No agent information available for #{target.safe_name} (node did not respond to discovery)",
+        error_output("No agent information available for #{target.safe_name} (agent discovery failed)",
                      'bolt/choria-agent-not-available')
       end
 
