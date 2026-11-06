@@ -25,7 +25,12 @@ module Bolt
 
         first_target = shell_targets.first
         timeout = first_target.options['command-timeout']
-        command = prepend_env_vars(first_target, command, options[:env_vars], 'run_command env_vars')
+        env_vars = options[:env_vars]
+        # The agent's shell expands the command before /usr/bin/env sets the
+        # variables, so on POSIX the command runs in a shell of its own that
+        # sees them, like it does with the SSH transport
+        command = "sh -c #{Shellwords.shellescape(command)}" if env_vars&.any? && !windows_target?(first_target)
+        command = prepend_env_vars(first_target, command, env_vars, 'run_command env_vars')
 
         pending, start_failures = shell_start(shell_targets, command)
         results += emit_results(start_failures, **result_opts, &callback)
@@ -42,7 +47,7 @@ module Bolt
       # @param targets [Array<Bolt::Target>] Targets in a single collective batch
       # @param script [String] Local path to the script file
       # @param arguments [Array<String>] Command-line arguments to pass to the script
-      # @param options [Hash] Execution options; supports :script_interpreter
+      # @param options [Hash] Execution options; supports :script_interpreter and :env_vars
       # @param position [Array] Positional info for result tracking
       # @param callback [Proc] Called with :node_start and :node_result events
       # @return [Array<Bolt::Result>] Results for all targets
@@ -83,8 +88,9 @@ module Bolt
             interpreter = select_interpreter(script, first_target.options['interpreters']) if options[:script_interpreter]
             cmd_parts = [executable_command(first_target, remote_path, interpreter)]
             cmd_parts += arguments.map { |arg| escape_arg(first_target, arg) }
+            command = prepend_env_vars(first_target, cmd_parts.join(' '), options[:env_vars], 'run_script env_vars')
 
-            pending, start_failures = shell_start(active_targets, cmd_parts.join(' '))
+            pending, start_failures = shell_start(active_targets, command)
             results += emit_results(start_failures, **result_opts, &callback)
             results += emit_results(wait_for_shell_results(pending, timeout), **result_opts, &callback)
           end
