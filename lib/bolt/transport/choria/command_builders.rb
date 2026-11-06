@@ -71,7 +71,7 @@ module Bolt
         return command unless env_vars&.any?
 
         if windows_target?(target)
-          "#{powershell_env_statements(env_vars, context)}; & #{command}"
+          "#{powershell_env_statements(env_vars, context)}; #{command}"
         else
           env_vars.each_key { |key| validate_env_key!(key, context) }
           env_str = env_vars.map { |key, val| "#{key}=#{Shellwords.shellescape(val)}" }.join(' ')
@@ -94,13 +94,14 @@ module Bolt
       #
       # @param target [Bolt::Target] Used for platform detection
       # @param data [String] Data to pipe (typically JSON task arguments)
-      # @param command [String] The command to receive stdin
+      # @param command [String] The command to receive stdin, which on Windows must
+      #   be a PowerShell command such as one from executable_command
       # @return [String] Shell command with stdin piping
       def stdin_pipe_command(target, data, command)
         if windows_target?(target)
           # Use a here-string (@'...'@) to avoid escaping issues with
           # large JSON payloads. Content between @' and '@ is literal.
-          "@'\n#{data}\n'@ | & #{command}"
+          "@'\n#{data}\n'@ | #{command}"
         else
           "printf '%s' #{Shellwords.shellescape(data)} | #{command}"
         end
@@ -147,14 +148,16 @@ module Bolt
       end
 
       # Build the command that runs an executable, through the interpreter
-      # when one is given.
+      # when one is given. On Windows it starts with the call operator,
+      # since PowerShell treats a quoted path as a string.
       #
       # @param target [Bolt::Target] Used for platform detection
       # @param path [String] Absolute path to the executable on the remote node
       # @param interpreter [String, Array<String>, nil] Interpreter command, or nil to run the file directly
       # @return [String] Shell command
       def executable_command(target, path, interpreter)
-        (Array(interpreter) + [path]).map { |part| escape_arg(target, part) }.join(' ')
+        command = (Array(interpreter) + [path]).map { |part| escape_arg(target, part) }.join(' ')
+        windows_target?(target) ? "& #{command}" : command
       end
 
       # Build the full command string for task execution via the shell agent,
@@ -181,7 +184,7 @@ module Bolt
           # explicitly forward $input via a pipe.
           env_statements = powershell_env_statements(envify_params(arguments), 'task argument')
           cmd = stdin_pipe_command(target, arguments.to_json,
-                                   "{ #{env_statements}; $input | & #{cmd} }")
+                                   "& { #{env_statements}; $input | #{cmd} }")
         else
           if needs_env
             cmd = prepend_env_vars(target, cmd, envify_params(arguments), 'task argument')

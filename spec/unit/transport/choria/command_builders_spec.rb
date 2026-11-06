@@ -55,6 +55,13 @@ describe 'Bolt::Transport::Choria command builders' do
     end
   end
 
+  describe '#executable_command (POSIX)' do
+    it 'escapes the interpreter and the path without a call operator' do
+      cmd = transport.executable_command(target, '/tmp/my task.rb', ['/usr/bin/env', 'ruby'])
+      expect(cmd).to eq('/usr/bin/env ruby /tmp/my\ task.rb')
+    end
+  end
+
   describe '#prepend_env_vars' do
     it 'returns command unchanged when env_vars is nil' do
       result = transport.prepend_env_vars(target, 'echo hello', nil, 'test')
@@ -169,14 +176,14 @@ describe 'Bolt::Transport::Choria command builders' do
     end
 
     describe '#prepend_env_vars' do
-      it 'generates $env: syntax' do
+      it 'generates $env: syntax before the unchanged command' do
         cmd = transport.prepend_env_vars(target, 'mycommand', { 'FOO' => 'bar' }, 'test')
-        expect(cmd).to eq("$env:FOO = 'bar'; & mycommand")
+        expect(cmd).to eq("$env:FOO = 'bar'; mycommand")
       end
 
       it 'handles multiple environment variables' do
         cmd = transport.prepend_env_vars(target, 'cmd', { 'A' => '1', 'B' => '2' }, 'test')
-        expect(cmd).to eq("$env:A = '1'; $env:B = '2'; & cmd")
+        expect(cmd).to eq("$env:A = '1'; $env:B = '2'; cmd")
       end
 
       it 'refuses an unsafe variable name' do
@@ -186,9 +193,21 @@ describe 'Bolt::Transport::Choria command builders' do
     end
 
     describe '#stdin_pipe_command' do
-      it 'generates a here-string pipe' do
-        cmd = transport.stdin_pipe_command(target, '{"key":"value"}', 'mytask.ps1')
-        expect(cmd).to eq("@'\n{\"key\":\"value\"}\n'@ | & mytask.ps1")
+      it 'generates a here-string pipe into the unchanged command' do
+        cmd = transport.stdin_pipe_command(target, '{"key":"value"}', "& 'C:\\temp\\mytask.ps1'")
+        expect(cmd).to eq("@'\n{\"key\":\"value\"}\n'@ | & 'C:\\temp\\mytask.ps1'")
+      end
+    end
+
+    describe '#executable_command' do
+      it 'starts with the call operator so PowerShell runs the quoted path' do
+        cmd = transport.executable_command(target, 'C:\temp\mytask.ps1', nil)
+        expect(cmd).to eq("& 'C:\\temp\\mytask.ps1'")
+      end
+
+      it 'puts the call operator in front of the interpreter' do
+        cmd = transport.executable_command(target, 'C:\temp\mytask.rb', ['C:\ruby\bin\ruby.exe', '-W0'])
+        expect(cmd).to eq("& 'C:\\ruby\\bin\\ruby.exe' '-W0' 'C:\\temp\\mytask.rb'")
       end
     end
 
