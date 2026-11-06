@@ -336,7 +336,7 @@ describe Bolt::Transport::Choria do
         expect(captured_cmd).to eq('/usr/bin/env MY_VAR=hello\ world /tmp/bolt-choria-test-uuid/test_script.sh arg')
       end
 
-      it 'rejects an unsafe env var name before any remote work' do
+      it 'rejects an unsafe env var name before any shell agent call' do
         expect(mock_rpc_client).not_to receive(:run)
         expect(mock_rpc_client).not_to receive(:start)
 
