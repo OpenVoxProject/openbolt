@@ -16,6 +16,12 @@ module Bolt
       # the PowerShell wrapper's UTF-16LE base64 encoding.
       SHELL_JOB_DIR_BATCH_SIZE = 40
 
+      # Targets per shell.statuses call. Every target answers for each
+      # handle of its call, so 1 call for a large batch of finished jobs
+      # would make each reply grow with the batch, past the broker's 1 MiB
+      # limit at a few thousand targets.
+      SHELL_STATUSES_BATCH_SIZE = 200
+
       # Run a command on targets via the shell agent. Assumes all targets in
       # the batch are the same platform (POSIX or Windows). Mixed-platform
       # batches use the first capable target's platform for command syntax.
@@ -472,11 +478,22 @@ module Bolt
       end
 
       # Fetch stdout/stderr/exitcode from completed targets via the
-      # shell.statuses RPC action. Requires shell agent >= 1.2.1.
+      # shell.statuses RPC action, SHELL_STATUSES_BATCH_SIZE targets per
+      # call. Requires shell agent >= 1.2.1.
       #
       # @param targets [Hash{Bolt::Target => Hash}] Completed targets mapped to { handle: uuid_string }
       # @return [Hash{Bolt::Target => Hash}] Output hash for each target
       def shell_statuses(targets)
+        targets.each_slice(SHELL_STATUSES_BATCH_SIZE).with_object({}) do |batch, results|
+          results.merge!(shell_statuses_batch(batch.to_h))
+        end
+      end
+
+      # One shell.statuses call for the given targets.
+      #
+      # @param targets [Hash{Bolt::Target => Hash}] Completed targets mapped to { handle: uuid_string }
+      # @return [Hash{Bolt::Target => Hash}] Output hash for each target
+      def shell_statuses_batch(targets)
         handles = targets.transform_values { |data| data[:handle] }
         logger.debug { "Fetching shell.statuses for #{target_count(targets)}" }
 
