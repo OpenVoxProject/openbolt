@@ -1,0 +1,18 @@
+mod 'puppetlabs-stdlib', :latest
+mod 'puppetlabs-apt', :latest
+mod 'puppetlabs-concat', :latest
+mod 'puppetlabs-inifile', :latest
+mod 'puppet-systemd', :latest
+mod 'choria-choria', :latest
+mod 'choria-mcollective', :latest
+mod 'choria-mcollective_choria', :latest
+mod 'choria-mcollective_agent_puppet', :latest
+mod 'choria-mcollective_agent_package', :latest
+mod 'choria-mcollective_agent_service', :latest
+mod 'choria-mcollective_agent_filemgr', :latest
+mod 'choria-mcollective_util_actionpolicy', :latest
+mod 'choria-mcollective_agent_bolt_tasks', :latest
+mod 'mcollective_agent_shell',
+  git: 'https://github.com/choria-plugins/shell-agent',
+  ref: '1.2.1'
+mod 'overlookinfra-mcollective_agent_file_transfer', :latest

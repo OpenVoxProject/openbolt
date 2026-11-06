@@ -1,0 +1,29 @@
+FROM ubuntu:26.04
+
+ARG DEBIAN_FRONTEND=noninteractive
+
+ADD --chmod=0644 https://apt.voxpupuli.org/openvox9-release-ubuntu26.04.deb /tmp/openvox9-release.deb
+# The apt module needs gpg for the Choria repository's key. The choria
+# package's postinst runs systemctl enable, and the mcollective module
+# manages a cron entry, so both tools have to exist here even though neither
+# daemon runs in these containers
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ca-certificates /tmp/openvox9-release.deb \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends cron git gnupg2 openssh-client openvox-agent systemd \
+    && rm -rf /var/lib/apt/lists/* /tmp/openvox9-release.deb
+
+ARG ENVIRONMENT=/etc/puppetlabs/code/environments/production
+COPY fixtures/choria/Puppetfile fixtures/choria/hiera.yaml $ENVIRONMENT/
+COPY fixtures/choria/data $ENVIRONMENT/data
+COPY fixtures/choria/manifests $ENVIRONMENT/manifests
+RUN /opt/puppetlabs/puppet/bin/gem install --no-document r10k \
+    && /opt/puppetlabs/puppet/bin/r10k puppetfile install --puppetfile $ENVIRONMENT/Puppetfile --moduledir $ENVIRONMENT/modules
+
+# OpenVox writes the node's identity and reads its per-node data from the
+# certname, so each container gets its own image from this argument.
+# puppet apply exits 0 when a resource fails, so the build asks for the
+# detailed exit codes and accepts 2, which means it applied changes
+ARG CERTNAME
+RUN /opt/puppetlabs/bin/puppet config set certname $CERTNAME --section main \
+    && (/opt/puppetlabs/bin/puppet apply --environment production --detailed-exitcodes $ENVIRONMENT/manifests/site.pp || [ $? -eq 2 ])
