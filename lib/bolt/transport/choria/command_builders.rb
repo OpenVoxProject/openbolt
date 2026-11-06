@@ -87,7 +87,7 @@ module Bolt
       # @return [String] The statements joined with '; '
       def powershell_env_statements(env_vars, context)
         env_vars.each_key { |key| validate_env_key!(key, context) }
-        env_vars.map { |key, val| "$env:#{key} = '#{ps_escape(val)}'" }.join('; ')
+        env_vars.map { |key, val| "$env:#{key} = '#{ps_escape(val.to_s)}'" }.join('; ')
       end
 
       # Build a command that pipes data to another command via stdin.
