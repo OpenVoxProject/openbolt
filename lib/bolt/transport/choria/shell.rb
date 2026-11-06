@@ -6,6 +6,16 @@ module Bolt
       # Terminal shell job statuses that indicate the process has finished.
       SHELL_DONE_STATUSES = %w[stopped failed].freeze
 
+      # The shell agent names each job with SecureRandom.uuid. A handle is
+      # checked against this before it goes into a command, since 1 command
+      # that removes job directories goes to every target of its group.
+      SHELL_HANDLE_PATTERN = /\A\h{8}-\h{4}-\h{4}-\h{4}-\h{12}\z/
+
+      # Job directories removed per shell.run call. 40 Windows paths stay
+      # well inside the shell DDL's 10,240-character command limit after
+      # the PowerShell wrapper's UTF-16LE base64 encoding.
+      SHELL_JOB_DIR_BATCH_SIZE = 40
+
       # Run a command on targets via the shell agent. Assumes all targets in
       # the batch are the same platform (POSIX or Windows). Mixed-platform
       # batches use the first capable target's platform for command syntax.
@@ -374,16 +384,19 @@ module Bolt
       end
 
       # Wait for async shell handles to complete, fetch their output via
-      # shell_statuses, and kill timed-out processes.
+      # shell_statuses, kill timed-out processes, and then remove the job
+      # directories the shell agent keeps for the jobs that finished.
       #
       # @param pending [Hash{Bolt::Target => Hash}] Targets to poll, each mapped to { handle: uuid_string }
       # @param timeout [Numeric] Maximum seconds to wait before killing remaining processes
       # @return [Hash{Bolt::Target => Hash}] Output hash for every target (success and error)
       def wait_for_shell_results(pending, timeout)
+        finished_jobs = {}
         poll_result = poll_with_retries(pending, timeout, 'shell.list') do |remaining|
           finished, failed, rpc_failed = shell_list(remaining)
           next { rpc_failed: true } if rpc_failed
 
+          finished_jobs.merge!(finished)
           done = failed
           unless finished.empty?
             logger.debug { "Fetching output from #{target_count(finished)}" }
@@ -404,7 +417,11 @@ module Bolt
           end
         end
 
-        poll_result[:completed].merge(remaining_errors)
+        results = poll_result[:completed].merge(remaining_errors)
+        # A job that timed out, or whose node stopped answering, may still be
+        # running, so its directory stays
+        remove_job_dirs(finished_jobs)
+        results
       end
 
       # One round of the shell.list RPC action to check which handles have
@@ -549,6 +566,35 @@ module Bolt
             logger.warn { "Failed to kill process on #{target.safe_name}: #{output[:error]}" }
           end
         end
+      end
+
+      # Remove the job directories of the given handles on the targets whose
+      # cleanup option is on. The shell agent's start action keeps a
+      # directory per job, with the command and its output, and shell.list
+      # returns every one of them, so without this each node's list reply
+      # grows with every job OpenBolt ever started there. A node with a
+      # custom plugin.shell.state_path keeps its directories, since the
+      # client cannot read that setting.
+      #
+      # @param finished [Hash{Bolt::Target => Hash}] Targets whose job finished, mapped to { handle: uuid_string }
+      def remove_job_dirs(finished)
+        cleanup_jobs = finished.select { |target, _state| target.options['cleanup'] }
+        jobs, unexpected = cleanup_jobs.partition { |_target, state| SHELL_HANDLE_PATTERN.match?(state[:handle].to_s) }
+        unexpected.each do |target, state|
+          logger.warn { "Not removing the shell job directory on #{target.safe_name} for unexpected handle #{state[:handle].inspect}" }
+        end
+
+        jobs.group_by { |target, _state| windows_target?(target) }.each_value do |platform_jobs|
+          platform_jobs.each_slice(SHELL_JOB_DIR_BATCH_SIZE) do |batch|
+            targets = batch.map(&:first)
+            command = remove_job_dirs_command(targets.first, batch.map { |_target, state| state[:handle] })
+            shell_run(targets, command, description: 'remove shell job directories').each do |target, failure|
+              logger.warn { "Removing the shell job directory failed on #{target.safe_name}: #{failure[:error]}" }
+            end
+          end
+        end
+      rescue StandardError => e
+        logger.warn { "Removing shell job directories failed: #{e.message}" }
       end
     end
   end

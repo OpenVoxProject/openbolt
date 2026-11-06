@@ -43,6 +43,25 @@ module Bolt
           "rm -rf #{Shellwords.shellescape(path)}"
       end
 
+      # Build a command that removes the shell agent's job directories for
+      # the given handles, under the agent's default state path. A handle
+      # without a directory on the target is skipped, so 1 command can
+      # contain the handles of every target it goes to. On Windows a failed
+      # removal stops the command, so it exits 1 like a failed rm does.
+      #
+      # @param target [Bolt::Target] Used for platform detection
+      # @param handles [Array<String>] Job handles, each checked to be a UUID
+      # @return [String] Shell command
+      def remove_job_dirs_command(target, handles)
+        if windows_target?(target)
+          paths = handles.map { |handle| "'C:/ProgramData/mcollective-shell/#{handle}'" }.join(', ')
+          "foreach ($path in @(#{paths})) { if (Test-Path -LiteralPath $path) { " \
+            'Remove-Item -LiteralPath $path -Recurse -Force -ErrorAction Stop } }'
+        else
+          "rm -rf #{handles.map { |handle| "/var/run/mcollective-shell/#{handle}" }.join(' ')}"
+        end
+      end
+
       # Build a command that writes base64-encoded content to a file
       # after decoding the content. Requires base64 CLI on POSIX targets.
       #
