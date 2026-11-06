@@ -62,11 +62,18 @@ module Bolt
         arguments = unwrap_sensitive_args(arguments)
         timeout = first_target.options['command-timeout']
         tmpdir = generate_tmpdir_path(first_target)
+        remote_path = join_path(first_target, tmpdir, File.basename(script))
+
+        # Built before any remote work, so a rejected env var name fails
+        # before anything reaches the nodes
+        interpreter = select_interpreter(script, first_target.options['interpreters']) if options[:script_interpreter]
+        cmd_parts = [executable_command(first_target, remote_path, interpreter)]
+        cmd_parts += arguments.map { |arg| escape_arg(first_target, arg) }
+        command = prepend_env_vars(first_target, cmd_parts.join(' '), options[:env_vars], 'run_script env_vars')
 
         script_content = File.binread(script)
 
         begin
-          remote_path = join_path(first_target, tmpdir, File.basename(script))
           active_targets = shell_targets
 
           # Create a temp directory with restricted permissions
@@ -85,11 +92,6 @@ module Bolt
 
           # Execute the script asynchronously and poll for completion
           if active_targets.any?
-            interpreter = select_interpreter(script, first_target.options['interpreters']) if options[:script_interpreter]
-            cmd_parts = [executable_command(first_target, remote_path, interpreter)]
-            cmd_parts += arguments.map { |arg| escape_arg(first_target, arg) }
-            command = prepend_env_vars(first_target, cmd_parts.join(' '), options[:env_vars], 'run_script env_vars')
-
             pending, start_failures = shell_start(active_targets, command)
             results += emit_results(start_failures, **result_opts, &callback)
             results += emit_results(wait_for_shell_results(pending, timeout), **result_opts, &callback)
