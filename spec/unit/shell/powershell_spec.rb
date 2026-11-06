@@ -53,6 +53,38 @@ describe Bolt::Shell::Powershell do
     end
   end
 
+  def base64_value(text)
+    Base64.decode64(text[/FromBase64String\('([^']*)'\)/, 1]).force_encoding('UTF-8')
+  end
+
+  describe "#env_declarations" do
+    it "sends each value as base64, so a line that would end a here-string stays in the value" do
+      value = "first\n'@\nWrite-Output '\u{0451}'"
+      declaration = shell.env_declarations('PT_message' => value).first
+
+      expect(declaration).to start_with("[Environment]::SetEnvironmentVariable('PT_message', ")
+      expect(declaration).not_to include("'@")
+      expect(base64_value(declaration)).to eq(value)
+    end
+
+    it "quotes the variable name and sends a value that is not a string as a string" do
+      declaration = shell.env_declarations("it's" => 5).first
+
+      expect(declaration).to start_with("[Environment]::SetEnvironmentVariable('it''s', ")
+      expect(base64_value(declaration)).to eq('5')
+    end
+  end
+
+  describe "Snippets.run_script" do
+    it "sends each argument as base64, so a line that would end a here-string stays in the argument" do
+      argument = "first\n'@\nWrite-Output 'second'"
+      script = Bolt::Shell::Powershell::Snippets.run_script([argument], 'C:\temp\script.ps1')
+
+      expect(script).not_to include("'@")
+      expect(base64_value(script[/^\$invokeArgs\.ArgumentList \+= .*$/])).to eq(argument)
+    end
+  end
+
   describe "#validate_ps_version" do
     it "warns when PSVersionTable reports less than 3" do
       allow(shell).to receive(:execute)

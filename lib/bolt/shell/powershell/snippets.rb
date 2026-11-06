@@ -1,10 +1,20 @@
 # frozen_string_literal: true
 
+require 'base64'
+
 module Bolt
   class Shell
     class Powershell < Shell
       module Snippets
         class << self
+          # An expression that evaluates to the value as a string. The value
+          # is sent as base64, so no character in it can end a quoted string
+          # or here-string, whatever encoding PowerShell reads the script in.
+          def base64_string(value)
+            encoded = Base64.strict_encode64(value.to_s.encode('UTF-8'))
+            "[System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String('#{encoded}'))"
+          end
+
           def execute_process(command)
             <<~PS
             if ([Console]::InputEncoding -eq [System.Text.Encoding]::UTF8) {
@@ -46,7 +56,7 @@ module Bolt
 
           def run_script(arguments, script_path)
             build_arg_list = arguments.map do |a|
-              "$invokeArgs.ArgumentList += @'\n#{a}\n'@"
+              "$invokeArgs.ArgumentList += #{base64_string(a)}"
             end.join("\n")
             <<~PS
             $invokeArgs = @{
