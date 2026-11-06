@@ -68,13 +68,18 @@ module Bolt
       # @param target [Bolt::Target] Used for platform detection
       # @param content_b64 [String] Base64-encoded file content
       # @param dest [String] Absolute destination path on the remote node
+      # @param append [Boolean] Whether to add the content to the end of the file instead of replacing it
       # @return [String] Shell command
-      def upload_file_command(target, content_b64, dest)
-        if windows_target?(target)
+      def upload_file_command(target, content_b64, dest, append: false)
+        if windows_target?(target) && append
+          "$bytes = [Convert]::FromBase64String('#{content_b64}'); " \
+            "$stream = [IO.File]::Open('#{ps_escape(dest)}', 'Append', 'Write'); " \
+            'try { $stream.Write($bytes, 0, $bytes.Length) } finally { $stream.Close() }'
+        elsif windows_target?(target)
           "[IO.File]::WriteAllBytes('#{ps_escape(dest)}', " \
             "[Convert]::FromBase64String('#{content_b64}'))"
         else
-          "printf '%s' #{Shellwords.shellescape(content_b64)} | base64 -d > #{Shellwords.shellescape(dest)}"
+          "printf '%s' #{Shellwords.shellescape(content_b64)} | base64 -d #{append ? '>>' : '>'} #{Shellwords.shellescape(dest)}"
         end
       end
 
