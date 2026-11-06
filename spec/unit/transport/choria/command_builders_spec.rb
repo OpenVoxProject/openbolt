@@ -275,6 +275,19 @@ describe 'Bolt::Transport::Choria command builders' do
         expect(cmd).not_to include('$env:PT_')
       end
 
+      it 'defines the JSON functions before the script calls them for the powershell input_method' do
+        cmd = transport.build_task_command(target, 'C:\temp\mytask.ps1', { 'name' => 'value' }, 'powershell', nil)
+
+        first_call = cmd.index('$private:tempArgs = Get-ContentAsJson')
+        expect(cmd.index('function ConvertFrom-PSCustomObject')).to be < first_call
+        expect(cmd.index('function Get-ContentAsJson')).to be < first_call
+      end
+
+      it 'matches the .ps1 extension in any case for the powershell input_method' do
+        cmd = transport.build_task_command(target, 'C:\temp\MYTASK.PS1', { 'name' => 'value' }, 'powershell', nil)
+        expect(cmd).to include('& "C:\temp\MYTASK.PS1" @taskArgs')
+      end
+
       it 'runs a task file other than .ps1 without arguments for the powershell input_method' do
         cmd = transport.build_task_command(target, 'C:\temp\mytask.rb', { 'name' => 'value' }, 'powershell',
                                            { '.rb' => 'C:\ruby\bin\ruby.exe' })
