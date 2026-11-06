@@ -66,6 +66,59 @@ describe Bolt::Transport::Choria do
       expect(finished_targets).to contain_exactly(target, target2)
     end
 
+    it 'fetches the output in groups of SHELL_STATUSES_BATCH_SIZE' do
+      stub_const('Bolt::Transport::Choria::SHELL_STATUSES_BATCH_SIZE', 1)
+      stub_agents([target, target2], %w[rpcutil shell])
+      stub_shell_start({ target => { handle: 'h1' }, target2 => { handle: 'h2' } })
+      stub_shell_list({ target => { handle: 'h1' }, target2 => { handle: 'h2' } })
+      calls = []
+      allow(mock_rpc_client).to receive(:statuses) do |args|
+        calls << [mock_rpc_client.options[:filter]['identity'].dup, args[:handles]]
+        [make_shell_statuses_result(target, 'h1', stdout: 'one'), make_shell_statuses_result(target2, 'h2', stdout: 'two')]
+      end
+
+      results = transport.batch_command([target, target2], 'hostname', {})
+
+      expect(calls).to eq([[%w[node1.example.com], ['h1']], [%w[node2.example.com], ['h2']]])
+      expect(results.map { |result| result.value['stdout'] }).to contain_exactly('one', 'two')
+    end
+
+    it 'fails only the targets of a shell.statuses group whose call fails' do
+      stub_const('Bolt::Transport::Choria::SHELL_STATUSES_BATCH_SIZE', 1)
+      stub_agents([target, target2], %w[rpcutil shell])
+      stub_shell_start({ target => { handle: 'h1' }, target2 => { handle: 'h2' } })
+      stub_shell_list({ target => { handle: 'h1' }, target2 => { handle: 'h2' } })
+      allow(mock_rpc_client).to receive(:statuses) do
+        raise StandardError, 'broker went away' if mock_rpc_client.options[:filter]['identity'] == %w[node2.example.com]
+
+        [make_shell_statuses_result(target, 'h1', stdout: 'one')]
+      end
+
+      results = transport.batch_command([target, target2], 'hostname', {})
+
+      expect(results.find { |result| result.target == target }.value['stdout']).to eq('one')
+      expect(results.find { |result| result.target == target2 }.error_hash['kind']).to eq('bolt/choria-rpc-failed')
+    end
+
+    it 'fails only the targets of a shell.statuses group whose reply it cannot read' do
+      stub_const('Bolt::Transport::Choria::SHELL_STATUSES_BATCH_SIZE', 1)
+      stub_agents([target, target2], %w[rpcutil shell])
+      stub_shell_start({ target => { handle: 'h1' }, target2 => { handle: 'h2' } })
+      stub_shell_list({ target => { handle: 'h1' }, target2 => { handle: 'h2' } })
+      allow(mock_rpc_client).to receive(:statuses) do
+        if mock_rpc_client.options[:filter]['identity'] == %w[node2.example.com]
+          [make_rpc_result(sender: target2, data: 'not a hash')]
+        else
+          [make_shell_statuses_result(target, 'h1', stdout: 'one')]
+        end
+      end
+
+      results = transport.batch_command([target, target2], 'hostname', {})
+
+      expect(results.find { |result| result.target == target }.value['stdout']).to eq('one')
+      expect(results.find { |result| result.target == target2 }.error_hash['kind']).to eq('bolt/choria-result-processing-error')
+    end
+
     it 'returns non-zero exit codes without raising' do
       stub_agents(target, %w[rpcutil shell])
       stub_shell_start
