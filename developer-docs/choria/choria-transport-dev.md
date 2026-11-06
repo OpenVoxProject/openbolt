@@ -405,7 +405,8 @@ one call:
 1. `configure_client(target)` for one-time MCollective setup
 2. `discover_agents(targets)` for agent detection (cached after first call)
 3. Partition targets by agent availability using `has_agent?`
-4. Emit error results (via callback) for targets missing the required agent
+4. Emit error results (via callback) for targets missing the required agent,
+   and the discovery error for each target discovery failed for
 
 Returns `[capable_targets, error_results]`. The caller proceeds with only
 capable targets while error results are already emitted to the user.
