@@ -70,11 +70,12 @@ module Bolt
         response = rpc_request('bolt_tasks', targets, 'bolt_tasks.download', accept_aborted: true) do |client|
           client.download(task: task.name, files: file_specs_json, environment: environment)
         end
-        # The bolt_tasks agent uses reply.fail! with statuscode 1 for download
-        # failures, which rpc_request keeps under :responded here since the
-        # call accepts aborted replies. Check :aborted to catch these and
-        # report the download failure clearly instead of letting run_no_wait
-        # fail with a confusing "task not available" error.
+        # A download that fails reaches the client as an RPC error with
+        # statuscode 5, since the agent's download raises after its retries,
+        # and rpc_request puts it under :errors. A statuscode 1 reply stays
+        # under :responded here, since the call accepts aborted replies, so it
+        # moves to the errors too, instead of letting run_no_wait fail with a
+        # confusing "task not available" error.
         dl_errors = response[:errors]
         response[:aborted].each do |target, statusmsg|
           dl_errors[target] = error_output(
