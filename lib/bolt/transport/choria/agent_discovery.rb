@@ -52,7 +52,9 @@ module Bolt
 
         response[:responded].each do |target, data|
           sender = choria_identity(target)
-          agents = filter_agents(sender, data[:agents])
+          # A node can send data that isn't a hash, which would raise and stop
+          # discovery for every target after it
+          agents = filter_agents(sender, data[:agents]) if data.is_a?(Hash)
           unless agents
             logger.warn { "Unexpected agent_inventory response from #{sender}. This target will be treated as unreachable." }
             next
@@ -88,6 +90,10 @@ module Bolt
 
         response[:responded].each do |target, data|
           sender = choria_identity(target)
+          unless data.is_a?(Hash)
+            logger.warn { "Unexpected get_fact response from #{sender}. Defaulting to POSIX command syntax." }
+            next
+          end
           os_family = data[:value].to_s.downcase
           if os_family.empty?
             logger.warn { "os.family fact is empty on #{sender}. Defaulting to POSIX command syntax." }
