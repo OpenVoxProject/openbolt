@@ -533,6 +533,22 @@ describe Bolt::Transport::Choria do
         transport.batch_script([target], script_path, ['x y'], { env_vars: { 'MY_VAR' => 'v' } }, [])
         expect(start_script).to eq("$env:MY_VAR = 'v'; & 'C:\\Windows\\Temp\\bolt-choria-test-uuid\\test_script.sh' 'x y'")
       end
+
+      it 'passes script arguments that are not strings as strings' do
+        start_script = nil
+        allow(mock_rpc_client).to receive(:start) do |args|
+          start_script = Base64.decode64(args[:command].split.last).force_encoding('UTF-16LE').encode('UTF-8')
+          [make_shell_start_result(target, handle: 'h1')]
+        end
+        stub_shell_run
+        stub_shell_list({ target => { handle: 'h1' } })
+        stub_shell_status({ target => { handle: 'h1', stdout: 'hello' } })
+
+        results = transport.batch_script([target], script_path, [5, true], {}, [])
+
+        expect(results.first.value['stdout']).to eq('hello')
+        expect(start_script).to eq("& 'C:\\Windows\\Temp\\bolt-choria-test-uuid\\test_script.sh' '5' 'true'")
+      end
     end
   end
 
