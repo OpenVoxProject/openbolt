@@ -88,12 +88,12 @@ module Bolt
 
       def env_declarations(env_vars)
         env_vars.map do |var, val|
-          "[Environment]::SetEnvironmentVariable('#{var}', @'\n#{val}\n'@)"
+          "[Environment]::SetEnvironmentVariable(#{quote_string(var.to_s)}, #{Snippets.base64_string(val)})"
         end
       end
 
       def quote_string(string)
-        "'" + string.gsub("'", "''") + "'"
+        "'" + Bolt::Util.escape_powershell_single_quotes(string) + "'"
       end
 
       def write_executable(dir, file, filename = nil)
