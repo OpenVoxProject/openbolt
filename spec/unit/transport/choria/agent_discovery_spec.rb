@@ -153,7 +153,7 @@ describe Bolt::Transport::Choria do
         )
       end
 
-      it 'returns nil for all targets when agent_inventory raises' do
+      it 'leaves every target undiscovered when agent_inventory raises' do
         allow(mock_rpc_client).to receive(:agent_inventory).and_raise(StandardError, 'NATS timeout')
 
         transport.discover_agents([target, target2])
@@ -168,6 +168,43 @@ describe Bolt::Transport::Choria do
         expect { transport.discover_agents([target, target2]) }.to raise_error(
           Bolt::Error, /Config problem/
         )
+      end
+
+      it 'returns the reason for every target when the agent_inventory call fails as a whole' do
+        allow(MCollective::RPC::Client).to receive(:new).and_raise(StandardError, 'The Choria client cannot be run as root')
+
+        failures = transport.discover_agents([target, target2])
+
+        expect(failures.keys).to contain_exactly(target, target2)
+        expect(failures[target]).to include(
+          error: 'rpcutil.agent_inventory failed on choria://node1.example.com: The Choria client cannot be run as root',
+          error_kind: 'bolt/choria-rpc-failed'
+        )
+        expect(failures[target2]).to include(
+          error: 'rpcutil.agent_inventory failed on choria://node2.example.com: The Choria client cannot be run as root',
+          error_kind: 'bolt/choria-rpc-failed'
+        )
+      end
+
+      it 'returns the RPC error of a target that answered agent_inventory with one' do
+        refused = make_rpc_result(sender: target, statuscode: 1,
+                                  statusmsg: 'You are not authorized to call this agent or action', data: {})
+        allow(mock_rpc_client).to receive(:agent_inventory).and_return([refused])
+
+        failures = transport.discover_agents([target, target2])
+
+        expect(failures.keys).to eq([target])
+        expect(failures[target]).to include(
+          error: 'rpcutil.agent_inventory on choria://node1.example.com returned RPC error: ' \
+                 'You are not authorized to call this agent or action (code 1)',
+          error_kind: 'bolt/choria-rpc-error'
+        )
+      end
+
+      it 'returns no failures when only some targets do not answer' do
+        stub_agents(target, %w[rpcutil])
+
+        expect(transport.discover_agents([target, target2])).to eq({})
       end
     end
   end
