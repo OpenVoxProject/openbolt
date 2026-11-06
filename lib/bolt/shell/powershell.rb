@@ -88,7 +88,7 @@ module Bolt
 
       def env_declarations(env_vars)
         env_vars.map do |var, val|
-          "[Environment]::SetEnvironmentVariable('#{var}', @'\n#{val}\n'@)"
+          "[Environment]::SetEnvironmentVariable(#{quote_string(var.to_s)}, #{Snippets.base64_string(val)})"
         end
       end
 
