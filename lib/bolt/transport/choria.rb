@@ -6,6 +6,7 @@ require 'digest/sha2'
 require 'json'
 require 'securerandom'
 require 'shellwords'
+require_relative '../../bolt/shell'
 require_relative '../../bolt/transport/base'
 
 module Bolt
