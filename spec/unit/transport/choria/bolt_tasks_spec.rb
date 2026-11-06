@@ -243,10 +243,9 @@ describe 'Bolt::Transport::Choria bolt_tasks' do
       end
 
       it 'catches download failure reported via statuscode 1 (reply.fail!)' do
-        # The bolt_tasks agent uses reply.fail! for download failures, which
-        # sets statuscode 1. rpc_request routes statuscode 1 to :responded,
-        # so download_and_start_task has special logic to check :aborted
-        # and move statuscode-1 responses to the error bucket.
+        # A statuscode 1 download reply stays under :responded, since the
+        # call accepts aborted replies, so download_and_start_task moves it
+        # to the errors.
         dl_result = make_rpc_result(
           sender: target, statuscode: 1,
           statusmsg: 'Could not download task files from puppet server',
