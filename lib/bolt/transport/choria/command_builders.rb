@@ -64,7 +64,7 @@ module Bolt
       #
       # @param target [Bolt::Target] Used for platform detection
       # @param command [String] The command to prepend env vars to
-      # @param env_vars [Hash{String => String}, nil] Variable names to values
+      # @param env_vars [Hash{String => Object}, nil] Variable names to values, which become strings
       # @param context [String] Description for error messages (e.g., 'task argument')
       # @return [String] Command with env vars prepended
       def prepend_env_vars(target, command, env_vars, context)
@@ -82,7 +82,7 @@ module Bolt
       # Build the PowerShell statements that set environment variables,
       # after validating each name.
       #
-      # @param env_vars [Hash{String => String}] Variable names to values
+      # @param env_vars [Hash{String => Object}] Variable names to values, which become strings
       # @param context [String] Description for error messages (e.g., 'task argument')
       # @return [String] The statements joined with '; '
       def powershell_env_statements(env_vars, context)
@@ -100,7 +100,9 @@ module Bolt
       def stdin_pipe_command(target, data, command)
         if windows_target?(target)
           # Use a here-string (@'...'@) to avoid escaping issues with
-          # large JSON payloads. Content between @' and '@ is literal.
+          # large JSON payloads. Its content is literal as long as no line
+          # starts with a single quote character and @, which single-line
+          # JSON never does.
           "@'\n#{data}\n'@ | #{command}"
         else
           "printf '%s' #{Shellwords.shellescape(data)} | #{command}"

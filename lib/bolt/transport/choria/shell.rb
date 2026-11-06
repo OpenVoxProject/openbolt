@@ -64,8 +64,8 @@ module Bolt
         tmpdir = generate_tmpdir_path(first_target)
         remote_path = join_path(first_target, tmpdir, File.basename(script))
 
-        # Built before any remote work, so a rejected env var name fails
-        # before anything reaches the nodes
+        # Built before the first shell agent call, so a rejected env var name
+        # fails before the script reaches the nodes
         interpreter = select_interpreter(script, first_target.options['interpreters']) if options[:script_interpreter]
         cmd_parts = [executable_command(first_target, remote_path, interpreter)]
         cmd_parts += arguments.map { |arg| escape_arg(first_target, arg) }
