@@ -190,6 +190,19 @@ describe Bolt::Transport::Choria do
         script = Base64.decode64(captured_cmd.split.last).force_encoding('UTF-16LE').encode('UTF-8')
         expect(script).to eq("$env:MY_VAR = 'hello'; & mycommand")
       end
+
+      it 'accepts values that are not strings on Windows targets' do
+        stub_agents(target, %w[rpcutil shell], os_family: 'windows')
+        captured_cmd = nil
+        allow(mock_rpc_client).to receive(:start) do |args|
+          captured_cmd = args[:command]
+          [make_rpc_result(sender: target, data: { handle: 'test-handle-uuid' })]
+        end
+
+        transport.batch_command([target], 'mycommand', { env_vars: { 'COUNT' => 5, 'FLAG' => true, 'EMPTY' => nil } })
+        script = Base64.decode64(captured_cmd.split.last).force_encoding('UTF-16LE').encode('UTF-8')
+        expect(script).to eq("$env:COUNT = '5'; $env:FLAG = 'true'; $env:EMPTY = ''; & mycommand")
+      end
     end
 
     describe 'error messages' do
