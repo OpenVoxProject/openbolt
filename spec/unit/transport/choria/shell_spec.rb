@@ -623,7 +623,7 @@ describe Bolt::Transport::Choria do
         expect(results.first.value['stdout']).to eq('hello')
         scripts = run_commands.map { |command| Base64.decode64(command.split.last).force_encoding('UTF-16LE').encode('UTF-8') }
         expect(scripts).to match([
-                                   "New-Item -ItemType Directory -Force -Path 'C:\\Windows\\Temp\\bolt-choria-test-uuid'",
+                                   transport.make_tmpdir_command(target, 'C:\Windows\Temp\bolt-choria-test-uuid'),
                                    a_string_starting_with("[IO.File]::WriteAllBytes('C:\\Windows\\Temp\\bolt-choria-test-uuid\\test_script.sh', "),
                                    a_string_starting_with("[IO.File]::WriteAllBytes('C:\\Windows\\Temp\\bolt-choria-test-uuid\\bolt_run.ps1', "),
                                    "Remove-Item -Recurse -Force -Path 'C:\\Windows\\Temp\\bolt-choria-test-uuid'"

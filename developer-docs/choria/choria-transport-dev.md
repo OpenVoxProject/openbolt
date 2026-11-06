@@ -303,7 +303,9 @@ OS is detected during agent discovery via the `os.family` fact.
   `mkdir -m 700` for temp dirs
 - **Windows**: PowerShell `$env:` for env vars, single-quote doubling for
   escaping, here-strings for stdin, `[Convert]::FromBase64String` for uploads,
-  `New-Item` for temp dirs, `powershell.exe -EncodedCommand` for complex scripts
+  `New-Item` for temp dirs with an ACL that leaves them open only to the
+  agent's account and the Administrators group, `powershell.exe
+  -EncodedCommand` for complex scripts
 
 `select_implementation` in `choria.rb` picks `.ps1` task files for Windows
 targets and `.sh` for POSIX, supporting mixed-platform batches.
