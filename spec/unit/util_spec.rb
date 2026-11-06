@@ -207,4 +207,50 @@ describe Bolt::Util do
       end
     end
   end
+
+  describe '#escape_powershell_single_quotes' do
+    # Reads a PowerShell single-quoted string the way the language
+    # specification does. Any of the 5 single quote characters ends the string
+    # unless another one follows it. Returns the value and the text after the
+    # closing quote.
+    def read_powershell_single_quoted(literal)
+      quotes = ["'", "\u{2018}", "\u{2019}", "\u{201A}", "\u{201B}"]
+      chars = literal.chars
+      raise ArgumentError, 'Not a single-quoted string' unless quotes.include?(chars.shift)
+
+      value = +''
+      until chars.empty?
+        char = chars.shift
+        return [value, chars.join] if quotes.include?(char) && !quotes.include?(chars.first)
+
+        value << (quotes.include?(char) ? chars.shift : char)
+      end
+      raise ArgumentError, 'Unterminated single-quoted string'
+    end
+
+    it 'escapes every single quote character so PowerShell reads the whole value back' do
+      value = "it's \u{2018}a\u{2019} \u{201A}b\u{201B} \"c\" \u{201C}d\u{201D}"
+      literal = "'#{Bolt::Util.escape_powershell_single_quotes(value)}'"
+      expect(read_powershell_single_quoted(literal)).to eq([value, ''])
+    end
+
+    it 'converts a string in another encoding before escaping it' do
+      value = "it\x92s".dup.force_encoding('Windows-1252')
+      expect(Bolt::Util.escape_powershell_single_quotes(value)).to eq("it\u{2019}\u{2019}s")
+    end
+
+    it 'raises for a string whose bytes are not valid UTF-8' do
+      expect { Bolt::Util.escape_powershell_single_quotes("it\xFFs") }.to raise_error(ArgumentError)
+    end
+
+    it 'reads a binary string as UTF-8 bytes, so PowerShell reads the whole value back' do
+      value = "it's \u{2018}a\u{2019} \u{0451}"
+      escaped = Bolt::Util.escape_powershell_single_quotes(value.b)
+      expect(read_powershell_single_quoted("'#{escaped.force_encoding('UTF-8')}'")).to eq([value, ''])
+    end
+
+    it 'passes the other bytes of a binary string through' do
+      expect(Bolt::Util.escape_powershell_single_quotes("\xFF'\xE2\x80".b)).to eq("\xFF''\xE2\x80".b)
+    end
+  end
 end

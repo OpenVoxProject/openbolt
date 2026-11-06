@@ -93,7 +93,7 @@ module Bolt
       end
 
       def quote_string(string)
-        "'" + string.gsub("'", "''") + "'"
+        "'" + Bolt::Util.escape_powershell_single_quotes(string) + "'"
       end
 
       def write_executable(dir, file, filename = nil)
