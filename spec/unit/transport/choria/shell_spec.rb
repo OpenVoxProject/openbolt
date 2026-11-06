@@ -166,6 +166,19 @@ describe Bolt::Transport::Choria do
     end
 
     describe 'error messages' do
+      it 'reports agent discovery as failed for every target when it raises before finishing' do
+        allow(mock_rpc_client).to receive(:agent_inventory)
+          .and_return([make_rpc_result(sender: target, data: { agents: [{ 'agent' => 'shell' }] })])
+        allow(transport).to receive(:filter_agents).and_raise(StandardError, 'boom')
+
+        results = transport.batch_command([target, target2], 'hostname', {})
+
+        expect(results.map { |result| [result.error_hash['kind'], result.error_hash['msg']] }).to contain_exactly(
+          ['bolt/choria-agent-not-available', 'No agent information available for choria://node1.example.com (agent discovery failed)'],
+          ['bolt/choria-agent-not-available', 'No agent information available for choria://node2.example.com (agent discovery failed)']
+        )
+      end
+
       it 'includes the actual error from shell.start in the error message' do
         stub_agents(target, %w[rpcutil shell])
 
@@ -206,6 +219,25 @@ describe Bolt::Transport::Choria do
         expect(results.first.error_hash['kind']).to eq('bolt/choria-rpc-failed')
         expect(results.first.error_hash['msg']).to match(/NATS broker down/)
       end
+    end
+
+    it 'reports why discovery failed when the client cannot make the discovery call' do
+      allow(MCollective::RPC::Client).to receive(:new).and_raise(StandardError, 'The Choria client cannot be run as root')
+
+      results = transport.batch_command([target, target2], 'hostname')
+
+      expect(results.map(&:target)).to contain_exactly(target, target2)
+      expect(results.map(&:error_hash)).to all(include('kind' => 'bolt/choria-rpc-failed', 'msg' => /The Choria client cannot be run as root/))
+    end
+
+    it 'reports the RPC error of a node that answered discovery with one' do
+      refused = make_rpc_result(sender: target, statuscode: 1,
+                                statusmsg: 'You are not authorized to call this agent or action', data: {})
+      allow(mock_rpc_client).to receive(:agent_inventory).and_return([refused])
+
+      result = transport.batch_command([target], 'hostname').first
+
+      expect(result.error_hash).to include('kind' => 'bolt/choria-rpc-error', 'msg' => /You are not authorized to call this agent or action/)
     end
   end
 

@@ -298,7 +298,10 @@ describe Bolt::Transport::Choria do
         expect(ok_results.first.target).to eq(target)
         expect(error_results.length).to eq(1)
         expect(error_results.first.target).to eq(target2)
-        expect(error_results.first.error_hash['msg']).to match(/No agent information.*did not respond to discovery/)
+        expect(error_results.first.error_hash).to include(
+          'msg' => 'No response from choria://node2.example.com for rpcutil.agent_inventory',
+          'kind' => 'bolt/choria-no-response'
+        )
       end
 
       it 'uses shell agent for all targets when task-agent is shell' do
@@ -380,7 +383,17 @@ describe Bolt::Transport::Choria do
 
       expect(results.length).to eq(2)
       expect(results.find { |result| result.target == target }.value).to eq('result' => 'ok')
-      expect(results.find { |result| result.target == target2 }.error_hash['msg']).to include('did not respond to discovery')
+      expect(results.find { |result| result.target == target2 }.error_hash['msg'])
+        .to eq('No response from choria://node2.example.com for rpcutil.agent_inventory')
+    end
+
+    it 'reports why discovery failed for every target when the client cannot make the discovery call' do
+      allow(MCollective::RPC::Client).to receive(:new).and_raise(StandardError, 'The Choria client cannot be run as root')
+
+      results = transport.batch_task_with([target, target2], task, { target => {}, target2 => {} }, {}, [])
+
+      expect(results.map(&:target)).to contain_exactly(target, target2)
+      expect(results.map(&:error_hash)).to all(include('kind' => 'bolt/choria-rpc-failed', 'msg' => /The Choria client cannot be run as root/))
     end
 
     it 'reports every target as not discovered when none answered, without running the task' do
@@ -392,7 +405,7 @@ describe Bolt::Transport::Choria do
 
       results = transport.batch_task_with([target, target2], task, { target => {}, target2 => {} }, {}, [], &callback)
 
-      expect(results.map { |result| result.error_hash['kind'] }).to eq(['bolt/choria-agent-not-available'] * 2)
+      expect(results.map { |result| result.error_hash['kind'] }).to eq(['bolt/choria-no-response'] * 2)
       expect(results.map(&:action).uniq).to eq(['task'])
       expect(events.select { |event| event[:type] == :node_start }.map { |event| event[:target] }).to contain_exactly(target, target2)
       expect(events.select { |event| event[:type] == :node_result }.map { |event| event[:result].target }).to contain_exactly(target, target2)
