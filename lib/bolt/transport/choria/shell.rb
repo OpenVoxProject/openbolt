@@ -156,14 +156,14 @@ module Bolt
       # @return [Array<Bolt::Result>] Results for all targets
       def run_task_via_shell(targets, task, arguments, result_opts, &callback)
         logger.debug { "Running task #{task.name} via shell agent on #{target_count(targets)}" }
-        results = []
+        groups, results = group_by_implementation(targets, task, result_opts, &callback)
         all_pending = {}
         cleanup_entries = []
 
         # Each implementation group gets its own tmpdir because different
         # platforms need different base paths (e.g., /tmp vs C:\Windows\Temp).
         begin
-          targets.group_by { |target| select_implementation(target, task) }.each do |implementation, impl_targets|
+          groups.each do |implementation, impl_targets|
             tmpdir = generate_tmpdir_path(impl_targets.first)
             cleanup_entries << { targets: impl_targets, tmpdir: tmpdir }
             start_result = upload_and_start_task(impl_targets, task, implementation, tmpdir,
