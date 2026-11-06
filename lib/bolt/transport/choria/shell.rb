@@ -22,6 +22,13 @@ module Bolt
       # limit at a few thousand targets.
       SHELL_STATUSES_BATCH_SIZE = 200
 
+      # Bytes of file content per upload command. The shell DDL caps a
+      # command at 10,240 characters and the content goes in as base64. On
+      # Windows the PowerShell wrapper then encodes the whole command as
+      # UTF-16LE base64 again, so its chunks are smaller.
+      POSIX_UPLOAD_CHUNK_BYTES = 6_000
+      WINDOWS_UPLOAD_CHUNK_BYTES = 2_000
+
       # Run a command on targets via the shell agent. Assumes all targets in
       # the batch are the same platform (POSIX or Windows). Mixed-platform
       # batches use the first capable target's platform for command syntax.
@@ -343,14 +350,10 @@ module Bolt
         failures
       end
 
-      # Upload file content to the same path on multiple targets via base64.
-      # The whole file is base64-encoded into one shell.run command, and the
-      # shell agent's DDL caps a command at 10,240 characters, so a file can
-      # be about 7.5 KB on POSIX and under 3 KB on Windows, where the
-      # PowerShell wrapper is encoded as UTF-16LE base64 on top of that.
-      # Once the file-transfer agent is implemented, we'll use chunked
-      # transfers via that agent instead when it's available, removing this
-      # size limitation.
+      # Upload file content to the same path on multiple targets via base64,
+      # in chunks that each fit in 1 shell.run command. The first chunk
+      # replaces the file and the rest add to it. A target that fails a
+      # chunk gets no later ones.
       #
       # @param targets [Array<Bolt::Target>] Targets to upload to
       # @param content [String] Raw file content (binary-safe)
@@ -358,9 +361,22 @@ module Bolt
       # @return [Hash{Bolt::Target => Hash}] Failures only; empty hash means all succeeded
       def upload_file_content(targets, content, destination)
         logger.debug { "Uploading #{content.bytesize} bytes to #{destination} on #{target_count(targets)}" }
-        encoded = Base64.strict_encode64(content)
-        command = upload_file_command(targets.first, encoded, destination)
-        shell_run(targets, command, description: "upload #{destination}")
+        chunk_size = windows_target?(targets.first) ? WINDOWS_UPLOAD_CHUNK_BYTES : POSIX_UPLOAD_CHUNK_BYTES
+        chunks = (0...content.bytesize).step(chunk_size).map { |offset| content.byteslice(offset, chunk_size) }
+        chunks = [''] if chunks.empty?
+
+        failures = {}
+        remaining = targets
+        chunks.each_with_index do |chunk, index|
+          break if remaining.empty?
+
+          command = upload_file_command(remaining.first, Base64.strict_encode64(chunk), destination,
+                                        append: index.positive?)
+          chunk_failures = shell_run(remaining, command, description: "upload #{destination}")
+          failures.merge!(chunk_failures)
+          remaining -= chunk_failures.keys
+        end
+        failures
       end
 
       # Start an async command on targets via the shell.start RPC action.

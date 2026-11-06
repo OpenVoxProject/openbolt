@@ -926,6 +926,76 @@ describe Bolt::Transport::Choria do
       expect(failures).to have_key(target)
       expect(failures[target][:error]).to match(/disk full/)
     end
+
+    it 'writes an empty file for empty content' do
+      commands = []
+      allow(mock_rpc_client).to receive(:run) do |args|
+        commands << args[:command]
+        [make_shell_run_result(target)]
+      end
+
+      transport.upload_file_content([target], '', '/tmp/dir/file')
+
+      expect(commands).to eq(["printf '%s' '' | base64 -d > /tmp/dir/file"])
+    end
+
+    context 'with content larger than 1 chunk' do
+      before(:each) do
+        stub_const('Bolt::Transport::Choria::POSIX_UPLOAD_CHUNK_BYTES', 4)
+        stub_const('Bolt::Transport::Choria::WINDOWS_UPLOAD_CHUNK_BYTES', 4)
+      end
+
+      it 'uploads it in pieces that rebuild the whole file' do
+        skip 'Needs a POSIX shell' if Bolt::Util.windows?
+
+        content = "binary \x00\xFF and text"
+        Dir.mktmpdir do |dir|
+          destination = File.join(dir, 'file')
+          commands = []
+          allow(mock_rpc_client).to receive(:run) do |args|
+            commands << args[:command]
+            # The shell agent starts the command string the way system does
+            system(args[:command], exception: true)
+            [make_shell_run_result(target)]
+          end
+
+          expect(transport.upload_file_content([target], content, destination)).to be_empty
+          expect(commands.length).to eq((content.bytesize / 4.0).ceil)
+          expect(File.binread(destination)).to eq(content.b)
+        end
+      end
+
+      it 'sends no later chunks to a target that failed one' do
+        recipients = []
+        allow(mock_rpc_client).to receive(:run) do
+          recipients << mock_rpc_client.options[:filter]['identity'].dup
+          [make_shell_run_result(target), make_shell_run_result(target2, stderr: 'disk full', exitcode: 1)]
+        end
+
+        failures = transport.upload_file_content([target, target2], 'abcdefgh', '/tmp/dir/file')
+
+        expect(failures.keys).to eq([target2])
+        expect(recipients).to eq([%w[node1.example.com node2.example.com], %w[node1.example.com]])
+      end
+
+      it 'adds the later chunks to the file on Windows targets' do
+        stub_agents(target, %w[rpcutil shell], os_family: 'windows')
+        transport.discover_agents([target])
+        scripts = []
+        allow(mock_rpc_client).to receive(:run) do |args|
+          scripts << Base64.decode64(args[:command].split.last).force_encoding('UTF-16LE').encode('UTF-8')
+          [make_shell_run_result(target)]
+        end
+
+        transport.upload_file_content([target], 'abcdef', 'C:\temp\file')
+
+        expect(scripts).to eq([
+                                "[IO.File]::WriteAllBytes('C:\\temp\\file', [Convert]::FromBase64String('YWJjZA=='))",
+                                "$bytes = [Convert]::FromBase64String('ZWY='); $stream = [IO.File]::Open('C:\\temp\\file', 'Append', 'Write'); " \
+                                'try { $stream.Write($bytes, 0, $bytes.Length) } finally { $stream.Close() }'
+                              ])
+      end
+    end
   end
 
   describe '#cleanup_tmpdir' do
