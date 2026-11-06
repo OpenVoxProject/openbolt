@@ -128,6 +128,18 @@ describe Bolt::Transport::Choria do
       expect(transport.has_agent?(target, 'shell')).to be false
     end
 
+    it 'treats only that target as unreachable when its agent_inventory data is not a hash' do
+      malformed = make_rpc_result(sender: target, data: [])
+      answered = make_rpc_result(sender: target2, data: { agents: [{ 'agent' => 'rpcutil' }] })
+      allow(mock_rpc_client).to receive_messages(agent_inventory: [malformed, answered],
+                                                 get_fact: [make_rpc_result(sender: target2, data: { value: 'RedHat' })])
+
+      transport.discover_agents([target, target2])
+
+      expect(transport.discovered?(target)).to be false
+      expect(transport.has_agent?(target2, 'rpcutil')).to be true
+    end
+
     it 'treats target as unreachable when agents is a string instead of Array' do
       result = make_rpc_result(sender: target, data: { agents: 'corrupted' })
       allow(mock_rpc_client).to receive(:agent_inventory).and_return([result])
@@ -272,6 +284,18 @@ describe Bolt::Transport::Choria do
       transport.discover_agents([target])
 
       expect(transport.windows_target?(target)).to be true
+    end
+
+    it 'detects the OS family of the other targets when one get_fact reply has data that is not a hash' do
+      inventory = [make_rpc_result(sender: target, data: { agents: [{ 'agent' => 'rpcutil' }] }),
+                   make_rpc_result(sender: target2, data: { agents: [{ 'agent' => 'rpcutil' }] })]
+      facts = [make_rpc_result(sender: target, data: []), make_rpc_result(sender: target2, data: { value: 'windows' })]
+      allow(mock_rpc_client).to receive_messages(agent_inventory: inventory, get_fact: facts)
+
+      transport.discover_agents([target, target2])
+
+      expect(transport.windows_target?(target)).to be false
+      expect(transport.windows_target?(target2)).to be true
     end
 
     it 'defaults to POSIX when OS detection fails' do
