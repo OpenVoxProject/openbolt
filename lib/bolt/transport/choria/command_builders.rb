@@ -167,10 +167,17 @@ module Bolt
       # @param target [Bolt::Target] Target (used for platform detection)
       # @param remote_task_path [String] Absolute path to the task executable on the remote node
       # @param arguments [Hash] Task parameter names to values
-      # @param input_method [String] How to pass arguments: 'stdin', 'environment', or 'both'
+      # @param input_method [String] How to pass arguments: 'stdin', 'environment', 'both', or 'powershell'
       # @param interpreter_options [Hash{String => String}] File extension to interpreter path mapping
       # @return [String] The fully constructed shell command
       def build_task_command(target, remote_task_path, arguments, input_method, interpreter_options)
+        if input_method == 'powershell' && windows_target?(target) && File.extname(remote_task_path).casecmp?('.ps1')
+          # The arguments become the script's named parameters, like they
+          # do with the WinRM transport
+          return Bolt::Shell::Powershell::Snippets.json_functions +
+                 Bolt::Shell::Powershell::Snippets.ps_task(remote_task_path, arguments)
+        end
+
         interpreter = select_interpreter(remote_task_path, interpreter_options)
         cmd = executable_command(target, remote_task_path, interpreter)
 
