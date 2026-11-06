@@ -412,7 +412,7 @@ capable targets while error results are already emitted to the user.
 
 ### run_task_via_shell input_method handling
 
-The shell path for task execution must handle three input methods:
+The shell path for task execution must handle four input methods:
 
 - **`environment`**: Arguments become `PT_`-prefixed environment variables
   (via `envify_params`). Injected with `/usr/bin/env` on POSIX, `$env:` on
@@ -420,6 +420,11 @@ The shell path for task execution must handle three input methods:
 - **`stdin`**: Arguments are JSON-serialized and piped via `printf '%s'` on
   POSIX, PowerShell here-strings on Windows.
 - **`both`**: Both mechanisms are used simultaneously.
+- **`powershell`**: A `.ps1` task on Windows gets the arguments as named
+  parameters, through the same snippets the WinRM transport uses
+  (`Bolt::Shell::Powershell::Snippets`): base64 JSON that is splatted onto
+  the parameters the script declares. Any other task runs without
+  arguments, as it does with the SSH and WinRM transports.
 
 **Why `printf '%s'` instead of `echo`**: `echo` interprets backslash escape
 sequences on some platforms (e.g., `\n` becomes a newline). `printf '%s'`

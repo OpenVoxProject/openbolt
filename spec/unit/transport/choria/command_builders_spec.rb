@@ -55,6 +55,13 @@ describe 'Bolt::Transport::Choria command builders' do
     end
   end
 
+  describe '#executable_command (POSIX)' do
+    it 'escapes the interpreter and the path without a call operator' do
+      cmd = transport.executable_command(target, '/tmp/my task.rb', ['/usr/bin/env', 'ruby'])
+      expect(cmd).to eq('/usr/bin/env ruby /tmp/my\ task.rb')
+    end
+  end
+
   describe '#prepend_env_vars' do
     it 'returns command unchanged when env_vars is nil' do
       result = transport.prepend_env_vars(target, 'echo hello', nil, 'test')
@@ -120,6 +127,11 @@ describe 'Bolt::Transport::Choria command builders' do
       expect(cmd).to eq("printf '%s' \\{\\} | /tmp/mytask.sh")
     end
 
+    it 'runs the task without arguments for the powershell input_method' do
+      cmd = transport.build_task_command(target, '/tmp/mytask.ps1', { 'key' => 'value' }, 'powershell', nil)
+      expect(cmd).to eq('/tmp/mytask.ps1')
+    end
+
     it 'refuses an unsafe parameter name for the environment input_method' do
       expect { transport.build_task_command(target, '/tmp/mytask.sh', { 'a;id' => 'value' }, 'environment', nil) }
         .to raise_error(Bolt::Error, /Unsafe environment variable name 'PT_a;id' in task argument/)
@@ -169,14 +181,14 @@ describe 'Bolt::Transport::Choria command builders' do
     end
 
     describe '#prepend_env_vars' do
-      it 'generates $env: syntax' do
+      it 'generates $env: syntax before the unchanged command' do
         cmd = transport.prepend_env_vars(target, 'mycommand', { 'FOO' => 'bar' }, 'test')
-        expect(cmd).to eq("$env:FOO = 'bar'; & mycommand")
+        expect(cmd).to eq("$env:FOO = 'bar'; mycommand")
       end
 
       it 'handles multiple environment variables' do
         cmd = transport.prepend_env_vars(target, 'cmd', { 'A' => '1', 'B' => '2' }, 'test')
-        expect(cmd).to eq("$env:A = '1'; $env:B = '2'; & cmd")
+        expect(cmd).to eq("$env:A = '1'; $env:B = '2'; cmd")
       end
 
       it 'refuses an unsafe variable name' do
@@ -186,9 +198,21 @@ describe 'Bolt::Transport::Choria command builders' do
     end
 
     describe '#stdin_pipe_command' do
-      it 'generates a here-string pipe' do
-        cmd = transport.stdin_pipe_command(target, '{"key":"value"}', 'mytask.ps1')
-        expect(cmd).to eq("@'\n{\"key\":\"value\"}\n'@ | & mytask.ps1")
+      it 'generates a here-string pipe into the unchanged command' do
+        cmd = transport.stdin_pipe_command(target, '{"key":"value"}', "& 'C:\\temp\\mytask.ps1'")
+        expect(cmd).to eq("@'\n{\"key\":\"value\"}\n'@ | & 'C:\\temp\\mytask.ps1'")
+      end
+    end
+
+    describe '#executable_command' do
+      it 'starts with the call operator so PowerShell runs the quoted path' do
+        cmd = transport.executable_command(target, 'C:\temp\mytask.ps1', nil)
+        expect(cmd).to eq("& 'C:\\temp\\mytask.ps1'")
+      end
+
+      it 'puts the call operator in front of the interpreter' do
+        cmd = transport.executable_command(target, 'C:\temp\mytask.rb', ['C:\ruby\bin\ruby.exe', '-W0'])
+        expect(cmd).to eq("& 'C:\\ruby\\bin\\ruby.exe' '-W0' 'C:\\temp\\mytask.rb'")
       end
     end
 
@@ -238,6 +262,36 @@ describe 'Bolt::Transport::Choria command builders' do
         cmd = transport.build_task_command(target, 'C:\temp\mytask.ps1',
                                            { 'key' => 'value' }, 'both', nil)
         expect(cmd).to eq("@'\n{\"key\":\"value\"}\n'@ | & { $env:PT_key = 'value'; $input | & 'C:\\temp\\mytask.ps1' }")
+      end
+
+      it 'passes the arguments as named parameters for the powershell input_method' do
+        arguments = { 'name' => "it's", 'config' => { 'nested' => true }, '_task' => 'mymod::mytask' }
+        cmd = transport.build_task_command(target, 'C:\temp\mytask.ps1', arguments, 'powershell', nil)
+
+        encoded = cmd[/FromBase64String\('([^']*)'\)/, 1]
+        expect(JSON.parse(Base64.decode64(encoded))).to eq(arguments)
+        expect(cmd).to include('function Get-ContentAsJson')
+        expect(cmd).to include('& "C:\temp\mytask.ps1" @taskArgs')
+        expect(cmd).not_to include('$env:PT_')
+      end
+
+      it 'defines the JSON functions before the script calls them for the powershell input_method' do
+        cmd = transport.build_task_command(target, 'C:\temp\mytask.ps1', { 'name' => 'value' }, 'powershell', nil)
+
+        first_call = cmd.index('$private:tempArgs = Get-ContentAsJson')
+        expect(cmd.index('function ConvertFrom-PSCustomObject')).to be < first_call
+        expect(cmd.index('function Get-ContentAsJson')).to be < first_call
+      end
+
+      it 'matches the .ps1 extension in any case for the powershell input_method' do
+        cmd = transport.build_task_command(target, 'C:\temp\MYTASK.PS1', { 'name' => 'value' }, 'powershell', nil)
+        expect(cmd).to include('& "C:\temp\MYTASK.PS1" @taskArgs')
+      end
+
+      it 'runs a task file other than .ps1 without arguments for the powershell input_method' do
+        cmd = transport.build_task_command(target, 'C:\temp\mytask.rb', { 'name' => 'value' }, 'powershell',
+                                           { '.rb' => 'C:\ruby\bin\ruby.exe' })
+        expect(cmd).to eq("& 'C:\\ruby\\bin\\ruby.exe' 'C:\\temp\\mytask.rb'")
       end
 
       it 'refuses an unsafe parameter name for the both input_method' do
