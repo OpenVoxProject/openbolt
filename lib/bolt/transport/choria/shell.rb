@@ -6,6 +6,29 @@ module Bolt
       # Terminal shell job statuses that indicate the process has finished.
       SHELL_DONE_STATUSES = %w[stopped failed].freeze
 
+      # The shell agent names each job with SecureRandom.uuid. A handle is
+      # checked against this before it goes into a command, since 1 command
+      # that removes job directories goes to every target of its group.
+      SHELL_HANDLE_PATTERN = /\A\h{8}-\h{4}-\h{4}-\h{4}-\h{12}\z/
+
+      # Job directories removed per shell.run call. 40 Windows paths stay
+      # well inside the shell DDL's 10,240-character command limit after
+      # the PowerShell wrapper's UTF-16LE base64 encoding.
+      SHELL_JOB_DIR_BATCH_SIZE = 40
+
+      # Targets per shell.statuses call. Every target answers for each
+      # handle of its call, so 1 call for a large batch of finished jobs
+      # would make each reply grow with the batch, past the broker's 1 MiB
+      # limit at a few thousand targets.
+      SHELL_STATUSES_BATCH_SIZE = 200
+
+      # Bytes of file content per upload command. The shell DDL caps a
+      # command at 10,240 characters and the content goes in as base64. On
+      # Windows the PowerShell wrapper then encodes the whole command as
+      # UTF-16LE base64 again, so its chunks are smaller.
+      POSIX_UPLOAD_CHUNK_BYTES = 6_000
+      WINDOWS_UPLOAD_CHUNK_BYTES = 2_000
+
       # Run a command on targets via the shell agent. Assumes all targets in
       # the batch are the same platform (POSIX or Windows). Mixed-platform
       # batches use the first capable target's platform for command syntax.
@@ -25,7 +48,12 @@ module Bolt
 
         first_target = shell_targets.first
         timeout = first_target.options['command-timeout']
-        command = prepend_env_vars(first_target, command, options[:env_vars], 'run_command env_vars')
+        env_vars = options[:env_vars]
+        # The agent's shell expands the command before /usr/bin/env sets the
+        # variables, so on POSIX the command runs in a shell of its own that
+        # sees them, like it does with the SSH transport
+        command = "sh -c #{Shellwords.shellescape(command)}" if env_vars&.any? && !windows_target?(first_target)
+        command = prepend_env_vars(first_target, command, env_vars, 'run_command env_vars')
 
         pending, start_failures = shell_start(shell_targets, command)
         results += emit_results(start_failures, **result_opts, &callback)
@@ -42,7 +70,7 @@ module Bolt
       # @param targets [Array<Bolt::Target>] Targets in a single collective batch
       # @param script [String] Local path to the script file
       # @param arguments [Array<String>] Command-line arguments to pass to the script
-      # @param options [Hash] Execution options; supports :script_interpreter
+      # @param options [Hash] Execution options; supports :script_interpreter and :env_vars
       # @param position [Array] Positional info for result tracking
       # @param callback [Proc] Called with :node_start and :node_result events
       # @return [Array<Bolt::Result>] Results for all targets
@@ -57,16 +85,24 @@ module Bolt
         arguments = unwrap_sensitive_args(arguments)
         timeout = first_target.options['command-timeout']
         tmpdir = generate_tmpdir_path(first_target)
+        remote_path = join_path(first_target, tmpdir, File.basename(script))
+        run_file = run_file_path(first_target, tmpdir)
+
+        # Built before the first shell agent call, so a rejected env var name
+        # fails before the script reaches the nodes
+        interpreter = select_interpreter(script, first_target.options['interpreters']) if options[:script_interpreter]
+        cmd_parts = [executable_command(first_target, remote_path, interpreter)]
+        cmd_parts += arguments.map { |arg| escape_arg(first_target, arg) }
+        command = prepend_env_vars(first_target, cmd_parts.join(' '), options[:env_vars], 'run_script env_vars')
 
         script_content = File.binread(script)
 
         begin
-          remote_path = join_path(first_target, tmpdir, File.basename(script))
           active_targets = shell_targets
 
           # Create a temp directory with restricted permissions
           failures = shell_run(active_targets,
-                               make_dir_command(first_target, tmpdir),
+                               make_tmpdir_command(first_target, tmpdir),
                                description: 'mkdir tmpdir')
           results += emit_results(failures, **result_opts, &callback)
           active_targets -= failures.keys
@@ -78,13 +114,15 @@ module Bolt
             results += stage_results
           end
 
+          if active_targets.any?
+            active_targets, run_file_results = stage_run_file(active_targets, first_target, command, run_file,
+                                                              result_opts, &callback)
+            results += run_file_results
+          end
+
           # Execute the script asynchronously and poll for completion
           if active_targets.any?
-            interpreter = select_interpreter(script, first_target.options['interpreters']) if options[:script_interpreter]
-            cmd_parts = [executable_command(first_target, remote_path, interpreter)]
-            cmd_parts += arguments.map { |arg| escape_arg(first_target, arg) }
-
-            pending, start_failures = shell_start(active_targets, cmd_parts.join(' '))
+            pending, start_failures = shell_start(active_targets, run_file_command(first_target, run_file))
             results += emit_results(start_failures, **result_opts, &callback)
             results += emit_results(wait_for_shell_results(pending, timeout), **result_opts, &callback)
           end
@@ -202,7 +240,7 @@ module Bolt
 
         # Create the tmpdir
         failures = shell_run(active_targets,
-                             make_dir_command(first_target, tmpdir),
+                             make_tmpdir_command(first_target, tmpdir),
                              description: 'mkdir tmpdir')
         failed_results += emit_results(failures, **result_opts, &callback)
         active_targets -= failures.keys
@@ -242,12 +280,21 @@ module Bolt
           failed_results += stage_results
         end
 
-        # Start the task asynchronously
-        pending = {}
+        run_file = run_file_path(first_target, tmpdir)
         if active_targets.any?
           full_cmd = build_task_command(first_target, remote_task_path, arguments, input_method,
                                         first_target.options['interpreters'])
-          pending, start_failures = shell_start(active_targets, full_cmd)
+          # build_task_command pipes the task input into the task for these methods
+          pipeline = Bolt::Task::STDIN_METHODS.include?(input_method)
+          active_targets, run_file_results = stage_run_file(active_targets, first_target, full_cmd, run_file,
+                                                            result_opts, pipeline: pipeline, &callback)
+          failed_results += run_file_results
+        end
+
+        # Start the task asynchronously
+        pending = {}
+        if active_targets.any?
+          pending, start_failures = shell_start(active_targets, run_file_command(first_target, run_file))
           failed_results += emit_results(start_failures, **result_opts, &callback)
         end
 
@@ -282,6 +329,27 @@ module Bolt
         [targets, results]
       end
 
+      # Upload a job's command to its run file, emitting a result for each
+      # target that fails. The command goes to the nodes through shell.run,
+      # which removes its own job directory when the upload finishes, so the
+      # values in it are not kept the way a shell.start command is.
+      #
+      # @param targets [Array<Bolt::Target>] Targets to upload the run file to, at least 1
+      # @param first_target [Bolt::Target] Target whose platform determines the file content
+      # @param command [String] The command the run file contains
+      # @param run_file [String] Absolute path to the run file on the remote node
+      # @param result_opts [Hash] Options passed through to emit_results (:action, :name, :position)
+      # @param pipeline [Boolean] Whether the command is a pipeline, default is false
+      # @param callback [Proc] Called with :node_result events
+      # @return [Array] 2-element array:
+      #   - [Array<Bolt::Target>] Targets that have the run file
+      #   - [Array<Bolt::Result>] Error results for the targets that failed the upload
+      def stage_run_file(targets, first_target, command, run_file, result_opts, pipeline: false, &callback)
+        content = run_file_content(first_target, command, pipeline: pipeline)
+        failures = upload_file_content(targets, content, run_file)
+        [targets - failures.keys, emit_results(failures, **result_opts, &callback)]
+      end
+
       # Execute a synchronous command on targets via the shell.run RPC action.
       # Used for internal prep/cleanup (mkdir, chmod, etc.) that completes quickly.
       # Returns only failures since successes don't need to be reported.
@@ -314,14 +382,10 @@ module Bolt
         failures
       end
 
-      # Upload file content to the same path on multiple targets via base64.
-      # The whole file is base64-encoded into one shell.run command, and the
-      # shell agent's DDL caps a command at 10,240 characters, so a file can
-      # be about 7.5 KB on POSIX and under 3 KB on Windows, where the
-      # PowerShell wrapper is encoded as UTF-16LE base64 on top of that.
-      # Once the file-transfer agent is implemented, we'll use chunked
-      # transfers via that agent instead when it's available, removing this
-      # size limitation.
+      # Upload file content to the same path on multiple targets via base64,
+      # in chunks that each fit in 1 shell.run command. The first chunk
+      # replaces the file and the rest add to it. A target that fails a
+      # chunk gets no later ones.
       #
       # @param targets [Array<Bolt::Target>] Targets to upload to
       # @param content [String] Raw file content (binary-safe)
@@ -329,9 +393,22 @@ module Bolt
       # @return [Hash{Bolt::Target => Hash}] Failures only; empty hash means all succeeded
       def upload_file_content(targets, content, destination)
         logger.debug { "Uploading #{content.bytesize} bytes to #{destination} on #{target_count(targets)}" }
-        encoded = Base64.strict_encode64(content)
-        command = upload_file_command(targets.first, encoded, destination)
-        shell_run(targets, command, description: "upload #{destination}")
+        chunk_size = windows_target?(targets.first) ? WINDOWS_UPLOAD_CHUNK_BYTES : POSIX_UPLOAD_CHUNK_BYTES
+        chunks = (0...content.bytesize).step(chunk_size).map { |offset| content.byteslice(offset, chunk_size) }
+        chunks = [''] if chunks.empty?
+
+        failures = {}
+        remaining = targets
+        chunks.each_with_index do |chunk, index|
+          break if remaining.empty?
+
+          command = upload_file_command(remaining.first, Base64.strict_encode64(chunk), destination,
+                                        append: index.positive?)
+          chunk_failures = shell_run(remaining, command, description: "upload #{destination}")
+          failures.merge!(chunk_failures)
+          remaining -= chunk_failures.keys
+        end
+        failures
       end
 
       # Start an async command on targets via the shell.start RPC action.
@@ -361,16 +438,19 @@ module Bolt
       end
 
       # Wait for async shell handles to complete, fetch their output via
-      # shell_statuses, and kill timed-out processes.
+      # shell_statuses, kill timed-out processes, and then remove the job
+      # directories the shell agent keeps for the jobs that finished.
       #
       # @param pending [Hash{Bolt::Target => Hash}] Targets to poll, each mapped to { handle: uuid_string }
       # @param timeout [Numeric] Maximum seconds to wait before killing remaining processes
       # @return [Hash{Bolt::Target => Hash}] Output hash for every target (success and error)
       def wait_for_shell_results(pending, timeout)
+        finished_jobs = {}
         poll_result = poll_with_retries(pending, timeout, 'shell.list') do |remaining|
           finished, failed, rpc_failed = shell_list(remaining)
           next { rpc_failed: true } if rpc_failed
 
+          finished_jobs.merge!(finished)
           done = failed
           unless finished.empty?
             logger.debug { "Fetching output from #{target_count(finished)}" }
@@ -391,7 +471,11 @@ module Bolt
           end
         end
 
-        poll_result[:completed].merge(remaining_errors)
+        results = poll_result[:completed].merge(remaining_errors)
+        # A job that timed out, or whose node stopped answering, may still be
+        # running, so its directory stays
+        remove_job_dirs(finished_jobs)
+        results
       end
 
       # One round of the shell.list RPC action to check which handles have
@@ -447,11 +531,22 @@ module Bolt
       end
 
       # Fetch stdout/stderr/exitcode from completed targets via the
-      # shell.statuses RPC action. Requires shell agent >= 1.2.1.
+      # shell.statuses RPC action, SHELL_STATUSES_BATCH_SIZE targets per
+      # call. Requires shell agent >= 1.2.1.
       #
       # @param targets [Hash{Bolt::Target => Hash}] Completed targets mapped to { handle: uuid_string }
       # @return [Hash{Bolt::Target => Hash}] Output hash for each target
       def shell_statuses(targets)
+        targets.each_slice(SHELL_STATUSES_BATCH_SIZE).with_object({}) do |batch, results|
+          results.merge!(shell_statuses_batch(batch.to_h))
+        end
+      end
+
+      # One shell.statuses call for the given targets.
+      #
+      # @param targets [Hash{Bolt::Target => Hash}] Completed targets mapped to { handle: uuid_string }
+      # @return [Hash{Bolt::Target => Hash}] Output hash for each target
+      def shell_statuses_batch(targets)
         handles = targets.transform_values { |data| data[:handle] }
         logger.debug { "Fetching shell.statuses for #{target_count(targets)}" }
 
@@ -536,6 +631,35 @@ module Bolt
             logger.warn { "Failed to kill process on #{target.safe_name}: #{output[:error]}" }
           end
         end
+      end
+
+      # Remove the job directories of the given handles on the targets whose
+      # cleanup option is on. The shell agent's start action keeps a
+      # directory per job, with the command and its output, and shell.list
+      # returns every one of them, so without this each node's list reply
+      # grows with every job OpenBolt ever started there. A node with a
+      # custom plugin.shell.state_path keeps its directories, since the
+      # client cannot read that setting.
+      #
+      # @param finished [Hash{Bolt::Target => Hash}] Targets whose job finished, mapped to { handle: uuid_string }
+      def remove_job_dirs(finished)
+        cleanup_jobs = finished.select { |target, _state| target.options['cleanup'] }
+        jobs, unexpected = cleanup_jobs.partition { |_target, state| SHELL_HANDLE_PATTERN.match?(state[:handle].to_s) }
+        unexpected.each do |target, state|
+          logger.warn { "Not removing the shell job directory on #{target.safe_name} for unexpected handle #{state[:handle].inspect}" }
+        end
+
+        jobs.group_by { |target, _state| windows_target?(target) }.each_value do |platform_jobs|
+          platform_jobs.each_slice(SHELL_JOB_DIR_BATCH_SIZE) do |batch|
+            targets = batch.map(&:first)
+            command = remove_job_dirs_command(targets.first, batch.map { |_target, state| state[:handle] })
+            shell_run(targets, command, description: 'remove shell job directories').each do |target, failure|
+              logger.warn { "Removing the shell job directory failed on #{target.safe_name}: #{failure[:error]}" }
+            end
+          end
+        end
+      rescue StandardError => e
+        logger.warn { "Removing shell job directories failed: #{e.message}" }
       end
     end
   end
