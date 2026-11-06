@@ -176,11 +176,13 @@ batch_command(N targets, "hostname")
   wait_for_shell_results(pending, 60s)
     [loop every 1 second]:
       shell_list(remaining)            # 1 RPC call: shell.list -> which are done?
-      shell_statuses(completed)        # 1 RPC call: shell.statuses -> output for batch
+      shell_statuses(completed)        # 1 RPC call per 200 targets: shell.statuses -> output
     kill_timed_out_processes(...)       # sequential shell.kill calls (only on timeout)
+    remove_job_dirs(pending)           # 1 RPC call per 40 targets: shell.run
 ```
 
-Best-case total: 2 discovery + 1 start + 1 list + 1 statuses = **5 RPC calls**.
+Best-case total: 2 discovery + 1 start + 1 list + 1 statuses + 1 job directory
+removal = **6 RPC calls**.
 
 ### run_task via bolt_tasks on N targets
 
@@ -205,19 +207,21 @@ batch_task(N targets, task, args)
   prepare_targets(targets)              # configure_client + 2 RPC calls
   run_task_via_shell(capable, ...)
     shell_run: mkdir                     # 1 RPC call
-    upload_file_content: task            # 1 RPC call per file
+    upload_file_content: task            # 1 RPC call per chunk of each file
     shell_run: chmod                     # 1 RPC call
-    upload_file_content: run file        # 1 RPC call
+    upload_file_content: run file        # 1 RPC call per chunk
     shell_start(capable, run file)       # 1 RPC call
     wait_for_shell_results(pending, 300s)
       [loop every 1 second]:
         shell_list                       # 1 RPC call per round
-        shell_statuses                   # 1 RPC call per round with completions
+        shell_statuses                   # 1 RPC call per 200 targets per round with completions
+      remove_job_dirs                    # 1 RPC call per 40 targets
     cleanup_tmpdir                      # 1 RPC call
 ```
 
 Best-case total (single file task): 2 discovery + 1 mkdir + 1 upload + 1 chmod
-\+ 1 run file + 1 start + 1 list + 1 statuses + 1 cleanup = **10 RPC calls**.
+\+ 1 run file + 1 start + 1 list + 1 statuses + 1 job directory removal + 1
+cleanup = **11 RPC calls**.
 
 The task's command, with its arguments, goes to the nodes in a run file (see
 Run files), so `shell.start` gets only a command that runs that file. Task
@@ -361,6 +365,7 @@ The shell polling loop is the heart of asynchronous command execution:
 3. Calls `shell_statuses` for any targets that completed this round
 4. Tracks consecutive RPC failures (3 in a row = fail all remaining targets)
 5. On timeout, calls `kill_timed_out_processes` to clean up remote processes
+6. Calls `remove_job_dirs` for the jobs that finished (see Job directories)
 
 **`shell_list`** does a single round:
 1. Sends one batched `shell.list` RPC call to all remaining targets
@@ -370,7 +375,9 @@ The shell polling loop is the heart of asynchronous command execution:
    `failed`) and failed contains an error hash for each target whose poll failed
 
 **`shell_statuses`** retrieves results for completed targets:
-1. Sends one batched `shell.statuses` RPC call with all completed handles
+1. Sends one batched `shell.statuses` RPC call per `SHELL_STATUSES_BATCH_SIZE`
+   (200) completed targets, with their handles. Every target answers for each
+   handle of its call, so smaller calls keep each reply small.
 2. Returns `{ target => output_hash }` with stdout, stderr, exitcode
 
 Output is fetched immediately when targets complete, not deferred to after the
@@ -494,9 +501,10 @@ concern.
 ### Fixed poll interval
 
 Polling uses a fixed 1-second interval (`POLL_INTERVAL`). Exponential backoff
-would add complexity without clear benefit. Each poll round is a
-single RPC call regardless of target count, so the broker load is constant.
-One second provides reasonable responsiveness without excessive polling.
+would add complexity without clear benefit. Each shell poll round makes 1
+`shell.list` call, plus 1 `shell.statuses` call per 200 targets that finished
+in that round. One second provides reasonable responsiveness without
+excessive polling.
 
 ### Deterministic agent selection
 
@@ -518,6 +526,23 @@ When `wait_for_shell_results` times out, it kills background processes via
 `shell.kill` to prevent orphans on target nodes. This does NOT apply to
 bolt_tasks (which has no kill mechanism). The bolt_tasks agent eventually
 times out its own subprocess based on the DDL timeout.
+
+### Job directories
+
+The shell agent's `start` action keeps a directory per job, with the command
+and its output, under `/var/run/mcollective-shell` or
+`C:/ProgramData/mcollective-shell`, and `shell.list` returns every one of
+them. Only its `run` action removes its own directory. So once
+`wait_for_shell_results` has the output of the jobs that finished,
+`remove_job_dirs` deletes their directories through `shell.run`, on each
+target whose `cleanup` option is on. One call contains the handles of up to
+40 targets, each checked to be a UUID, and every target deletes only the one
+it has. A job that timed out, or whose node stopped answering, keeps its
+directory, since its process may still be running. Directories from earlier
+OpenBolt versions, from runs with `cleanup` off and from other clients stay
+until someone removes them on the node. A node whose
+`plugin.shell.state_path` points elsewhere keeps its directories, since the
+client cannot read that setting.
 
 ### Run files
 
@@ -571,9 +596,10 @@ discovery.
 
 ### Batched polling
 
-Shell polling uses one `shell.list` + one `shell.statuses` call per poll
-round, regardless of target count. bolt_tasks polling uses one `task_status`
-call per round with a shared task_id.
+Shell polling uses one `shell.list` call per poll round, regardless of target
+count, plus one `shell.statuses` call per 200 targets that finished in it.
+bolt_tasks polling uses one `task_status` call per round with a shared
+task_id.
 
 ### OpenBolt concurrency vs. Choria concurrency
 
@@ -592,17 +618,18 @@ handles its own concurrency: `batches()` groups targets by collective
   targets with many offline, this adds discovery overhead.
 - **Per-target options in batches:** Targets in one collective share the
   request-level options: the timeouts, the task agent, the interpreters, the
-  Puppet environment, the shell tmpdir base and `cleanup`. A batch reads them
-  from its first target, so targets whose values differ get the first target's
-  values. Batching by option values as well would serialize one batch per
+  Puppet environment, the shell tmpdir base and `cleanup` for the tmpdir. A
+  batch reads them from its first target, so targets whose values differ get
+  the first target's values. Batching by option values as well would serialize one batch per
   distinct set of values, which is far slower when the values vary per target.
-- **Inline shell uploads:** `upload_file_content` embeds base64 file content
-  in a `shell.run` command. The shell agent DDL caps `command` at 10,240
-  characters, so each call contains about 7.5 KB of raw content on POSIX
-  targets and under 3 KB on Windows, where the PowerShell wrapper re-encodes
-  the command as UTF-16 base64. Task arguments sent through stdin or
-  environment variables share the limit, and the shell agent's DDL validation
-  refuses a command over it.
+- **Shell uploads in chunks:** `upload_file_content` embeds base64 file
+  content in `shell.run` commands, and the shell agent DDL caps `command` at
+  10,240 characters. So each call contains 6,000 bytes of raw content on POSIX
+  targets and 2,000 on Windows, where the PowerShell wrapper re-encodes the
+  command as UTF-16 base64, and a larger file takes 1 call per chunk.
+  `run_command` sends its command and env vars in `shell.start`, so the limit
+  still bounds them, and the shell agent's DDL validation refuses a command
+  over it.
 - **One publish per target:** the client publishes every request once per
   target, so a chunk to 1,000 targets leaves the controller 1,000 times.
   Uploads to a large fleet are bounded by the controller's connection to the
