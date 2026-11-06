@@ -6,6 +6,39 @@ require 'bolt_spec/choria'
 describe 'Bolt::Transport::Choria command builders' do
   include_context 'choria transport'
 
+  describe 'run files (POSIX)' do
+    it 'runs a single command in place of sh after removing the file, and keeps its exit code' do
+      skip 'Needs a POSIX shell' if Bolt::Util.windows?
+
+      Dir.mktmpdir do |dir|
+        path = transport.run_file_path(target, dir)
+        command = "sh -c 'if [ -e bolt_run.sh ]; then echo kept; else echo removed; fi > output; echo $$ > pid; exit 3'"
+        File.write(path, transport.run_file_content(target, command))
+
+        expect(system('sh', path, chdir: dir)).to be false
+        expect(Process.last_status.exitstatus).to eq(3)
+        expect(File.read(File.join(dir, 'pid')).to_i).to eq(Process.last_status.pid)
+        expect(File.read(File.join(dir, 'output'))).to eq("removed\n")
+        expect(File.exist?(path)).to be false
+      end
+    end
+
+    it 'runs a pipeline after removing the file, and keeps its exit code' do
+      skip 'Needs a POSIX shell' if Bolt::Util.windows?
+
+      Dir.mktmpdir do |dir|
+        path = transport.run_file_path(target, dir)
+        command = "printf '%s' hello | sh -c 'cat > output; exit 4'"
+        File.write(path, transport.run_file_content(target, command, pipeline: true))
+
+        expect(system('sh', path, chdir: dir)).to be false
+        expect(Process.last_status.exitstatus).to eq(4)
+        expect(File.read(File.join(dir, 'output'))).to eq('hello')
+        expect(File.exist?(path)).to be false
+      end
+    end
+  end
+
   describe '#stdin_pipe_command (POSIX)' do
     it 'pipes data via printf without trailing newline' do
       cmd = transport.stdin_pipe_command(target, '{"key":"value"}', '/tmp/task.sh')

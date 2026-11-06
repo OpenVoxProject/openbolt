@@ -207,7 +207,8 @@ batch_task(N targets, task, args)
     shell_run: mkdir                     # 1 RPC call
     upload_file_content: task            # 1 RPC call per file
     shell_run: chmod                     # 1 RPC call
-    shell_start(capable, cmd)            # 1 RPC call
+    upload_file_content: run file        # 1 RPC call
+    shell_start(capable, run file)       # 1 RPC call
     wait_for_shell_results(pending, 300s)
       [loop every 1 second]:
         shell_list                       # 1 RPC call per round
@@ -216,12 +217,13 @@ batch_task(N targets, task, args)
 ```
 
 Best-case total (single file task): 2 discovery + 1 mkdir + 1 upload + 1 chmod
-\+ 1 start + 1 list + 1 statuses + 1 cleanup = **9 RPC calls**.
+\+ 1 run file + 1 start + 1 list + 1 statuses + 1 cleanup = **10 RPC calls**.
 
-Task files and stdin arguments travel inside shell commands, so the shell
-agent's 10,240 character command limit bounds what the shell path can run.
-The shell path does not use the file_transfer agent, so each agent works on
-its own wherever a deployment allows only one of them.
+The task's command, with its arguments, goes to the nodes in a run file (see
+Run files), so `shell.start` gets only a command that runs that file. Task
+files and the run file go up in chunks that each fit the shell agent's 10,240
+character command limit. The shell path does not use the file_transfer agent,
+so each agent works on its own wherever a deployment allows only one of them.
 
 ### upload on N targets
 
@@ -514,6 +516,30 @@ When `wait_for_shell_results` times out, it kills background processes via
 `shell.kill` to prevent orphans on target nodes. This does NOT apply to
 bolt_tasks (which has no kill mechanism). The bolt_tasks agent eventually
 times out its own subprocess based on the DDL timeout.
+
+### Run files
+
+A script or task command contains the script arguments, the env var values
+and the task parameters, Sensitive ones included. The shell agent keeps every
+`shell.start` command on disk in its job directory and returns it in
+`shell.list` replies. So the shell path writes the command to `bolt_run.sh`,
+or `bolt_run.ps1` on Windows, in the tmpdir through `shell.run`, and starts
+only a command that runs that file. `shell.run` writes each upload command to
+a job directory too, but it removes that directory when the command finishes.
+The run file removes itself as soon as it starts. It stays in the tmpdir only
+when its job never starts and `cleanup` is false.
+
+On POSIX the run file's first line is `rm -f -- "$0"`, and `sh` keeps reading
+the open file. A single command then replaces `sh` through `exec`, so
+`shell.kill` reaches it. A task that takes its input from stdin stays a
+pipeline under `sh`, since `exec` would run `printf` as its own process with
+the task input in its arguments. For such a task `shell.kill` stops only `sh`.
+On Windows the start command reads the file into memory and removes it before
+it runs the content as a script block. A script block would hide a failing
+last command from `powershell.exe`, so the content ends with
+`if (-not $?) { exit 1 }`, which keeps the exit code the command would have
+had on its own. `run_command` uploads nothing, so its command and env vars
+still go through `shell.start`.
 
 ### Consecutive failure tracking
 

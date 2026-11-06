@@ -83,6 +83,51 @@ module Bolt
         end
       end
 
+      # The path of the run file in a tmpdir. A script or task command can
+      # contain arguments, env var values and task parameters, so it goes to
+      # the nodes in this file instead of as the shell agent's start command,
+      # which the agent keeps on disk and returns in shell.list replies.
+      #
+      # @param target [Bolt::Target] Used for platform detection
+      # @param tmpdir [String] Absolute path to the tmpdir on the remote node
+      # @return [String] Absolute path to the run file
+      def run_file_path(target, tmpdir)
+        join_path(target, tmpdir, windows_target?(target) ? 'bolt_run.ps1' : 'bolt_run.sh')
+      end
+
+      # Build the content of a run file. On POSIX it removes itself as soon
+      # as sh starts reading it, which keeps reading from the open file. A
+      # single command then replaces sh through exec, so shell.kill reaches
+      # it. A pipeline doesn't, since exec would run printf as its own
+      # process with the task input in its arguments. On Windows the content
+      # runs in a script block, which would hide a failing last command from
+      # powershell.exe, so it exits 1 then, as the command itself would.
+      #
+      # @param target [Bolt::Target] Used for platform detection
+      # @param command [String] The command the run file contains
+      # @param pipeline [Boolean] Whether the command is a pipeline, default is false
+      # @return [String] File content
+      def run_file_content(target, command, pipeline: false)
+        return "#{command}\nif (-not $?) { exit 1 }" if windows_target?(target)
+
+        "rm -f -- \"$0\"\n#{'exec ' unless pipeline}#{command}\n"
+      end
+
+      # Build the start command that runs a run file. On Windows it reads the
+      # file and removes it before running what was in it.
+      #
+      # @param target [Bolt::Target] Used for platform detection
+      # @param path [String] Absolute path to the run file
+      # @return [String] Shell command
+      def run_file_command(target, path)
+        if windows_target?(target)
+          "$boltRunFile = '#{ps_escape(path)}'; $boltRunScript = [IO.File]::ReadAllText($boltRunFile); " \
+            'Remove-Item -LiteralPath $boltRunFile -Force; & ([ScriptBlock]::Create($boltRunScript))'
+        else
+          "sh #{Shellwords.shellescape(path)}"
+        end
+      end
+
       # Prepend environment variables to a command string.
       # Returns the command unchanged if env_vars is nil or empty.
       #
