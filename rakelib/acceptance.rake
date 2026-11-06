@@ -109,7 +109,8 @@ namespace :acceptance do
       choria_identities.each do |identity, alt_names|
         choria_certificate(File.join(choria_dir, 'ssl'), identity, alt_names, fixture_ssl_dir)
       end
-      sh(*choria_compose, 'up', '-d', '--build', '--wait')
+      # Fresh containers every time, so nothing an earlier run left on the nodes affects this one
+      sh(*choria_compose, 'up', '-d', '--build', '--wait', '--force-recreate')
     end
 
     desc 'Stop and remove the Choria containers with their network and volumes, the certificates and the installed module'
