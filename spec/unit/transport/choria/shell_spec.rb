@@ -178,7 +178,7 @@ describe Bolt::Transport::Choria do
         expect(IO.popen(captured_cmd, &:read)).to eq("hello world\nhello world\n")
       end
 
-      it 'sets the variables in PowerShell before the command on Windows targets' do
+      it 'sets the variables in PowerShell before the unchanged command on Windows targets' do
         stub_agents(target, %w[rpcutil shell], os_family: 'windows')
         captured_cmd = nil
         allow(mock_rpc_client).to receive(:start) do |args|
@@ -186,9 +186,10 @@ describe Bolt::Transport::Choria do
           [make_rpc_result(sender: target, data: { handle: 'test-handle-uuid' })]
         end
 
-        transport.batch_command([target], 'mycommand', { env_vars: { 'MY_VAR' => 'hello' } })
+        transport.batch_command([target], '$greeting = $env:MY_VAR; Write-Output $greeting',
+                                { env_vars: { 'MY_VAR' => 'hello' } })
         script = Base64.decode64(captured_cmd.split.last).force_encoding('UTF-16LE').encode('UTF-8')
-        expect(script).to eq("$env:MY_VAR = 'hello'; & mycommand")
+        expect(script).to eq("$env:MY_VAR = 'hello'; $greeting = $env:MY_VAR; Write-Output $greeting")
       end
 
       it 'accepts values that are not strings on Windows targets' do
@@ -201,7 +202,7 @@ describe Bolt::Transport::Choria do
 
         transport.batch_command([target], 'mycommand', { env_vars: { 'COUNT' => 5, 'FLAG' => true, 'EMPTY' => nil } })
         script = Base64.decode64(captured_cmd.split.last).force_encoding('UTF-16LE').encode('UTF-8')
-        expect(script).to eq("$env:COUNT = '5'; $env:FLAG = 'true'; $env:EMPTY = ''; & mycommand")
+        expect(script).to eq("$env:COUNT = '5'; $env:FLAG = 'true'; $env:EMPTY = ''; mycommand")
       end
     end
 
@@ -501,6 +502,23 @@ describe Bolt::Transport::Choria do
                                    "Remove-Item -Recurse -Force -Path 'C:\\Windows\\Temp\\bolt-choria-test-uuid'"
                                  ])
         expect(start_script).to include("'C:\\Windows\\Temp\\bolt-choria-test-uuid\\test_script.sh' 'x y'")
+      end
+
+      it 'runs the script through the PowerShell call operator, with and without env vars' do
+        start_script = nil
+        allow(mock_rpc_client).to receive(:start) do |args|
+          start_script = Base64.decode64(args[:command].split.last).force_encoding('UTF-16LE').encode('UTF-8')
+          [make_shell_start_result(target, handle: 'h1')]
+        end
+        stub_shell_run
+        stub_shell_list({ target => { handle: 'h1' } })
+        stub_shell_status({ target => { handle: 'h1', stdout: 'hello' } })
+
+        transport.batch_script([target], script_path, ['x y'], {}, [])
+        expect(start_script).to eq("& 'C:\\Windows\\Temp\\bolt-choria-test-uuid\\test_script.sh' 'x y'")
+
+        transport.batch_script([target], script_path, ['x y'], { env_vars: { 'MY_VAR' => 'v' } }, [])
+        expect(start_script).to eq("$env:MY_VAR = 'v'; & 'C:\\Windows\\Temp\\bolt-choria-test-uuid\\test_script.sh' 'x y'")
       end
     end
   end
