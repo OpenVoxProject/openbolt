@@ -47,6 +47,12 @@ describe Bolt::Shell::Powershell do
     end
   end
 
+  describe "#quote_string" do
+    it "doubles every single quote character, the curly ones included" do
+      expect(shell.quote_string("it's \u{2018}a\u{2019}")).to eq("'it''s \u{2018}\u{2018}a\u{2019}\u{2019}'")
+    end
+  end
+
   describe "#validate_ps_version" do
     it "warns when PSVersionTable reports less than 3" do
       allow(shell).to receive(:execute)
