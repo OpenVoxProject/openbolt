@@ -77,7 +77,7 @@ gem, which provides `MCollective::RPC::Client`. Despite the MCollective name
 
 | File | Responsibility |
 |------|---------------|
-| `lib/bolt/transport/choria.rb` | Main transport class. Entry point for OpenBolt's executor. Batching, task routing, connectivity checks. |
+| `lib/bolt/transport/choria.rb` | Main transport class. Entry point for OpenBolt's executor. Batching, task routing, connectivity checks, and the single-target methods. |
 | `lib/bolt/transport/choria/client.rb` | MCollective client configuration, RPC client creation, `rpc_request` pipeline. One-time setup, NATS/TLS overrides. |
 | `lib/bolt/transport/choria/agent_discovery.rb` | Agent detection and OS discovery with per-target caching. |
 | `lib/bolt/transport/choria/helpers.rb` | Shared utilities: `prepare_targets`, result builders, polling, security validators. |
@@ -583,9 +583,17 @@ across a handful of collectives.
 
 ### Batch-only architecture
 
-All operations use batch methods. Single-target `run_task`, `run_command`,
-`run_script`, and `connected?` delegate to their batch counterparts. This
-ensures the same code path handles 1 target and 10,000 targets.
+All operations use batch methods. The single-target methods, `run_command`,
+`run_script`, `run_task`, `upload`, `download` and `connected?`, run their
+batch counterparts with a batch of 1. This ensures the same code path handles
+1 target and 10,000 targets. The remote transport calls `run_task` for its
+run-on target. The single-target methods differ from a batch in 2 ways:
+
+- `run_task` raises `Bolt::NoImplementationError` when no implementation of
+  the task suits the target, like it does with the other transports. A batch
+  reports that as the target's result.
+- `download` puts the file into the destination itself. A batch gives each
+  target a directory of its own under the destination.
 
 ### O(N) identity filter setup
 
