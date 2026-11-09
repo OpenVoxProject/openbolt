@@ -422,6 +422,19 @@ module Bolt
         path.split(%r{[/\\]}).last
       end
 
+      # Escapes a string for use inside a PowerShell single-quoted string by
+      # doubling every character PowerShell reads as a single quote, which is
+      # the apostrophe and the curly single quotes U+2018 to U+201B. The
+      # string is converted to UTF-8 first, so a quote in another encoding,
+      # such as 0x92 in Windows-1252, is doubled too. A binary string, such
+      # as a command-line argument under the C locale, can't be converted, so
+      # its bytes are read as UTF-8 and the result stays binary.
+      def escape_powershell_single_quotes(str)
+        return str.gsub(/'|\xE2\x80[\x98-\x9B]/n) { |quote| quote * 2 } if str.encoding == Encoding::BINARY
+
+        str.encode('UTF-8').gsub(/['\u{2018}-\u{201B}]/) { |quote| quote * 2 }
+      end
+
       # Prompts yes or no, returning true for yes and false for no.
       #
       def prompt_yes_no(prompt, outputter)

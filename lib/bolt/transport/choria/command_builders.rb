@@ -144,9 +144,9 @@ module Bolt
       # Escape single quotes for use inside PowerShell single-quoted strings.
       #
       # @param str [String] String to escape
-      # @return [String] String with single quotes doubled
+      # @return [String] String with every single quote character doubled
       def ps_escape(str)
-        str.gsub("'", "''")
+        Bolt::Util.escape_powershell_single_quotes(str)
       end
 
       # Build the command that runs an executable, through the interpreter

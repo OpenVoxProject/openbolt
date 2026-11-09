@@ -226,6 +226,11 @@ describe 'Bolt::Transport::Choria command builders' do
         result = transport.escape_arg(target, "it's a test")
         expect(result).to eq("'it''s a test'")
       end
+
+      it 'doubles the curly single quotes too, since PowerShell reads them as quotes' do
+        result = transport.escape_arg(target, "it\u{2019}s \u{2018}a\u{201B}")
+        expect(result).to eq("'it\u{2019}\u{2019}s \u{2018}\u{2018}a\u{201B}\u{201B}'")
+      end
     end
 
     describe '#join_path' do
