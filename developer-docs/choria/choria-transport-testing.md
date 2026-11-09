@@ -341,6 +341,12 @@ mcollective::client: true
 # matching your environment, such as /.*\.example\.com$/.
 mcollective_choria::config:
   security.certname_whitelist: "/\\.mcollective$/, /.*/"
+  # The bolt_tasks agent is Ruby and reads this config, not choria::server_config,
+  # so the server it downloads task files from is named here too. Without these
+  # settings it asks a host named puppet.
+  puppetserver_host: "primary.example.com"
+  puppetserver_port: 8140
+  use_srv: false
 
 mcollective::client_config:
   plugin.security.provider: "file"

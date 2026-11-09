@@ -18,6 +18,14 @@ choria::server_config:
   plugin.choria.middleware_hosts: "choria_broker:4222"
   plugin.choria.use_srv: false
 
+# The bolt_tasks agent is Ruby and reads its own config, so the server's name
+# goes there too. Without it the agent asks a host named puppet for a task's
+# files.
+mcollective_choria::config:
+  puppetserver_host: boltserver
+  puppetserver_port: 8140
+  use_srv: false
+
 mcollective::site_policies:
   - action: allow
     callers: "/.*/"

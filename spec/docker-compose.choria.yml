@@ -88,3 +88,23 @@ services:
       - ./fixtures/choria/ssl/choria_node3/key.pem:/etc/puppetlabs/puppet/ssl/private_keys/choria_node3.pem:ro
       - ./fixtures/ssl/ca.pem:/etc/puppetlabs/puppet/ssl/certs/ca.pem:ro
       - ./fixtures/ssl/crl.pem:/etc/puppetlabs/puppet/ssl/crl.pem:ro
+
+  # The OpenVox server that the bolt_tasks agent on the nodes downloads a
+  # task's files from. Like the one in docker-compose.yml, it runs without a
+  # CA, with the fixture certificate, whose CN is its hostname, and with the
+  # fixture modules in its production environment. It publishes no port,
+  # since only the nodes talk to it.
+  boltserver:
+    image: ghcr.io/openvoxproject/openvoxserver:9
+    hostname: boltserver
+    environment:
+      CERTNAME: boltserver
+      OPENVOXSERVER_HOSTNAME: boltserver
+      CA_ENABLED: 'false'
+      USE_OPENVOXDB: 'false'
+    volumes:
+      - ./fixtures/ssl/cert.pem:/etc/puppetlabs/puppet/ssl/certs/boltserver.pem:ro
+      - ./fixtures/ssl/key.pem:/etc/puppetlabs/puppet/ssl/private_keys/boltserver.pem:ro
+      - ./fixtures/ssl/ca.pem:/etc/puppetlabs/puppet/ssl/certs/ca.pem:ro
+      - ./fixtures/ssl/crl.pem:/etc/puppetlabs/puppet/ssl/crl.pem:ro
+      - ./fixtures/modules:/etc/puppetlabs/code/environments/production/modules:ro
