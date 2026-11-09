@@ -25,7 +25,17 @@ module Bolt
 
         first_target = shell_targets.first
         timeout = first_target.options['command-timeout']
-        command = prepend_env_vars(first_target, command, options[:env_vars], 'run_command env_vars')
+        env_vars = options[:env_vars]
+        # The agent's shell expands the command before /usr/bin/env sets the
+        # variables, so on POSIX a command with shell metacharacters runs in a
+        # shell of its own that sees them, like it does with the SSH
+        # transport. The characters are the ones Ruby's Process.spawn runs a
+        # command through a shell for, with the backtick as \x60. A command
+        # without any has nothing for a shell to expand, so it runs straight
+        # from /usr/bin/env and shell.kill still reaches it
+        needs_shell = command.match?(/[*?{}\[\]<>()~&|\\$;'\x60"\n#]/)
+        command = "sh -c #{Shellwords.shellescape(command)}" if env_vars&.any? && needs_shell && !windows_target?(first_target)
+        command = prepend_env_vars(first_target, command, env_vars, 'run_command env_vars')
 
         pending, start_failures = shell_start(shell_targets, command)
         results += emit_results(start_failures, **result_opts, &callback)
@@ -42,7 +52,7 @@ module Bolt
       # @param targets [Array<Bolt::Target>] Targets in a single collective batch
       # @param script [String] Local path to the script file
       # @param arguments [Array<String>] Command-line arguments to pass to the script
-      # @param options [Hash] Execution options; supports :script_interpreter
+      # @param options [Hash] Execution options; supports :script_interpreter and :env_vars
       # @param position [Array] Positional info for result tracking
       # @param callback [Proc] Called with :node_start and :node_result events
       # @return [Array<Bolt::Result>] Results for all targets
@@ -57,11 +67,18 @@ module Bolt
         arguments = unwrap_sensitive_args(arguments)
         timeout = first_target.options['command-timeout']
         tmpdir = generate_tmpdir_path(first_target)
+        remote_path = join_path(first_target, tmpdir, File.basename(script))
+
+        # Built before the first shell agent call, so a rejected env var name
+        # fails before the script reaches the nodes
+        interpreter = select_interpreter(script, first_target.options['interpreters']) if options[:script_interpreter]
+        cmd_parts = [executable_command(first_target, remote_path, interpreter)]
+        cmd_parts += arguments.map { |arg| escape_arg(first_target, arg) }
+        command = prepend_env_vars(first_target, cmd_parts.join(' '), options[:env_vars], 'run_script env_vars')
 
         script_content = File.binread(script)
 
         begin
-          remote_path = join_path(first_target, tmpdir, File.basename(script))
           active_targets = shell_targets
 
           # Create a temp directory with restricted permissions
@@ -80,11 +97,7 @@ module Bolt
 
           # Execute the script asynchronously and poll for completion
           if active_targets.any?
-            interpreter = select_interpreter(script, first_target.options['interpreters']) if options[:script_interpreter]
-            cmd_parts = [executable_command(first_target, remote_path, interpreter)]
-            cmd_parts += arguments.map { |arg| escape_arg(first_target, arg) }
-
-            pending, start_failures = shell_start(active_targets, cmd_parts.join(' '))
+            pending, start_failures = shell_start(active_targets, command)
             results += emit_results(start_failures, **result_opts, &callback)
             results += emit_results(wait_for_shell_results(pending, timeout), **result_opts, &callback)
           end
