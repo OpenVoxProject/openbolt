@@ -23,6 +23,27 @@ module Bolt
         end
       end
 
+      # Build the command that creates a tmpdir. Like mkdir -m 700 on POSIX,
+      # the Windows command leaves the tmpdir open only to the account the
+      # agent runs as and to the Administrators group, which the directories
+      # and files in it inherit, and it fails when it cannot set that.
+      #
+      # @param target [Bolt::Target] Used for platform detection
+      # @param tmpdir [String] Absolute path to the tmpdir on the remote node
+      # @return [String] Shell command
+      def make_tmpdir_command(target, tmpdir)
+        return make_dir_command(target, tmpdir) unless windows_target?(target)
+
+        "$ErrorActionPreference = 'Stop'; $dir = '#{ps_escape(tmpdir)}'; " \
+          '$null = New-Item -ItemType Directory -Force -Path $dir; ' \
+          '$acl = Get-Acl -LiteralPath $dir; $acl.SetAccessRuleProtection($true, $false); ' \
+          'foreach ($sid in @([Security.Principal.WindowsIdentity]::GetCurrent().User, ' \
+          "(New-Object Security.Principal.SecurityIdentifier('S-1-5-32-544')))) { " \
+          '$acl.AddAccessRule((New-Object Security.AccessControl.FileSystemAccessRule($sid, ' \
+          "'FullControl', 'ContainerInherit, ObjectInherit', 'None', 'Allow'))) }; " \
+          'Set-Acl -LiteralPath $dir -AclObject $acl'
+      end
+
       # Build a chmod +x command. Returns nil on Windows (not needed).
       #
       # @param target [Bolt::Target] Used for platform detection
@@ -43,19 +64,88 @@ module Bolt
           "rm -rf #{Shellwords.shellescape(path)}"
       end
 
+      # Build a command that removes the shell agent's job directories for
+      # the given handles, under the agent's default state path. A handle
+      # without a directory on the target is skipped, so 1 command can
+      # contain the handles of every target it goes to. On Windows a failed
+      # removal stops the command, so it exits 1 like a failed rm does.
+      #
+      # @param target [Bolt::Target] Used for platform detection
+      # @param handles [Array<String>] Job handles, each checked to be a UUID
+      # @return [String] Shell command
+      def remove_job_dirs_command(target, handles)
+        if windows_target?(target)
+          paths = handles.map { |handle| "'C:/ProgramData/mcollective-shell/#{handle}'" }.join(', ')
+          "foreach ($path in @(#{paths})) { if (Test-Path -LiteralPath $path) { " \
+            'Remove-Item -LiteralPath $path -Recurse -Force -ErrorAction Stop } }'
+        else
+          "rm -rf #{handles.map { |handle| "/var/run/mcollective-shell/#{handle}" }.join(' ')}"
+        end
+      end
+
       # Build a command that writes base64-encoded content to a file
       # after decoding the content. Requires base64 CLI on POSIX targets.
       #
       # @param target [Bolt::Target] Used for platform detection
       # @param content_b64 [String] Base64-encoded file content
       # @param dest [String] Absolute destination path on the remote node
+      # @param append [Boolean] Whether to add the content to the end of the file instead of replacing it
       # @return [String] Shell command
-      def upload_file_command(target, content_b64, dest)
-        if windows_target?(target)
+      def upload_file_command(target, content_b64, dest, append: false)
+        if windows_target?(target) && append
+          "$bytes = [Convert]::FromBase64String('#{content_b64}'); " \
+            "$stream = [IO.File]::Open('#{ps_escape(dest)}', 'Append', 'Write'); " \
+            'try { $stream.Write($bytes, 0, $bytes.Length) } finally { $stream.Close() }'
+        elsif windows_target?(target)
           "[IO.File]::WriteAllBytes('#{ps_escape(dest)}', " \
             "[Convert]::FromBase64String('#{content_b64}'))"
         else
-          "printf '%s' #{Shellwords.shellescape(content_b64)} | base64 -d > #{Shellwords.shellescape(dest)}"
+          "printf '%s' #{Shellwords.shellescape(content_b64)} | base64 -d #{append ? '>>' : '>'} #{Shellwords.shellescape(dest)}"
+        end
+      end
+
+      # The path of the run file in a tmpdir. A script or task command can
+      # contain arguments, env var values and task parameters, so it goes to
+      # the nodes in this file instead of as the shell agent's start command,
+      # which the agent keeps on disk and returns in shell.list replies.
+      #
+      # @param target [Bolt::Target] Used for platform detection
+      # @param tmpdir [String] Absolute path to the tmpdir on the remote node
+      # @return [String] Absolute path to the run file
+      def run_file_path(target, tmpdir)
+        join_path(target, tmpdir, windows_target?(target) ? 'bolt_run.ps1' : 'bolt_run.sh')
+      end
+
+      # Build the content of a run file. On POSIX it removes itself as soon
+      # as sh starts reading it, which keeps reading from the open file. A
+      # single command then replaces sh through exec, so shell.kill reaches
+      # it. A pipeline doesn't, since exec would run printf as its own
+      # process with the task input in its arguments. On Windows the content
+      # runs in a script block, which would hide a failing last command from
+      # powershell.exe, so it exits 1 then, as the command itself would.
+      #
+      # @param target [Bolt::Target] Used for platform detection
+      # @param command [String] The command the run file contains
+      # @param pipeline [Boolean] Whether the command is a pipeline, default is false
+      # @return [String] File content
+      def run_file_content(target, command, pipeline: false)
+        return "#{command}\nif (-not $?) { exit 1 }" if windows_target?(target)
+
+        "rm -f -- \"$0\"\n#{'exec ' unless pipeline}#{command}\n"
+      end
+
+      # Build the start command that runs a run file. On Windows it reads the
+      # file and removes it before running what was in it.
+      #
+      # @param target [Bolt::Target] Used for platform detection
+      # @param path [String] Absolute path to the run file
+      # @return [String] Shell command
+      def run_file_command(target, path)
+        if windows_target?(target)
+          "$boltRunFile = '#{ps_escape(path)}'; $boltRunScript = [IO.File]::ReadAllText($boltRunFile); " \
+            'Remove-Item -LiteralPath $boltRunFile -Force; & ([ScriptBlock]::Create($boltRunScript))'
+        else
+          "sh #{Shellwords.shellescape(path)}"
         end
       end
 

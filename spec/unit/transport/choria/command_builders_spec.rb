@@ -6,6 +6,39 @@ require 'bolt_spec/choria'
 describe 'Bolt::Transport::Choria command builders' do
   include_context 'choria transport'
 
+  describe 'run files (POSIX)' do
+    it 'runs a single command in place of sh after removing the file, and keeps its exit code' do
+      skip 'Needs a POSIX shell' if Bolt::Util.windows?
+
+      Dir.mktmpdir do |dir|
+        path = transport.run_file_path(target, dir)
+        command = "sh -c 'if [ -e bolt_run.sh ]; then echo kept; else echo removed; fi > output; echo $$ > pid; exit 3'"
+        File.write(path, transport.run_file_content(target, command))
+
+        expect(system('sh', path, chdir: dir)).to be false
+        expect(Process.last_status.exitstatus).to eq(3)
+        expect(File.read(File.join(dir, 'pid')).to_i).to eq(Process.last_status.pid)
+        expect(File.read(File.join(dir, 'output'))).to eq("removed\n")
+        expect(File.exist?(path)).to be false
+      end
+    end
+
+    it 'runs a pipeline after removing the file, and keeps its exit code' do
+      skip 'Needs a POSIX shell' if Bolt::Util.windows?
+
+      Dir.mktmpdir do |dir|
+        path = transport.run_file_path(target, dir)
+        command = "printf '%s' hello | sh -c 'cat > output; exit 4'"
+        File.write(path, transport.run_file_content(target, command, pipeline: true))
+
+        expect(system('sh', path, chdir: dir)).to be false
+        expect(Process.last_status.exitstatus).to eq(4)
+        expect(File.read(File.join(dir, 'output'))).to eq('hello')
+        expect(File.exist?(path)).to be false
+      end
+    end
+  end
+
   describe '#stdin_pipe_command (POSIX)' do
     it 'pipes data via printf without trailing newline' do
       cmd = transport.stdin_pipe_command(target, '{"key":"value"}', '/tmp/task.sh')
@@ -52,6 +85,12 @@ describe 'Bolt::Transport::Choria command builders' do
     it 'joins multiple paths into a space-separated list' do
       cmd = transport.make_dir_command(target, '/tmp/bolt-dir', '/tmp/bolt-dir/lib')
       expect(cmd).to eq('mkdir -m 700 -p /tmp/bolt-dir /tmp/bolt-dir/lib')
+    end
+  end
+
+  describe '#make_tmpdir_command (POSIX)' do
+    it 'creates the tmpdir with mode 700' do
+      expect(transport.make_tmpdir_command(target, '/tmp/bolt-choria-test')).to eq('mkdir -m 700 -p /tmp/bolt-choria-test')
     end
   end
 
@@ -154,6 +193,22 @@ describe 'Bolt::Transport::Choria command builders' do
       it 'joins multiple paths into a comma-separated list' do
         cmd = transport.make_dir_command(target, 'C:\temp\bolt-dir', 'C:\temp\bolt-dir\lib')
         expect(cmd).to eq("New-Item -ItemType Directory -Force -Path 'C:\\temp\\bolt-dir', 'C:\\temp\\bolt-dir\\lib'")
+      end
+    end
+
+    describe '#make_tmpdir_command' do
+      it 'creates the tmpdir and leaves it open only to the agent account and Administrators' do
+        cmd = transport.make_tmpdir_command(target, "C:\\Windows\\Temp\\bolt-it's")
+        expect(cmd).to eq(
+          "$ErrorActionPreference = 'Stop'; $dir = 'C:\\Windows\\Temp\\bolt-it''s'; " \
+          '$null = New-Item -ItemType Directory -Force -Path $dir; ' \
+          '$acl = Get-Acl -LiteralPath $dir; $acl.SetAccessRuleProtection($true, $false); ' \
+          'foreach ($sid in @([Security.Principal.WindowsIdentity]::GetCurrent().User, ' \
+          "(New-Object Security.Principal.SecurityIdentifier('S-1-5-32-544')))) { " \
+          '$acl.AddAccessRule((New-Object Security.AccessControl.FileSystemAccessRule($sid, ' \
+          "'FullControl', 'ContainerInherit, ObjectInherit', 'None', 'Allow'))) }; " \
+          'Set-Acl -LiteralPath $dir -AclObject $acl'
+        )
       end
     end
 
