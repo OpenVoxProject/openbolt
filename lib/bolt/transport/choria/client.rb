@@ -234,7 +234,7 @@ module Bolt
       def prepare_targets(targets, agent_name, result_opts, &callback)
         targets.each { |target| callback&.call(type: :node_start, target: target) }
         configure_client(targets.first)
-        discover_agents(targets)
+        discovery_failures = discover_agents(targets)
 
         capable, incapable = targets.partition { |target| has_agent?(target, agent_name) }
 
@@ -242,7 +242,7 @@ module Bolt
           errors[target] = if discovered?(target)
                              error_output("The '#{agent_name}' agent is not available on #{target.safe_name}.", 'bolt/choria-agent-not-available')
                            else
-                             undiscovered_error(target)
+                             discovery_failures[target] || undiscovered_error(target)
                            end
         end
         incapable_results = emit_results(agent_errors, **result_opts, &callback)
@@ -250,12 +250,13 @@ module Bolt
         [capable, incapable_results]
       end
 
-      # The error output for a target that did not answer discovery.
+      # The error output for a target that discovery has no agent list and no
+      # failure for, which happens when discovery raised before it finished.
       #
       # @param target [Bolt::Target]
       # @return [Hash] An error output hash
       def undiscovered_error(target)
-        error_output("No agent information available for #{target.safe_name} (node did not respond to discovery)",
+        error_output("No agent information available for #{target.safe_name} (agent discovery failed)",
                      'bolt/choria-agent-not-available')
       end
 
