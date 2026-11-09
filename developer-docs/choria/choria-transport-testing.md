@@ -4,11 +4,11 @@ A guide for setting up a Choria test environment alongside an existing OpenVox
 Puppet installation, and verifying all Choria transport functionality in OpenBolt.
 
 The Linux cases of this guide also run on their own against containers:
-`bundle exec rake acceptance:choria` starts a broker and 3 nodes and runs
-`spec/integration/transport/choria_spec.rb` against them (see the Container suite
-section of [choria-transport-dev.md](choria-transport-dev.md)). This guide is for
-a cluster set up by hand, and for what the containers do not cover: Windows
-nodes and the bolt_tasks agent against an OpenVox server.
+`bundle exec rake acceptance:choria` starts a broker, 3 nodes and an OpenVox
+server and runs `spec/integration/transport/choria_spec.rb` against them (see the
+Container suite section of [choria-transport-dev.md](choria-transport-dev.md)).
+This guide is for a cluster set up by hand, and for Windows nodes, which the
+containers do not cover.
 
 For configuration reference, see the
 [Choria transport user guide](https://docs.openvoxproject.org/openbolt/latest/choria-transport.html).

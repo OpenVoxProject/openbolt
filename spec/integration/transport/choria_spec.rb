@@ -3,6 +3,7 @@
 require 'spec_helper'
 require 'bolt_spec/choria'
 require 'bolt_spec/files'
+require 'bolt_spec/pal'
 require 'bolt_spec/task'
 require 'bolt/executor'
 require 'bolt/inventory'
@@ -15,6 +16,7 @@ require 'shared_examples/transport'
 
 # Runs against the containers acceptance:choria:up starts. choria_node1 and choria_node2 have the
 # shell, file_transfer and bolt_tasks agents, and choria_node3 has only the ones Choria installs.
+# boltserver is the OpenVox server the bolt_tasks agent downloads the fixture modules' tasks from.
 describe Bolt::Transport::Choria do
   include BoltSpec::Choria
   include BoltSpec::Files
@@ -40,7 +42,7 @@ describe Bolt::Transport::Choria do
       'ssl-ca' => File.expand_path('../../fixtures/ssl/ca.pem', __dir__),
       'ssl-cert' => File.join(client_ssl_dir, 'cert.pem'),
       'ssl-key' => File.join(client_ssl_dir, 'key.pem'),
-      # The stack has no OpenVox server for the bolt_tasks agent to download tasks from
+      # The shared examples write their tasks to temporary files, which the server doesn't have
       'task-agent' => 'shell',
       # The examples with a node that never answers wait this long
       'rpc-timeout' => 10
@@ -332,6 +334,63 @@ describe Bolt::Transport::Choria do
           expect(File.read(File.join(result['path'], 'top.txt'))).to eq("#{host}\n")
           expect(File.read(File.join(result['path'], 'sub', 'inner.txt'))).to eq("inner\n")
         end
+      end
+    end
+  end
+
+  context 'with the bolt_tasks agent and the OpenVox server' do
+    include BoltSpec::PAL
+
+    let(:pal) { make_pal }
+
+    before do
+      # The first download waits for the server to load its environment
+      bolt_tasks = { 'task-agent' => 'bolt_tasks', 'rpc-timeout' => 60 }
+      set_config(target, bolt_tasks)
+      set_config(second_target, bolt_tasks)
+    end
+
+    it 'runs a task that every node downloads from the server, with its parameters in the environment' do
+      results = runner.batch_task([target, second_target], pal.get_task('sample::echo'), { 'message' => 'hello' })
+
+      expect(results.to_h { |result| [result.target.host, result.message.chomp] })
+        .to eq('choria_node1' => 'choria_node1 got passed the message: hello',
+               'choria_node2' => 'choria_node2 got passed the message: hello')
+    end
+
+    it 'passes the parameters of a task on stdin' do
+      result = runner.batch_task([target], pal.get_task('sample::stdin'), { 'message' => 'hello' }).first
+
+      expect(result.value).to eq('message' => 'hello')
+    end
+
+    it 'gives a task the files its metadata lists, from its own module and from others' do
+      result = runner.batch_task([target], pal.get_task('shareable'), {}).first
+
+      files = result.message.split("\n").map(&:strip).sort
+      expect(files.count).to eq(4)
+      expect(files[0]).to match(%r{^174 .*/shareable/tasks/unknown_file.json$})
+      expect(files[1]).to match(%r{^236 .*/shareable/tasks/list.sh$})
+      expect(files[2]).to match(%r{^398 .*/results/lib/puppet/functions/results/make_result.rb$})
+      expect(files[3]).to match(%r{^43 .*/error/tasks/fail.sh$})
+    end
+
+    it 'reports a task that exits non-zero with its output and the error the other transports report' do
+      result = runner.batch_task([target], pal.get_task('error::fail'), {}).first
+
+      expect(result['_output']).to eq("failing\n")
+      expect(result.error_hash).to include('kind' => 'puppetlabs.tasks/task-error', 'msg' => 'The task failed with exit code 1',
+                                           'details' => { 'exit_code' => 1 })
+    end
+
+    it 'fails a task that the server does not have' do
+      with_task_containing('tasks_test', "#!/bin/sh\necho hello", 'stdin', '.sh') do |task|
+        result = runner.batch_task([target], task, {}).first
+
+        expect(result.error_hash).to include(
+          'kind' => 'bolt/choria-rpc-error',
+          'msg' => %r{\Abolt_tasks\.download on choria://choria_node1 returned RPC error: Could not download task file: .*404.*\(code 5\)\z}m
+        )
       end
     end
   end
