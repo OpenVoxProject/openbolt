@@ -27,9 +27,14 @@ module Bolt
         timeout = first_target.options['command-timeout']
         env_vars = options[:env_vars]
         # The agent's shell expands the command before /usr/bin/env sets the
-        # variables, so on POSIX the command runs in a shell of its own that
-        # sees them, like it does with the SSH transport
-        command = "sh -c #{Shellwords.shellescape(command)}" if env_vars&.any? && !windows_target?(first_target)
+        # variables, so on POSIX a command with shell metacharacters runs in a
+        # shell of its own that sees them, like it does with the SSH
+        # transport. The characters are the ones Ruby's Process.spawn runs a
+        # command through a shell for, with the backtick as \x60. A command
+        # without any has nothing for a shell to expand, so it runs straight
+        # from /usr/bin/env and shell.kill still reaches it
+        needs_shell = command.match?(/[*?{}\[\]<>()~&|\\$;'\x60"\n#]/)
+        command = "sh -c #{Shellwords.shellescape(command)}" if env_vars&.any? && needs_shell && !windows_target?(first_target)
         command = prepend_env_vars(first_target, command, env_vars, 'run_command env_vars')
 
         pending, start_failures = shell_start(shell_targets, command)

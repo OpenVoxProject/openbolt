@@ -155,13 +155,46 @@ describe Bolt::Transport::Choria do
         stub_shell_kill
       end
 
-      it 'passes env_vars to the command via /usr/bin/env and a shell' do
+      it 'passes env_vars to a command without shell metacharacters straight from /usr/bin/env' do
         expect(mock_rpc_client).to receive(:start) do |args|
-          expect(args[:command]).to eq('/usr/bin/env MY_VAR=hello sh -c mycommand')
+          expect(args[:command]).to eq('/usr/bin/env MY_VAR=hello mycommand')
           [make_rpc_result(sender: target, data: { handle: 'test-handle-uuid' })]
         end
 
         transport.batch_command([target], 'mycommand', { env_vars: { 'MY_VAR' => 'hello' } })
+      end
+
+      it 'runs a command with shell metacharacters in a shell of its own inside /usr/bin/env' do
+        expect(mock_rpc_client).to receive(:start) do |args|
+          expect(args[:command]).to eq('/usr/bin/env MY_VAR=hello sh -c echo\ \$MY_VAR')
+          [make_rpc_result(sender: target, data: { handle: 'test-handle-uuid' })]
+        end
+
+        transport.batch_command([target], 'echo $MY_VAR', { env_vars: { 'MY_VAR' => 'hello' } })
+      end
+
+      it 'starts a command without shell metacharacters as the job process itself, so shell.kill reaches it' do
+        skip 'Needs a POSIX shell' if Bolt::Util.windows?
+
+        captured_cmd = nil
+        allow(mock_rpc_client).to receive(:start) do |args|
+          captured_cmd = args[:command]
+          [make_rpc_result(sender: target, data: { handle: 'test-handle-uuid' })]
+        end
+
+        Dir.mktmpdir do |dir|
+          script = File.join(dir, 'job.sh')
+          File.write(script, "#!/bin/sh\necho $$ > pid\nprintenv MY_VAR > var\n")
+          File.chmod(0o755, script)
+
+          transport.batch_command([target], script, { env_vars: { 'MY_VAR' => 'hello' } })
+          # The shell agent starts the command string the way Process.spawn does
+          pid = Process.spawn(captured_cmd, chdir: dir)
+          Process.wait(pid)
+
+          expect(File.read(File.join(dir, 'pid')).to_i).to eq(pid)
+          expect(File.read(File.join(dir, 'var'))).to eq("hello\n")
+        end
       end
 
       it 'builds a command whose own expansions and compound parts see the variables' do
