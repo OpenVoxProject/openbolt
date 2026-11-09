@@ -689,6 +689,8 @@ handles its own concurrency: `batches()` groups targets by collective
 | `spec/unit/config/transport/choria_spec.rb` | Config options, defaults, validation |
 | `spec/lib/bolt_spec/choria.rb` | Shared test helpers, config file writer, stub helpers |
 | `spec/lib/bolt_spec/choria_file_transfer.rb` | The stand-in for the file_transfer client library, which the test suite does not have, with scripted outcomes |
+| `spec/integration/transport/choria_spec.rb` | The container suite: the shared transport examples plus the agent, batch, cleanup, timeout and file transfer cases, against real nodes |
+| `spec/Dockerfile.choria`, `spec/docker-compose.choria.yml`, `spec/fixtures/choria/` | The Choria broker and node containers, built the way the testing guide sets up a cluster |
 
 ### Mocking pattern
 
@@ -727,5 +729,38 @@ For the full suite:
 bundle exec rspec spec/unit/transport/choria/ spec/unit/config/transport/choria_spec.rb
 ```
 
-For manual/integration testing, see
+For a cluster set up by hand, see
 [choria-transport-testing.md](choria-transport-testing.md).
+
+### Container suite
+
+`spec/integration/transport/choria_spec.rb` runs against a Choria broker and 3
+nodes from `spec/docker-compose.choria.yml`. The image, `spec/Dockerfile.choria`,
+installs the OpenVox agent and then applies the Puppetfile, Hiera data and site
+manifest under `spec/fixtures/choria/`, the way the testing guide sets up a
+cluster. `choria_node1` and `choria_node2` have the shell, file_transfer and
+bolt_tasks agents, and `choria_node3` has only the agents Choria installs, for
+the agent error cases. The host connects as `bolt.mcollective`, with the
+file_transfer client library that `acceptance:choria:up` installs from the Forge
+into `spec/fixtures/choria/modules` and with certificates it signs with the
+fixture CA into `spec/fixtures/choria/ssl`. Git ignores both directories.
+
+The suite runs the shared transport examples, then its own examples: a script's
+environment variables, a node without the agents, batches, `connected?`,
+`cleanup`, the command timeout and file transfers. It covers Linux nodes with
+the shell and file_transfer agents. The stack has no OpenVox server, so
+`task-agent` is `shell` and the bolt_tasks agent appears only in the agent error
+cases.
+
+```bash
+bundle exec rake acceptance:choria        # start the containers and run the suite
+bundle exec rake acceptance:choria:up     # start the containers
+bundle exec rake ci:choria_transport      # run the suite
+bundle exec rake acceptance:choria:logs   # print the container logs
+bundle exec rake acceptance:choria:down   # remove the containers, certificates and module
+```
+
+`BOLT_CHORIA_FILE_TRANSFER_LIBDIR` points the suite at the `files` directory of
+a file_transfer agent checkout instead of the installed module. The nodes keep
+the Forge release the image installs. CI runs the suite in the
+`choria_transport` job of `.github/workflows/tests.yaml`.
