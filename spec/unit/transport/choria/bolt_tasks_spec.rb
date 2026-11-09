@@ -87,7 +87,7 @@ describe 'Bolt::Transport::Choria bolt_tasks' do
                        uri_path: '/puppet/v3/file_content/modules/ruby_task_support/task_support.rb')
     end
 
-    it 'uses the plugins mount for lib/ directory dependencies' do
+    it 'uses the plugins mount, which has no module name, for lib/ directory dependencies' do
       spec = transport.task_file_spec(
         { 'name' => 'mymod/lib/puppet/util/support.rb', 'path' => file_path },
         'mymod', 'production'
@@ -95,7 +95,18 @@ describe 'Bolt::Transport::Choria bolt_tasks' do
 
       expect_file_spec(spec,
                        filename: 'mymod/lib/puppet/util/support.rb',
-                       uri_path: '/puppet/v3/file_content/plugins/mymod/puppet/util/support.rb')
+                       uri_path: '/puppet/v3/file_content/plugins/puppet/util/support.rb')
+    end
+
+    it 'uses the scripts mount for scripts/ directory dependencies' do
+      spec = transport.task_file_spec(
+        { 'name' => 'mymod/scripts/helpers/setup.sh', 'path' => file_path },
+        'othermod', 'production'
+      )
+
+      expect_file_spec(spec,
+                       filename: 'mymod/scripts/helpers/setup.sh',
+                       uri_path: '/puppet/v3/file_content/scripts/mymod/helpers/setup.sh')
     end
 
     it 'uses the tasks mount for other subdirectories' do
@@ -225,7 +236,7 @@ describe 'Bolt::Transport::Choria bolt_tasks' do
         expect(files.length).to eq(3)
         expect(files[0]['uri']['path']).to eq('/puppet/v3/file_content/tasks/mymod/mytask.sh')
         expect(files[1]['uri']['path']).to eq('/puppet/v3/file_content/modules/ruby_task_support/task_support.rb')
-        expect(files[2]['uri']['path']).to eq('/puppet/v3/file_content/plugins/mymod/puppet/util/support.rb')
+        expect(files[2]['uri']['path']).to eq('/puppet/v3/file_content/plugins/puppet/util/support.rb')
         [make_download_result(target)]
       end
 
