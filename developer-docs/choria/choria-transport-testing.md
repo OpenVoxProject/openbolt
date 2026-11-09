@@ -484,7 +484,6 @@ bolt task run facts --targets nodeA.example.com,nodeB.example.com
 Expected: Both nodes fail with an error like:
 ```
 The 'bolt_tasks' agent is not available on nodeA.example.com.
-Install either the bolt_tasks or shell agent on target nodes to run tasks via Choria.
 ```
 
 **upload/download (needs file_transfer agent)**
@@ -516,8 +515,9 @@ module to be available in the configured environment (see "Task module
 requirements" above).
 
 If the OpenVox/Puppet Server isn't set up or the task isn't available, you'll see a
-`bolt/choria-task-download-failed` error. This is expected and tests that the
-error path works correctly.
+`bolt/choria-rpc-error` error from `bolt_tasks.download` with code 5, saying the
+task file could not be downloaded. This is expected and tests that the error
+path works correctly.
 
 **run_task with parameters**
 
@@ -636,8 +636,9 @@ META
 bolt task run choria_test::hello --targets nodeA.example.com
 ```
 
-Expected: Fails with `bolt/choria-task-download-failed` and a message
-suggesting `--choria-task-agent shell`.
+Expected: Fails with `bolt/choria-rpc-error`. The message starts with
+`bolt_tasks.download on nodeA.example.com returned RPC error: Could not download task file`,
+includes the server's 404, and ends with `(code 5)`.
 
 Now retry with `--choria-task-agent shell` (Node A has the shell agent):
 
@@ -936,7 +937,7 @@ DDL errors, verify the gem is installed (see "Install the choria-mcorpc-support
 gem" above). The shell DDL is bundled with OpenBolt and does not need separate
 installation.
 
-**Task download 404 errors (`bolt/choria-task-download-failed`):**
+**Task download 404 errors (`bolt/choria-rpc-error` from `bolt_tasks.download`, code 5):**
 The task module (and its dependencies like `ruby_task_helper`) must be
 installed on the OpenVox/Puppet Server.
 
