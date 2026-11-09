@@ -412,6 +412,34 @@ jobs:
       - name: Run tests
         run: bundle exec rake ci:docker_transport
 
+  choria_transport:
+    needs:
+      - rubocop_and_matrix
+    name: Choria Transport
+    runs-on: ubuntu-26.04
+    strategy:
+      fail-fast: false
+      matrix:
+        ruby: ${{ fromJSON(needs.rubocop_and_matrix.outputs.ruby) }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@95ef2b042f9d7a56d8268cba8559e2842e2ad01b # v1.321.0
+        with:
+          ruby-version: ${{ matrix.ruby }}
+          bundler-cache: true
+      - name: Bring up the Choria containers
+        run: bundle exec rake acceptance:choria:up
+      - name: Run tests
+        run: bundle exec rake ci:choria_transport
+      - name: Show the container logs
+        if: failure()
+        run: bundle exec rake acceptance:choria:logs
+      - name: Remove the Choria containers
+        if: always()
+        run: bundle exec rake acceptance:choria:down
+
   integration_linux:
     needs:
       - rubocop_and_matrix
@@ -489,6 +517,7 @@ jobs:
       - agentless
       - ssh_transport
       - docker_transport
+      - choria_transport
       - integration_linux
       - modules_ci
     runs-on: ubuntu-26.04
