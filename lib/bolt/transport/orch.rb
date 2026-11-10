@@ -21,11 +21,23 @@ module Bolt
       end
 
       def initialize(*args)
-        # lazy-load expensive gem code
-        require 'orchestrator_client'
+        load_orchestrator_client
 
         @connections = {}
         super
+      end
+
+      # The orchestrator_client gem is not a dependency of OpenBolt, so it's
+      # loaded the first time the pcp transport is used.
+      private def load_orchestrator_client
+        require 'orchestrator_client'
+      rescue LoadError => e
+        gem_command = File.join(RbConfig::CONFIG['bindir'], 'gem')
+        raise Bolt::Error.new(
+          "The pcp transport needs the orchestrator_client gem, which OpenBolt does not install. Install it with " \
+          "'#{gem_command} install --user-install orchestrator_client' (#{e.class}: #{e.message}).",
+          'bolt/pcp-orchestrator-client-missing'
+        )
       end
 
       def finish_plan(result)

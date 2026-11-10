@@ -110,6 +110,19 @@ describe Bolt::Transport::Orch, orchestrator: true do
     end
   end
 
+  context 'when the orchestrator_client gem is not installed' do
+    it 'fails with the command that installs the gem' do
+      transport = Bolt::Transport::Orch.allocate
+      allow(transport).to receive(:require).with('orchestrator_client')
+                                           .and_raise(LoadError, 'cannot load such file -- orchestrator_client')
+
+      expect { transport.send(:initialize) }.to raise_error(Bolt::Error) do |error|
+        expect(error.kind).to eq('bolt/pcp-orchestrator-client-missing')
+        expect(error.message).to include('gem install --user-install orchestrator_client')
+      end
+    end
+  end
+
   describe :build_request do
     let(:conn) { Bolt::Transport::Orch::Connection.new(targets.first.options, nil, orch.logger) }
 

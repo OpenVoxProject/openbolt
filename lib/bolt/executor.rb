@@ -57,6 +57,10 @@ module Bolt
                            Concurrent::Delay.new do
                              val.new(self)
                            end
+                         elsif key == :pcp
+                           Concurrent::Delay.new do
+                             val.new.tap { |pcp| pcp.plan_context = @plan_context }
+                           end
                          else
                            Concurrent::Delay.new do
                              val.new
@@ -522,22 +526,19 @@ module Bolt
       value
     end
 
-    # Plan context doesn't make sense for most transports but it is tightly
-    # coupled with the orchestrator transport since the transport behaves
-    # differently when a plan is running. In order to limit how much this
-    # pollutes the transport API we only handle the orchestrator transport here.
-    # Since we call this function without resolving targets this will result
-    # in the orchestrator transport always being initialized during plan runs.
-    # For now that's ok.
-    #
-    # In the future if other transports need this or if we want a plan stack
-    # we'll need to refactor.
+    # Only the pcp transport uses the plan context, to report the plan to the
+    # orchestrator. The transport gets the context when it's created for a pcp
+    # target, so a plan without pcp targets never loads the orchestrator_client
+    # gem.
     def start_plan(plan_context)
-      transport('pcp').plan_context = plan_context
+      @plan_context = plan_context
+      pcp = @transports['pcp']
+      pcp.value.plan_context = plan_context if pcp.fulfilled?
     end
 
     def finish_plan(plan_result)
-      transport('pcp').finish_plan(plan_result)
+      pcp = @transports['pcp']
+      pcp.value.finish_plan(plan_result) if pcp.fulfilled?
     end
 
     def without_default_logging

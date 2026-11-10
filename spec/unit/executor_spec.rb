@@ -6,6 +6,7 @@ require 'bolt_spec/event_collector'
 require 'bolt/executor'
 require 'bolt/target'
 require 'bolt/inventory'
+require 'bolt/plan_result'
 
 describe "Bolt::Executor" do
   include BoltSpec::Task
@@ -901,6 +902,47 @@ describe "Bolt::Executor" do
 
         expect(collector.events).to include(include(type: :step_start, description: match(/file download/)))
         expect(collector.events).to include(include(type: :step_finish, description: match(/file download/)))
+      end
+    end
+
+    context 'with the pcp transport' do
+      let(:pcp)         { instance_double(Bolt::Transport::Orch) }
+      let(:plan_result) { Bolt::PlanResult.new('done', 'success') }
+
+      before(:each) do
+        allow(Bolt::Transport::Orch).to receive(:new).and_return(pcp)
+      end
+
+      it 'does not create the transport when no pcp target is used' do
+        expect(Bolt::Transport::Orch).not_to receive(:new)
+
+        executor.start_plan(plan_context)
+        executor.finish_plan(plan_result)
+      end
+
+      it 'gives the plan context to a transport created after the plan started' do
+        expect(pcp).to receive(:plan_context=).with(plan_context)
+
+        executor.start_plan(plan_context)
+        executor.transport('pcp')
+      end
+
+      it 'gives the plan context to a transport created before the plan started' do
+        allow(pcp).to receive(:plan_context=)
+        executor.transport('pcp')
+
+        expect(pcp).to receive(:plan_context=).with(plan_context)
+
+        executor.start_plan(plan_context)
+      end
+
+      it 'finishes the plan on a transport that was created' do
+        allow(pcp).to receive(:plan_context=)
+        expect(pcp).to receive(:finish_plan).with(plan_result)
+
+        executor.start_plan(plan_context)
+        executor.transport('pcp')
+        executor.finish_plan(plan_result)
       end
     end
   end
