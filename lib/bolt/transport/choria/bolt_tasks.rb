@@ -181,7 +181,8 @@ module Bolt
       end
 
       # Build a file spec hash for the bolt_tasks download action. Computes
-      # the Puppet Server file_content URI based on the file's module-relative path.
+      # the server's file_content URI from the file's module-relative path,
+      # the way the server does it for the task metadata it serves.
       #
       # @param file [Hash] With 'name' (module-relative path) and 'path' (local absolute path)
       # @param module_name [String] Task's module name (used for simple task files)
@@ -199,7 +200,10 @@ module Bolt
                  when 'files'
                    "/puppet/v3/file_content/modules/#{mod}/#{rest}"
                  when 'lib'
-                   "/puppet/v3/file_content/plugins/#{mod}/#{rest}"
+                   # The plugins mount serves the lib directories of every module as one tree
+                   "/puppet/v3/file_content/plugins/#{rest}"
+                 when 'scripts'
+                   "/puppet/v3/file_content/scripts/#{mod}/#{rest}"
                  else
                    "/puppet/v3/file_content/tasks/#{mod}/#{rest}"
                  end
