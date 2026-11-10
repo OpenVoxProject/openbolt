@@ -80,6 +80,33 @@ describe Bolt::Transport::Choria do
     end
   end
 
+  it 'runs a script that takes several upload commands, with its content intact' do
+    # The padding takes the script past the 6,000 bytes that fit in 1 upload command
+    padding = "# a line that pads the script\n" * 700
+    script = "#!/bin/sh\n#{padding}sha256sum \"$0\"\n"
+    with_tempfile_containing('script', script, '.sh') do |file|
+      results = runner.batch_script([target, second_target], file.path, [])
+      expect(results.map { |result| result['stdout'].split.first }).to eq([Digest::SHA256.hexdigest(script)] * 2)
+    end
+  end
+
+  it 'runs a task with the interpreter configured for its extension' do
+    set_config(target, 'interpreters' => { '.rb' => '/opt/puppetlabs/puppet/bin/ruby' })
+    with_task_containing('tasks_test', 'puts RUBY_VERSION', 'environment', '.rb') do |task|
+      result = runner.batch_task([target], task, {}).first
+      expect(result.message).to match(/\A\d+\.\d+\.\d+\n\z/)
+    end
+  end
+
+  it 'reaches the node the host option names when the target has another name' do
+    node = choria_target('some_alias')
+    set_config(node, 'host' => 'choria_node2')
+
+    result = runner.batch_command([node], 'cat /etc/hostname').first
+    expect(result.target).to eq(node)
+    expect(result['stdout']).to eq("choria_node2\n")
+  end
+
   context 'with a node without the OpenBolt agents' do
     it 'fails a command' do
       result = runner.batch_command([target_without_agents], 'echo hello').first
@@ -218,6 +245,21 @@ describe Bolt::Transport::Choria do
     end
   end
 
+  context 'shell job directories' do
+    # The shell agent keeps a directory per job. The count includes the one of the job that counts
+    def job_directory_count(node)
+      Integer(runner.run_command(node, 'ls /var/run/mcollective-shell | wc -l')['stdout'])
+    end
+
+    it 'removes the directory of each finished job' do
+      initial_count = job_directory_count(target)
+      3.times { runner.run_command(target, 'echo hello') }
+
+      expect(initial_count).to be >= 1
+      expect(job_directory_count(target)).to eq(initial_count)
+    end
+  end
+
   context 'with a command that runs past command-timeout' do
     it 'fails the command and keeps it from completing' do
       set_config(target, 'command-timeout' => 2)
@@ -227,6 +269,23 @@ describe Bolt::Transport::Choria do
       expect(result.error_hash).to include('kind' => 'bolt/choria-command-timeout',
                                            'msg' => 'Command timed out after 2 seconds on choria://choria_node1')
       # The command started at least 2 seconds ago, so one that is still running creates the marker within 8 seconds
+      sleep(10)
+      expect(runner.run_command(target, "test -e #{marker}")['exit_code']).to eq(1)
+    end
+  end
+
+  context 'with a task that runs past task-timeout' do
+    it 'fails the task and keeps it from completing' do
+      set_config(target, 'task-timeout' => 2)
+      marker = "/tmp/choria-timeout-#{SecureRandom.hex(4)}"
+
+      # With its parameters in the environment the task is the job itself, so the kill reaches it
+      with_task_containing('tasks_test', "#!/bin/sh\nsleep 10\ntouch #{marker}", 'environment', '.sh') do |task|
+        result = runner.batch_task([target], task, {}).first
+        expect(result.error_hash).to include('kind' => 'bolt/choria-command-timeout',
+                                             'msg' => 'Command timed out after 2 seconds on choria://choria_node1')
+      end
+      # The task started at least 2 seconds ago, so one that is still running creates the marker within 8 seconds
       sleep(10)
       expect(runner.run_command(target, "test -e #{marker}")['exit_code']).to eq(1)
     end

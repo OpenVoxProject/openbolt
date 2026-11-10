@@ -749,9 +749,10 @@ into `spec/fixtures/choria/modules` and with certificates it signs with the
 fixture CA into `spec/fixtures/choria/ssl`. Git ignores both directories.
 
 The suite runs the shared transport examples, then its own examples: a script's
-environment variables, a node without the agents, batches, `connected?`,
-`cleanup`, the command timeout, file transfers and tasks through the bolt_tasks
-agent. It covers Linux nodes. The shared examples write their tasks to temporary
+environment variables, a script of several upload commands, the `interpreters`
+and `host` options, a node without the agents, batches, `connected?`,
+`cleanup`, the shell job directories, the command and task timeouts, file
+transfers and tasks through the bolt_tasks agent. It covers Linux nodes. The shared examples write their tasks to temporary
 files, which the server does not have, so they run with `task-agent` set to
 `shell`. The bolt_tasks examples run tasks from `spec/fixtures/modules`.
 
