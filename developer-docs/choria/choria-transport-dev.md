@@ -138,6 +138,11 @@ path (e.g., `/tmp/bolt-choria-abc`). Since they're different machines, this
 is fine, and it means every infrastructure command (mkdir, chmod, upload) can
 be batched with identical arguments.
 
+On a POSIX node the directory that the `tmpdir` option names has to exist.
+The tmpdir is created with `mkdir -m 700`, without `-p`, so a node without
+that directory fails with `Could not make tmpdir`, like it does with the SSH
+transport.
+
 ## Threading Model
 
 OpenBolt runs batches in parallel threads sharing the same transport instance. The
@@ -587,10 +592,13 @@ All operations use batch methods. The single-target methods, `run_command`,
 `run_script`, `run_task`, `upload`, `download` and `connected?`, run their
 batch counterparts with a batch of 1. This ensures the same code path handles
 1 target and 10,000 targets. The remote transport calls `run_task` for its
-run-on target. The single-target methods differ from a batch in 2 ways:
+run-on target. The single-target methods differ from a batch in 3 ways:
 
 - `run_task` raises `Bolt::NoImplementationError` when no implementation of
   the task suits the target, like it does with the other transports. A batch
+  reports that as the target's result.
+- `run_script` and `run_task` raise `Bolt::Node::FileError` when the node
+  cannot make the tmpdir, like they do with the other transports. A batch
   reports that as the target's result.
 - `download` puts the file into the destination itself. A batch gives each
   target a directory of its own under the destination.

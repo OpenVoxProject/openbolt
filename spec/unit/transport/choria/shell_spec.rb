@@ -530,8 +530,10 @@ describe Bolt::Transport::Choria do
         expect(ok_results.first.target).to eq(target)
         expect(error_results.length).to eq(1)
         expect(error_results.first.target).to eq(target2)
-        expect(error_results.first.error_hash['kind']).to eq('bolt/choria-operation-failed')
-        expect(error_results.first.error_hash['msg']).to match(/permission denied/)
+        expect(error_results.first.error_hash).to include(
+          'kind' => 'puppetlabs.tasks/task_file_error',
+          'msg' => 'Could not make tmpdir /tmp/bolt-choria-test-uuid: permission denied'
+        )
 
         started_targets = events.select { |event| event[:type] == :node_start }.map { |event| event[:target] }
         finished_targets = events.select { |event| event[:type] == :node_result }.map { |event| event[:result].target }
@@ -626,8 +628,17 @@ describe Bolt::Transport::Choria do
         expect(results.length).to eq(2)
         results.each do |result|
           expect(result.ok?).to be false
-          expect(result.error_hash['kind']).to eq('bolt/choria-operation-failed')
+          expect(result.error_hash['kind']).to eq('puppetlabs.tasks/task_file_error')
         end
+      end
+
+      it 'keeps the error of the call for a target that does not answer the mkdir' do
+        stub_shell_run({ target => { stderr: 'no space', exitcode: 1 } })
+
+        results = transport.batch_script([target, target2], script_path, [], {})
+
+        expect(results.to_h { |result| [result.target, result.error_hash['kind']] })
+          .to eq(target => 'puppetlabs.tasks/task_file_error', target2 => 'bolt/choria-no-response')
       end
     end
 
@@ -728,6 +739,16 @@ describe Bolt::Transport::Choria do
       expect([result.action, result.object]).to eq(['script', script_path])
       expect(uploaded_files(run_commands)['/tmp/bolt-choria-test-uuid/bolt_run.sh']).to include('arg\ with\ spaces')
     end
+
+    it 'raises when the node cannot make the tmpdir, like the other transports do, and starts nothing' do
+      stub_agents(target, %w[rpcutil shell])
+      inventory.set_config(target, %w[choria tmpdir], '/missing')
+      stub_shell_run(stderr: "mkdir: cannot create directory '/missing/bolt-choria-test-uuid': No such file or directory\n", exitcode: 1)
+      expect(mock_rpc_client).not_to receive(:start)
+
+      expect { transport.run_script(target, script_path, []) }
+        .to raise_error(Bolt::Node::FileError, %r{\ACould not make tmpdir /missing/bolt-choria-test-uuid: mkdir: cannot create directory})
+    end
   end
 
   describe '#run_task_via_shell' do
@@ -792,7 +813,7 @@ describe Bolt::Transport::Choria do
       transport.batch_task([target], task, {})
 
       expect(commands).to match([
-                                  'mkdir -m 700 -p /tmp/bolt-choria-uuid-1',
+                                  'mkdir -m 700 /tmp/bolt-choria-uuid-1',
                                   a_string_matching(%r{\| base64 -d > /tmp/bolt-choria-uuid-1/mytask\.sh\z}),
                                   'chmod u+x /tmp/bolt-choria-uuid-1/mytask.sh',
                                   a_string_matching(%r{\| base64 -d > /tmp/bolt-choria-uuid-1/bolt_run\.sh\z}),
@@ -865,8 +886,10 @@ describe Bolt::Transport::Choria do
       results = transport.batch_task([target], task, {})
 
       expect(results.length).to eq(1)
-      expect(results.first.error_hash['kind']).to eq('bolt/choria-operation-failed')
-      expect(results.first.error_hash['msg']).to match(/\Amkdir tmpdir failed on .+ \(exit code 1\): no space/)
+      expect(results.first.error_hash).to include(
+        'kind' => 'puppetlabs.tasks/task_file_error',
+        'msg' => 'Could not make tmpdir /tmp/bolt-choria-test-uuid: no space'
+      )
     end
 
     it 'excludes a target that fails the task upload and starts the task on the rest' do

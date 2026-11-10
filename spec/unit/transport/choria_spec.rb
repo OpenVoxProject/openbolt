@@ -496,6 +496,16 @@ describe Bolt::Transport::Choria do
       expect(result.error_hash).to include('kind' => 'bolt/choria-agent-not-available')
     end
 
+    it 'raises when the node cannot make the tmpdir for a task the shell agent runs' do
+      stub_agents(target, %w[rpcutil shell])
+      inventory.set_config(target, %w[choria task-agent], 'shell')
+      stub_shell_run(stderr: 'no space', exitcode: 1)
+      expect(mock_rpc_client).not_to receive(:start)
+
+      expect { transport.run_task(target, task, {}) }
+        .to raise_error(Bolt::Node::FileError, 'Could not make tmpdir /tmp/bolt-choria-test-uuid: no space')
+    end
+
     it 'runs a remote task for the remote transport, with the remote target in its input' do
       stub_agents(target, %w[rpcutil bolt_tasks])
       remote_task = Bolt::Task.new(task_name, { 'input_method' => 'both', 'remote' => true },

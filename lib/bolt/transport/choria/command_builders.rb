@@ -23,16 +23,18 @@ module Bolt
         end
       end
 
-      # Build the command that creates a tmpdir. Like mkdir -m 700 on POSIX,
-      # the Windows command leaves the tmpdir open only to the account the
-      # agent runs as and to the Administrators group, which the directories
-      # and files in it inherit, and it fails when it cannot set that.
+      # Build the command that creates a tmpdir. On POSIX it is mkdir -m 700
+      # without -p, so it fails when the directory the tmpdir goes into
+      # doesn't exist, like it does with the SSH transport. The Windows
+      # command leaves the tmpdir open only to the account the agent runs as
+      # and to the Administrators group, which the directories and files in
+      # it inherit, and it fails when it cannot set that.
       #
       # @param target [Bolt::Target] Used for platform detection
       # @param tmpdir [String] Absolute path to the tmpdir on the remote node
       # @return [String] Shell command
       def make_tmpdir_command(target, tmpdir)
-        return make_dir_command(target, tmpdir) unless windows_target?(target)
+        return "mkdir -m 700 #{Shellwords.shellescape(tmpdir)}" unless windows_target?(target)
 
         "$ErrorActionPreference = 'Stop'; $dir = '#{ps_escape(tmpdir)}'; " \
           '$null = New-Item -ItemType Directory -Force -Path $dir; ' \

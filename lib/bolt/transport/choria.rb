@@ -6,6 +6,7 @@ require 'digest/sha2'
 require 'json'
 require 'securerandom'
 require 'shellwords'
+require_relative '../../bolt/node/errors'
 require_relative '../../bolt/shell'
 require_relative '../../bolt/transport/base'
 
@@ -216,7 +217,7 @@ module Bolt
       end
 
       def run_script(target, script, arguments, options = {}, position = [])
-        batch_script([target], script, arguments, options, position).first
+        raise_tmpdir_error(batch_script([target], script, arguments, options, position).first)
       end
 
       # Raises when no implementation of the task suits the target, like the
@@ -229,7 +230,7 @@ module Bolt
 
         raise Bolt::NoImplementationError.new(target, task) if result.error_hash&.dig('kind') == 'bolt/no-implementation'
 
-        result
+        raise_tmpdir_error(result)
       end
 
       def upload(target, source, destination, options = {})
@@ -244,6 +245,16 @@ module Bolt
 
       def connected?(target)
         batch_connected?([target])
+      end
+
+      # Raises when the node could not make the tmpdir, like the other
+      # transports do, and returns the result otherwise. A batch reports
+      # that failure as the target's result.
+      def raise_tmpdir_error(result)
+        error = result.error_hash
+        raise Bolt::Node::FileError, error['msg'] if error && error['kind'] == 'puppetlabs.tasks/task_file_error'
+
+        result
       end
 
       # Returns the Choria node identity for a target. Uses the transport
