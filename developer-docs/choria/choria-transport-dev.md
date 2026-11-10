@@ -77,7 +77,7 @@ gem, which provides `MCollective::RPC::Client`. Despite the MCollective name
 
 | File | Responsibility |
 |------|---------------|
-| `lib/bolt/transport/choria.rb` | Main transport class. Entry point for OpenBolt's executor. Batching, task routing, connectivity checks. |
+| `lib/bolt/transport/choria.rb` | Main transport class. Entry point for OpenBolt's executor. Batching, task routing, connectivity checks, and the single-target methods. |
 | `lib/bolt/transport/choria/client.rb` | MCollective client configuration, RPC client creation, `rpc_request` pipeline. One-time setup, NATS/TLS overrides. |
 | `lib/bolt/transport/choria/agent_discovery.rb` | Agent detection and OS discovery with per-target caching. |
 | `lib/bolt/transport/choria/helpers.rb` | Shared utilities: `prepare_targets`, result builders, polling, security validators. |
@@ -137,6 +137,11 @@ batch method:
 path (e.g., `/tmp/bolt-choria-abc`). Since they're different machines, this
 is fine, and it means every infrastructure command (mkdir, chmod, upload) can
 be batched with identical arguments.
+
+On a POSIX node the directory that the `tmpdir` option names has to exist.
+The tmpdir is created with `mkdir -m 700`, without `-p`, so a node without
+that directory fails with `Could not make tmpdir`, like it does with the SSH
+transport.
 
 ## Threading Model
 
@@ -334,6 +339,8 @@ unwrapping:
    - If valid JSON hash: returns the hash object
    - If valid JSON but not hash: wraps in `{"_output": raw_string}`
    - If not valid JSON: wraps in `{"_output": raw_string}`
+   - If the exit code is not 0 and the hash has no `_error`: adds one of kind
+     `choria.tasks/task-error`
    - If wrapper error: returns `{"_error": {...}}.to_json` (a JSON **string**)
 3. **`reply_task_status`** calls `.to_json` on that result:
    - Normal case: hash.to_json = proper JSON string
@@ -342,18 +349,16 @@ unwrapping:
 
 The `unwrap_bolt_tasks_stdout` method handles this:
 - Parses the outer JSON layer
-- If the result has only `_output` and/or `_error` keys (the wrapper's
-  signature), extracts `_output` as the real stdout
-- If `_output` is itself a JSON string (double-encoding from error case),
-  unwraps one more layer
-- Passes the unwrapped stdout to `Bolt::Result.for_task`, which does its own
-  JSON parsing
-
-Edge cases handled:
-- Non-JSON stdout: returned as-is
-- Task that legitimately returns `_output` keys alongside other keys: detected
-  by checking for extra keys beyond the wrapper's signature
-- Zero exit code with `_error`: the task itself reported the error, don't unwrap
+- If that gives a string (double-encoding from the wrapper error case), returns
+  the inner JSON string
+- If that gives a hash with the agent's `choria.tasks/task-error`, takes the
+  error out and returns what the task printed: the `_output` text when nothing
+  else is left, the rest of the hash as JSON otherwise
+- Returns any other stdout as-is. That covers stdout that is not JSON and a
+  task that prints its own `_error`, since the agent adds its error only when
+  the task has none
+- `Bolt::Result.for_task` then does its own JSON parsing and builds the task
+  error for a non-zero exit code, the way it does for the other transports
 
 ### wait_for_shell_results / shell_list / shell_statuses
 
@@ -583,9 +588,20 @@ across a handful of collectives.
 
 ### Batch-only architecture
 
-All operations use batch methods. Single-target `run_task`, `run_command`,
-`run_script`, and `connected?` delegate to their batch counterparts. This
-ensures the same code path handles 1 target and 10,000 targets.
+All operations use batch methods. The single-target methods, `run_command`,
+`run_script`, `run_task`, `upload`, `download` and `connected?`, run their
+batch counterparts with a batch of 1. This ensures the same code path handles
+1 target and 10,000 targets. The remote transport calls `run_task` for its
+run-on target. The single-target methods differ from a batch in 3 ways:
+
+- `run_task` raises `Bolt::NoImplementationError` when no implementation of
+  the task suits the target, like it does with the other transports. A batch
+  reports that as the target's result.
+- `run_script` and `run_task` raise `Bolt::Node::FileError` when the node
+  cannot make the tmpdir, like they do with the other transports. A batch
+  reports that as the target's result.
+- `download` puts the file into the destination itself. A batch gives each
+  target a directory of its own under the destination.
 
 ### O(N) identity filter setup
 

@@ -6,6 +6,7 @@ require 'digest/sha2'
 require 'json'
 require 'securerandom'
 require 'shellwords'
+require_relative '../../bolt/node/errors'
 require_relative '../../bolt/shell'
 require_relative '../../bolt/transport/base'
 
@@ -206,6 +207,54 @@ module Bolt
           client.ping
         end
         response[:responded].length == targets.length
+      end
+
+      # The single-target methods of the transport API. The remote transport
+      # calls run_task for its run-on target.
+
+      def run_command(target, command, options = {}, position = [])
+        batch_command([target], command, options, position).first
+      end
+
+      def run_script(target, script, arguments, options = {}, position = [])
+        raise_tmpdir_error(batch_script([target], script, arguments, options, position).first)
+      end
+
+      # Raises when no implementation of the task suits the target, like the
+      # other transports do. A batch reports that as the target's result.
+      def run_task(target, task, arguments, options = {}, position = [])
+        result = batch_task([target], task, arguments, options, position).first
+        # A result with an object is the task's own, whatever error the task
+        # printed. A failure the transport reports has none.
+        return result if result.object
+
+        raise Bolt::NoImplementationError.new(target, task) if result.error_hash&.dig('kind') == 'bolt/no-implementation'
+
+        raise_tmpdir_error(result)
+      end
+
+      def upload(target, source, destination, options = {})
+        batch_upload([target], source, destination, options).first
+      end
+
+      # Downloads into the destination itself. A batch gives each target a
+      # directory of its own under the destination.
+      def download(target, source, destination, _options = {})
+        download_into({ target => destination }, source, []).first
+      end
+
+      def connected?(target)
+        batch_connected?([target])
+      end
+
+      # Raises when the node could not make the tmpdir, like the other
+      # transports do, and returns the result otherwise. A batch reports
+      # that failure as the target's result.
+      def raise_tmpdir_error(result)
+        error = result.error_hash
+        raise Bolt::Node::FileError, error['msg'] if error && error['kind'] == 'puppetlabs.tasks/task_file_error'
+
+        result
       end
 
       # Returns the Choria node identity for a target. Uses the transport

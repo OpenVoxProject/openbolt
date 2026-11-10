@@ -29,12 +29,12 @@ describe Bolt::Transport::Choria do
       expect(results.first.message).to include(destination)
     end
 
-    it 'reports the path the library says the file landed at, not the destination it was given' do
+    it 'reports the destination it was given, like the other transports, when the file landed inside that directory' do
       library.on_upload { |_source, _destination, names| names.to_h { |name| [name, library::Outcome.success(name, '/opt/app/app.tar')] } }
 
       results = transport.batch_upload([target], source, '/opt/app')
 
-      expect(results.first.message).to include('/opt/app/app.tar')
+      expect(results.first.message).to eq("Uploaded '/srv/app.tar' to 'node1.example.com:/opt/app'")
     end
 
     it 'answers agent-not-available for every target and builds no client when none has the agent' do
@@ -189,6 +189,27 @@ describe Bolt::Transport::Choria do
     end
   end
 
+  describe '#upload' do
+    it 'uploads through the library to the identity of the target and returns its result' do
+      result = transport.upload(target, source, destination)
+
+      expect(library.clients.last.uploads).to eq([[source, destination, ['node1.example.com']]])
+      expect(result.target).to eq(target)
+      expect(result.ok?).to be(true)
+      expect(result.message).to eq("Uploaded '/srv/app.tar' to 'node1.example.com:/opt/app/app.tar'")
+    end
+
+    it 'returns the failed outcome of the target as its result' do
+      library.on_upload do |_source, _destination, names|
+        names.to_h { |name| [name, library::Outcome.failure(name, :checksum_mismatch, 'expected abc, got def')] }
+      end
+
+      result = transport.upload(target, source, destination)
+
+      expect(result.error_hash).to include('kind' => 'bolt/choria-checksum-mismatch', 'msg' => 'expected abc, got def')
+    end
+  end
+
   describe '#batch_download' do
     let(:workdir) { Dir.mktmpdir('bolt-choria-download') }
 
@@ -263,6 +284,28 @@ describe Bolt::Transport::Choria do
       library.on_download { |_source, _destination_dirs| raise 'the library hit a bug' }
 
       expect { transport.batch_download([target, target2], '/var/log/app.log', workdir) }.to raise_error(RuntimeError, 'the library hit a bug')
+    end
+  end
+
+  describe '#download' do
+    it 'downloads through the library into the destination itself and returns the result of the target' do
+      result = transport.download(target, '/var/log/app.log', '/srv/logs')
+
+      expect(library.clients.last.downloads).to eq([['/var/log/app.log', { 'node1.example.com' => '/srv/logs' }]])
+      expect(result.target).to eq(target)
+      expect(result.value['path']).to eq('/srv/logs/app.log')
+      expect(result.message).to eq("Downloaded 'node1.example.com:/var/log/app.log' to '/srv/logs'")
+    end
+
+    it 'returns the failed outcome of the target as its result' do
+      library.on_download do |_source, destination_dirs|
+        destination_dirs.keys.to_h { |name| [name, library::Outcome.failure(name, :transfer_failed, "/var/log/app.log does not exist on #{name}")] }
+      end
+
+      result = transport.download(target, '/var/log/app.log', '/srv/logs')
+
+      expect(result.error_hash).to include('kind' => 'bolt/choria-file-transfer-failed')
+      expect(result.action).to eq('download')
     end
   end
 

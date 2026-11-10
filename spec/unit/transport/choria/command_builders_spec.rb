@@ -90,7 +90,25 @@ describe 'Bolt::Transport::Choria command builders' do
 
   describe '#make_tmpdir_command (POSIX)' do
     it 'creates the tmpdir with mode 700' do
-      expect(transport.make_tmpdir_command(target, '/tmp/bolt-choria-test')).to eq('mkdir -m 700 -p /tmp/bolt-choria-test')
+      skip 'Needs a POSIX shell' if Bolt::Util.windows?
+
+      Dir.mktmpdir do |dir|
+        tmpdir = File.join(dir, 'bolt-choria-test')
+
+        expect(system(transport.make_tmpdir_command(target, tmpdir))).to be true
+        expect(File.stat(tmpdir).mode & 0o777).to eq(0o700)
+      end
+    end
+
+    it 'fails when the directory the tmpdir goes into does not exist, and creates nothing' do
+      skip 'Needs a POSIX shell' if Bolt::Util.windows?
+
+      Dir.mktmpdir do |dir|
+        tmpdir = File.join(dir, 'missing', 'bolt-choria-test')
+
+        expect(system(transport.make_tmpdir_command(target, tmpdir), err: File::NULL)).to be false
+        expect(Dir.children(dir)).to be_empty
+      end
     end
   end
 

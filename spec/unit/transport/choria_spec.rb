@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
+require 'bolt/executor'
 require 'bolt_spec/choria'
 require 'bolt_spec/sensitive'
 
@@ -147,6 +148,20 @@ describe Bolt::Transport::Choria do
       allow(mock_rpc_client).to receive(:ping).and_return([])
       expect(mock_rpc_client).not_to receive(:disconnect)
       transport.batch_connected?([target])
+    end
+  end
+
+  describe '#connected?' do
+    it 'returns true when the target responds to ping' do
+      allow(mock_rpc_client).to receive(:ping).and_return([make_rpc_result(sender: target)])
+
+      expect(transport.connected?(target)).to be true
+    end
+
+    it 'returns false when the target does not respond' do
+      allow(mock_rpc_client).to receive(:ping).and_return([])
+
+      expect(transport.connected?(target)).to be false
     end
   end
 
@@ -432,6 +447,87 @@ describe Bolt::Transport::Choria do
         expect(results.map(&:target)).to contain_exactly(target, target2)
         expect(results.map { |result| result.error_hash['kind'] }).to eq(['bolt/no-implementation'] * 2)
       end
+    end
+  end
+
+  describe '#run_task' do
+    include_context 'choria task file stubs'
+
+    it 'runs the task on the target and returns its result' do
+      stub_agents(target, %w[rpcutil bolt_tasks])
+      allow(mock_rpc_client).to receive_messages(download: [make_download_result(target)],
+                                                 run_no_wait: [make_task_run_result(target)],
+                                                 task_status: [make_task_status_result(target)])
+
+      result = transport.run_task(target, task, {})
+
+      expect(result.target).to eq(target)
+      expect(result.value).to eq('result' => 'ok')
+      expect([result.action, result.object]).to eq(['task', task_name])
+    end
+
+    it 'raises when no implementation of the task suits the target, and runs nothing' do
+      stub_agents(target, %w[rpcutil bolt_tasks], os_family: 'windows')
+      expect(mock_rpc_client).not_to receive(:download)
+      expect(mock_rpc_client).not_to receive(:run_no_wait)
+
+      expect { transport.run_task(target, shell_only_task, {}) }
+        .to raise_error(Bolt::NoImplementationError, 'No suitable implementation of mymod::mytask for choria://node1.example.com')
+    end
+
+    it 'returns the result of a task that printed an error of a kind the transport raises for' do
+      stub_agents(target, %w[rpcutil bolt_tasks])
+      %w[bolt/no-implementation puppetlabs.tasks/task_file_error].each do |kind|
+        task_error = { 'kind' => kind, 'msg' => 'printed by the task', 'details' => {} }
+        allow(mock_rpc_client).to receive_messages(
+          download: [make_download_result(target)], run_no_wait: [make_task_run_result(target)],
+          task_status: [make_task_status_result(target, exitcode: 1, stdout: { '_error' => task_error }.to_json)]
+        )
+
+        expect(transport.run_task(target, task, {}).error_hash).to eq(task_error)
+      end
+    end
+
+    it 'returns the error of a target without the task agent as its result' do
+      stub_agents(target, %w[rpcutil shell])
+
+      result = transport.run_task(target, task, {})
+
+      expect(result.error_hash).to include('kind' => 'bolt/choria-agent-not-available')
+    end
+
+    it 'raises when the node cannot make the tmpdir for a task the shell agent runs' do
+      stub_agents(target, %w[rpcutil shell])
+      inventory.set_config(target, %w[choria task-agent], 'shell')
+      stub_shell_run(stderr: 'no space', exitcode: 1)
+      expect(mock_rpc_client).not_to receive(:start)
+
+      expect { transport.run_task(target, task, {}) }
+        .to raise_error(Bolt::Node::FileError, 'Could not make tmpdir /tmp/bolt-choria-test-uuid: no space')
+    end
+
+    it 'runs a remote task for the remote transport, with the remote target in its input' do
+      stub_agents(target, %w[rpcutil bolt_tasks])
+      remote_task = Bolt::Task.new(task_name, { 'input_method' => 'both', 'remote' => true },
+                                   [{ 'name' => 'mytask.sh', 'path' => task_executable }])
+      device = Bolt::Target.from_hash({ 'uri' => 'device.example.com',
+                                        'config' => { 'transport' => 'remote', 'remote' => { 'run-on' => target.name } } }, inventory)
+      task_input = nil
+      allow(mock_rpc_client).to receive(:run_no_wait) do |args|
+        task_input = JSON.parse(args[:input])
+        [make_task_run_result(target)]
+      end
+      allow(mock_rpc_client).to receive_messages(download: [make_download_result(target)],
+                                                 task_status: [make_task_status_result(target)])
+      executor = Bolt::Executor.new
+      executor.transports['choria'] = Concurrent::Delay.new { transport }
+
+      result = executor.transports['remote'].value.run_task(device, remote_task, { 'message' => 'hello' })
+
+      expect(result.target).to eq(device)
+      expect(result.value).to eq('result' => 'ok')
+      expect(task_input).to include('message' => 'hello')
+      expect(task_input['_target']).to include('name' => 'device.example.com')
     end
   end
 

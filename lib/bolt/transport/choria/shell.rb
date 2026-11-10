@@ -106,9 +106,7 @@ module Bolt
           active_targets = shell_targets
 
           # Create a temp directory with restricted permissions
-          failures = shell_run(active_targets,
-                               make_tmpdir_command(first_target, tmpdir),
-                               description: 'mkdir tmpdir')
+          failures = make_tmpdir(active_targets, tmpdir)
           results += emit_results(failures, **result_opts, &callback)
           active_targets -= failures.keys
 
@@ -244,9 +242,7 @@ module Bolt
         task_dir = tmpdir
 
         # Create the tmpdir
-        failures = shell_run(active_targets,
-                             make_tmpdir_command(first_target, tmpdir),
-                             description: 'mkdir tmpdir')
+        failures = make_tmpdir(active_targets, tmpdir)
         failed_results += emit_results(failures, **result_opts, &callback)
         active_targets -= failures.keys
 
@@ -353,6 +349,22 @@ module Bolt
         content = run_file_content(first_target, command, pipeline: pipeline)
         failures = upload_file_content(targets, content, run_file)
         [targets - failures.keys, emit_results(failures, **result_opts, &callback)]
+      end
+
+      # Create the tmpdir on the targets. A target whose mkdir fails gets the
+      # error the other transports raise for a tmpdir they can't make. A
+      # target that didn't answer the call keeps the error of the call.
+      #
+      # @param targets [Array<Bolt::Target>] Targets to create the tmpdir on, at least 1
+      # @param tmpdir [String] Absolute path to the tmpdir on the remote node
+      # @return [Hash{Bolt::Target => Hash}] Failures only. An empty hash means all succeeded.
+      def make_tmpdir(targets, tmpdir)
+        failures = shell_run(targets, make_tmpdir_command(targets.first, tmpdir), description: 'mkdir tmpdir')
+        failures.transform_values do |failure|
+          next failure unless failure[:error_kind] == 'bolt/choria-operation-failed'
+
+          failure.merge(error: "Could not make tmpdir #{tmpdir}: #{failure[:stderr]}", error_kind: 'puppetlabs.tasks/task_file_error')
+        end
       end
 
       # Execute a synchronous command on targets via the shell.run RPC action.

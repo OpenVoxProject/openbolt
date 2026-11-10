@@ -368,10 +368,42 @@ describe Bolt::Transport::Choria do
     end
   end
 
-  describe '#batch_script' do
-    let(:script_path) { '/tmp/test_script.sh' }
-    let(:script_content) { "#!/bin/bash\necho hello" }
+  describe '#run_command' do
+    it 'runs the command on the target and returns its result' do
+      stub_agents(target, %w[rpcutil shell])
+      stub_shell_start
+      stub_shell_list
+      stub_shell_status(stdout: 'hello')
 
+      result = transport.run_command(target, 'hostname')
+
+      expect(result.target).to eq(target)
+      expect(result.value).to include('stdout' => 'hello', 'exit_code' => 0)
+      expect([result.action, result.object]).to eq(%w[command hostname])
+    end
+
+    it 'passes its options to the batch, so the command gets its env vars' do
+      stub_agents(target, %w[rpcutil shell])
+      stub_shell_list
+      stub_shell_status
+      expect(mock_rpc_client).to receive(:start) do |args|
+        expect(args[:command]).to eq('/usr/bin/env MY_VAR=hello mycommand')
+        [make_shell_start_result(target)]
+      end
+
+      transport.run_command(target, 'mycommand', { env_vars: { 'MY_VAR' => 'hello' } })
+    end
+
+    it 'returns the error of a target without the shell agent as its result' do
+      stub_agents(target, %w[rpcutil])
+
+      result = transport.run_command(target, 'hostname')
+
+      expect(result.error_hash).to include('kind' => 'bolt/choria-agent-not-available')
+    end
+  end
+
+  describe '#batch_script' do
     include_context 'choria multi-target'
     include_context 'choria script file stubs'
 
@@ -498,8 +530,10 @@ describe Bolt::Transport::Choria do
         expect(ok_results.first.target).to eq(target)
         expect(error_results.length).to eq(1)
         expect(error_results.first.target).to eq(target2)
-        expect(error_results.first.error_hash['kind']).to eq('bolt/choria-operation-failed')
-        expect(error_results.first.error_hash['msg']).to match(/permission denied/)
+        expect(error_results.first.error_hash).to include(
+          'kind' => 'puppetlabs.tasks/task_file_error',
+          'msg' => 'Could not make tmpdir /tmp/bolt-choria-test-uuid: permission denied'
+        )
 
         started_targets = events.select { |event| event[:type] == :node_start }.map { |event| event[:target] }
         finished_targets = events.select { |event| event[:type] == :node_result }.map { |event| event[:result].target }
@@ -594,8 +628,17 @@ describe Bolt::Transport::Choria do
         expect(results.length).to eq(2)
         results.each do |result|
           expect(result.ok?).to be false
-          expect(result.error_hash['kind']).to eq('bolt/choria-operation-failed')
+          expect(result.error_hash['kind']).to eq('puppetlabs.tasks/task_file_error')
         end
+      end
+
+      it 'keeps the error of the call for a target that does not answer the mkdir' do
+        stub_shell_run({ target => { stderr: 'no space', exitcode: 1 } })
+
+        results = transport.batch_script([target, target2], script_path, [], {})
+
+        expect(results.to_h { |result| [result.target, result.error_hash['kind']] })
+          .to eq(target => 'puppetlabs.tasks/task_file_error', target2 => 'bolt/choria-no-response')
       end
     end
 
@@ -675,6 +718,39 @@ describe Bolt::Transport::Choria do
     end
   end
 
+  describe '#run_script' do
+    include_context 'choria script file stubs'
+
+    it 'runs the script on the target with its arguments and returns its result' do
+      stub_agents(target, %w[rpcutil shell])
+      run_commands = []
+      allow(mock_rpc_client).to receive(:run) do |args|
+        run_commands << args[:command]
+        [make_shell_run_result(target)]
+      end
+      stub_shell_start
+      stub_shell_list
+      stub_shell_status(stdout: 'hello')
+
+      result = transport.run_script(target, script_path, ['arg with spaces'])
+
+      expect(result.target).to eq(target)
+      expect(result.value).to include('stdout' => 'hello', 'exit_code' => 0)
+      expect([result.action, result.object]).to eq(['script', script_path])
+      expect(uploaded_files(run_commands)['/tmp/bolt-choria-test-uuid/bolt_run.sh']).to include('arg\ with\ spaces')
+    end
+
+    it 'raises when the node cannot make the tmpdir, like the other transports do, and starts nothing' do
+      stub_agents(target, %w[rpcutil shell])
+      inventory.set_config(target, %w[choria tmpdir], '/missing')
+      stub_shell_run(stderr: "mkdir: cannot create directory '/missing/bolt-choria-test-uuid': No such file or directory\n", exitcode: 1)
+      expect(mock_rpc_client).not_to receive(:start)
+
+      expect { transport.run_script(target, script_path, []) }
+        .to raise_error(Bolt::Node::FileError, %r{\ACould not make tmpdir /missing/bolt-choria-test-uuid: mkdir: cannot create directory})
+    end
+  end
+
   describe '#run_task_via_shell' do
     before(:each) do
       inventory.set_config(target, %w[choria task-agent], 'shell')
@@ -737,7 +813,7 @@ describe Bolt::Transport::Choria do
       transport.batch_task([target], task, {})
 
       expect(commands).to match([
-                                  'mkdir -m 700 -p /tmp/bolt-choria-uuid-1',
+                                  'mkdir -m 700 /tmp/bolt-choria-uuid-1',
                                   a_string_matching(%r{\| base64 -d > /tmp/bolt-choria-uuid-1/mytask\.sh\z}),
                                   'chmod u+x /tmp/bolt-choria-uuid-1/mytask.sh',
                                   a_string_matching(%r{\| base64 -d > /tmp/bolt-choria-uuid-1/bolt_run\.sh\z}),
@@ -810,8 +886,10 @@ describe Bolt::Transport::Choria do
       results = transport.batch_task([target], task, {})
 
       expect(results.length).to eq(1)
-      expect(results.first.error_hash['kind']).to eq('bolt/choria-operation-failed')
-      expect(results.first.error_hash['msg']).to match(/\Amkdir tmpdir failed on .+ \(exit code 1\): no space/)
+      expect(results.first.error_hash).to include(
+        'kind' => 'puppetlabs.tasks/task_file_error',
+        'msg' => 'Could not make tmpdir /tmp/bolt-choria-test-uuid: no space'
+      )
     end
 
     it 'excludes a target that fails the task upload and starts the task on the rest' do
