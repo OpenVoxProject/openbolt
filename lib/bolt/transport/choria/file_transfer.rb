@@ -28,8 +28,8 @@ module Bolt
         logger.debug { "Uploading #{source} to #{destination} on #{target_count(capable)}" }
         results + transfer(capable, result_opts, callback) do |client|
           outcomes = client.upload(source, destination, identities_of(capable))
-          file_transfer_results(capable, outcomes, result_opts, callback) do |target, outcome|
-            Bolt::Result.for_upload(target, source, outcome.path)
+          file_transfer_results(capable, outcomes, result_opts, callback) do |target|
+            Bolt::Result.for_upload(target, source, destination)
           end
         end
       end

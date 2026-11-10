@@ -29,12 +29,12 @@ describe Bolt::Transport::Choria do
       expect(results.first.message).to include(destination)
     end
 
-    it 'reports the path the library says the file landed at, not the destination it was given' do
+    it 'reports the destination it was given, like the other transports, when the file landed inside that directory' do
       library.on_upload { |_source, _destination, names| names.to_h { |name| [name, library::Outcome.success(name, '/opt/app/app.tar')] } }
 
       results = transport.batch_upload([target], source, '/opt/app')
 
-      expect(results.first.message).to include('/opt/app/app.tar')
+      expect(results.first.message).to eq("Uploaded '/srv/app.tar' to 'node1.example.com:/opt/app'")
     end
 
     it 'answers agent-not-available for every target and builds no client when none has the agent' do
