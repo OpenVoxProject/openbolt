@@ -34,7 +34,7 @@ describe Bolt::Transport::Orch, orchestrator: true do
   end
   let(:target)      { make_target }
   let(:targets)     { inventory.get_targets(['pcp://node1', 'node2']) }
-  let(:mock_client) { instance_double("OrchestratorClient", run_task: results) }
+  let(:mock_client) { instance_double(OrchestratorClient, run_task: results) }
 
   let(:orch)        { Bolt::Transport::Orch.new }
 
@@ -123,7 +123,7 @@ describe Bolt::Transport::Orch, orchestrator: true do
     end
   end
 
-  describe :build_request do
+  describe 'build_request' do
     let(:conn) { Bolt::Transport::Orch::Connection.new(targets.first.options, nil, orch.logger) }
 
     it "gets the task name from the task" do
@@ -181,7 +181,7 @@ describe Bolt::Transport::Orch, orchestrator: true do
     end
   end
 
-  describe :process_run_results do
+  describe 'process_run_results' do
     it "returns a result for every successful node" do
       results = [{ 'name' => 'node1', 'state' => 'finished', 'result' => { '_output' => 'hello' } },
                  { 'name' => 'node2', 'state' => 'finished', 'result' => { '_output' => 'goodbye' } }]
@@ -262,7 +262,7 @@ describe Bolt::Transport::Orch, orchestrator: true do
     end
   end
 
-  describe :batches do
+  describe 'batches' do
     let(:targets) { inventory.get_targets(%w[pcp://a pcp://b pcp://c pcp://d]) }
 
     it "splits targets in different environments into separate batches" do
@@ -302,7 +302,7 @@ describe Bolt::Transport::Orch, orchestrator: true do
     end
   end
 
-  describe :batch_task do
+  describe 'batch_task' do
     let(:results) do
       [{ 'name' => 'node1', 'state' => 'finished', 'result' => { '_output' => 'hello' } },
        { 'name' => 'node2', 'state' => 'finished', 'result' => { '_output' => 'goodbye' } }]
@@ -320,7 +320,7 @@ describe Bolt::Transport::Orch, orchestrator: true do
 
     context 'when running in a plan' do
       let(:plan_context)      { { plan_name: "foo", params: {} } }
-      let(:mock_command_api)  { instance_double("OrchestratorClient::Client") }
+      let(:mock_command_api)  { instance_double(OrchestratorClient::Command) }
 
       before :each do
         orch.plan_context = plan_context
@@ -383,7 +383,7 @@ describe Bolt::Transport::Orch, orchestrator: true do
       plan_context = { plan_name: "foo", params: {} }
       orch.plan_context = plan_context
 
-      mock_command_api = instance_double("OrchestratorClient::Client")
+      mock_command_api = instance_double(OrchestratorClient::Command)
       expect(mock_client).to receive(:command).and_return(mock_command_api)
       expect(mock_command_api).to receive(:plan_start).with(plan_context).and_raise(
         OrchestratorClient::ApiError.new({}, "404")
@@ -466,7 +466,7 @@ describe Bolt::Transport::Orch, orchestrator: true do
     end
   end
 
-  describe :batch_command do
+  describe 'batch_command' do
     let(:command) { 'anything' }
     let(:body) {
       {
@@ -480,8 +480,10 @@ describe Bolt::Transport::Orch, orchestrator: true do
        { 'name' => 'node2', 'state' => 'finished', 'result' => { 'stdout' => 'goodbye', 'exit_code' => 0 } }]
     }
 
-    before(:each) do
+    it 'runs the bolt_shim::command task with the command' do
       expect(mock_client).to receive(:run_task).with(include(body)).and_return(results)
+
+      orch.batch_command(targets, command)
     end
 
     it 'returns a success' do
@@ -540,7 +542,7 @@ describe Bolt::Transport::Orch, orchestrator: true do
     end
   end
 
-  describe :batch_download do
+  describe 'batch_download' do
     it 'returns failing results' do
       error_hash = {
         'kind'    => 'bolt/not-supported-error',
@@ -558,7 +560,7 @@ describe Bolt::Transport::Orch, orchestrator: true do
     end
   end
 
-  describe :batch_upload do
+  describe 'batch_upload' do
     let(:source_path) { File.join(base_path, 'spec', 'fixtures', 'scripts', 'success.sh') }
     let(:dest_path) { 'success.sh' }
     let(:body) {
@@ -571,17 +573,19 @@ describe Bolt::Transport::Orch, orchestrator: true do
       }
     }
 
-    def upload_message(node)
-      { '_output' => "Uploaded '#{source_path}' to '#{node}:#{dest_path}'" }
-    end
-
     let(:results) {
       [{ 'name' => 'node1', 'state' => 'finished', 'result' => upload_message('node1') },
        { 'name' => 'node2', 'state' => 'finished', 'result' => upload_message('node2') }]
     }
 
-    before(:each) do
+    def upload_message(node)
+      { '_output' => "Uploaded '#{source_path}' to '#{node}:#{dest_path}'" }
+    end
+
+    it 'runs the bolt_shim::upload task with the file' do
       expect(mock_client).to receive(:run_task).with(include(body)).and_return(results)
+
+      orch.batch_upload(targets, source_path, dest_path)
     end
 
     it 'should write the file' do
@@ -617,6 +621,8 @@ describe Bolt::Transport::Orch, orchestrator: true do
       }
 
       it 'should upload a directory' do
+        expect(mock_client).to receive(:run_task).with(include(body)).and_return(results)
+
         results = orch.batch_upload(targets, source_path, dest_path)
         expect(results[0]).to be_success
         expect(results[1]).to be_success
@@ -626,7 +632,7 @@ describe Bolt::Transport::Orch, orchestrator: true do
     end
   end
 
-  describe :batch_script do
+  describe 'batch_script' do
     let(:args) { ['with spaces', 'nospaces', 'echo $HOME; cat /etc/passwd'] }
     let(:script_path) { File.join(base_path, 'spec', 'fixtures', 'scripts', 'success.sh') }
 
@@ -644,10 +650,10 @@ describe Bolt::Transport::Orch, orchestrator: true do
        { 'name' => 'node2', 'state' => 'finished', 'result' => { '_output' => '', 'exit_code' => 0 } }]
     }
 
-    before(:each) do |test|
-      unless test.metadata[:skip_before]
-        expect(mock_client).to receive(:run_task).with(include(body)).and_return(results)
-      end
+    it 'runs the bolt_shim::script task with the script' do
+      expect(mock_client).to receive(:run_task).with(include(body)).and_return(results)
+
+      orch.batch_script(targets, script_path, args)
     end
 
     it 'returns a success' do
@@ -668,7 +674,7 @@ describe Bolt::Transport::Orch, orchestrator: true do
       end
     end
 
-    it "unwraps Sensitive parameters", skip_before: true do
+    it "unwraps Sensitive parameters" do
       allow(mock_client).to receive(:run_task).and_return(results)
       sensitive_params = { 'sensitive_string' => make_sensitive('$ecret!') }
       expect(mock_client).to receive(:run_task)

@@ -45,8 +45,8 @@ module Bolt
         def start_plan(plan_context)
           if plan_context
             begin
-              opts = plan_context.select { |k, _| CONTEXT_KEYS.include? k }
-              opts[:params] = opts[:params].reject { |k, _| plan_context[:sensitive].include?(k) }
+              opts = plan_context.slice(*CONTEXT_KEYS)
+              opts[:params] = opts[:params].except(*plan_context[:sensitive])
               @client.command.plan_start(opts)['name']
             rescue OrchestratorClient::ApiError => e
               if e.code == '404'

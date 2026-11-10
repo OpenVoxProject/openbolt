@@ -478,18 +478,18 @@ describe "Bolt::Executor" do
 
     context 'with batched execution with more than one target' do
       let(:pcp) { executor.transport('pcp') }
-      let(:target1) { inventory.get_target('pcp://node1') }
-      let(:target2) { inventory.get_target('pcp://node2') }
-      let(:targets) { [target1, target2] }
+      let(:disconnected_target) { inventory.get_target('pcp://node1') }
+      let(:connected_target) { inventory.get_target('pcp://node2') }
+      let(:targets) { [disconnected_target, connected_target] }
 
       it 'partitions failures and successes by batch' do
         allow(pcp).to receive(:batch_connected?).with(targets).and_return(false)
-        allow(pcp).to receive(:batch_connected?).with([target1]).and_return(false)
-        allow(pcp).to receive(:batch_connected?).with([target2]).and_return(true)
+        allow(pcp).to receive(:batch_connected?).with([disconnected_target]).and_return(false)
+        allow(pcp).to receive(:batch_connected?).with([connected_target]).and_return(true)
 
         results = executor.wait_until_available(targets, wait_time: 1, retry_interval: 1)
-        expect(results.error_set.targets).to include(target1)
-        expect(results.ok_set.targets).to include(target2)
+        expect(results.error_set.targets).to include(disconnected_target)
+        expect(results.ok_set.targets).to include(connected_target)
       end
     end
   end
@@ -794,13 +794,14 @@ describe "Bolt::Executor" do
   end
 
   context "When running a plan" do
-    let(:nodes_string) { results.map(&:first).map(&:uri) }
+    let(:nodes_string) { results.map { |result| result.first.uri } }
     let(:plan_context) { { name: 'foo' } }
 
-    before :all do
+    before(:each) do
       @log_output.level = :info
     end
-    after :all do
+
+    after(:each) do
       @log_output.level = :all
     end
 

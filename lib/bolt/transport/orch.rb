@@ -13,6 +13,7 @@ module Bolt
       BOLT_COMMAND_TASK = Struct.new(:name).new('bolt_shim::command').freeze
       BOLT_SCRIPT_TASK = Struct.new(:name).new('bolt_shim::script').freeze
       BOLT_UPLOAD_TASK = Struct.new(:name).new('bolt_shim::upload').freeze
+      POSITION_KEYS = %w[file line].freeze
 
       attr_writer :plan_context
 
@@ -61,7 +62,7 @@ module Bolt
       end
 
       def process_run_results(targets, results, task_name, position = [])
-        targets_by_name = Hash[targets.map { |t| t.host || t.name }.zip(targets)]
+        targets_by_name = targets.map { |t| t.host || t.name }.zip(targets).to_h
         results.map do |node_result|
           target = targets_by_name[node_result['name']]
           state = node_result['state']
@@ -83,13 +84,13 @@ module Bolt
                 deets = result['_error']['details']
                 result['_error']['details'] = { 'msg' => deets }
               end
-              file_line = %w[file line].zip(position).to_h.compact
+              file_line = POSITION_KEYS.zip(position).to_h.compact
               result['_error']['details'].merge!(file_line) unless result['_error']['details']['file']
             end
 
             Bolt::Result.new(target, value: result, action: 'task', object: task_name)
           elsif state == 'skipped'
-            details = %w[file line].zip(position).to_h.compact
+            details = POSITION_KEYS.zip(position).to_h.compact
             Bolt::Result.new(
               target,
               value: { '_error' => {
@@ -132,7 +133,7 @@ module Bolt
           raise NotImplementedError, "pcp transport does not support setting environment variables"
         end
 
-        content = File.open(script, &:read)
+        content = File.read(script)
         content = Base64.encode64(content)
         params = {
           'content' => content,
@@ -186,7 +187,7 @@ module Bolt
         content = if stat.directory?
                     pack(source)
                   else
-                    File.open(source, &:read)
+                    File.read(source)
                   end
         content = Base64.encode64(content)
         mode = File.stat(source).mode
