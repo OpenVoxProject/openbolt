@@ -9,6 +9,9 @@ describe 'Bolt::Transport::Choria bolt_tasks' do
   include_context 'choria task'
   include BoltSpec::Sensitive
 
+  # The error the agent adds to the stdout of a task that exits 1 without an error of its own
+  let(:agent_error) { { 'kind' => 'choria.tasks/task-error', 'msg' => 'The task errored with a code 1', 'details' => { 'exitcode' => 1 } } }
+
   describe '#unwrap_bolt_tasks_stdout' do
     before(:each) do
       transport.configure_client(target)
@@ -39,6 +42,33 @@ describe 'Bolt::Transport::Choria bolt_tasks' do
 
     it 'returns integer unchanged' do
       expect(transport.unwrap_bolt_tasks_stdout(42)).to eq(42)
+    end
+
+    context 'with the error the agent adds to a task that exits non-zero' do
+      it 'returns the text the task printed' do
+        raw = { '_output' => "task failed\n", '_error' => agent_error }.to_json
+        expect(transport.unwrap_bolt_tasks_stdout(raw)).to eq("task failed\n")
+      end
+
+      it 'returns the JSON object the task printed' do
+        raw = { 'status' => 'broken', '_output' => 'details', '_error' => agent_error }.to_json
+        expect(JSON.parse(transport.unwrap_bolt_tasks_stdout(raw))).to eq('status' => 'broken', '_output' => 'details')
+      end
+
+      it 'returns an _output that is not text as JSON' do
+        raw = { '_output' => 5, '_error' => agent_error }.to_json
+        expect(transport.unwrap_bolt_tasks_stdout(raw)).to eq('{"_output":5}')
+      end
+    end
+
+    it 'passes through an error the task itself printed' do
+      raw = '{"_output":"task failed","_error":{"kind":"mytask/failed","msg":"no"}}'
+      expect(transport.unwrap_bolt_tasks_stdout(raw)).to eq(raw)
+    end
+
+    it 'passes through an _error that is not a hash' do
+      raw = '{"_error":"choria.tasks/task-error"}'
+      expect(transport.unwrap_bolt_tasks_stdout(raw)).to eq(raw)
     end
   end
 
@@ -450,23 +480,41 @@ describe 'Bolt::Transport::Choria bolt_tasks' do
       expect(result.value).to eq('_output' => '')
     end
 
-    it 'preserves task output when agent returns statuscode 1 for failed tasks' do
-      failed_status = make_rpc_result(
+    # The reply of the agent for a task that exited 1 after it printed the given text
+    def failed_task_status(printed)
+      make_rpc_result(
         sender: target,
         statuscode: 1,
         statusmsg: 'choria.tasks/task-error: The task errored with a code 1',
         data: {
           completed: true, exitcode: 1,
-          stdout: '{"_output":"task failed","_error":{"kind":"choria.tasks/task-error",' \
-                  '"msg":"The task errored with a code 1","details":{"exitcode":1}}}',
+          stdout: { '_output' => printed, '_error' => agent_error }.to_json,
           stderr: 'something went wrong'
         }
       )
-      allow(mock_rpc_client).to receive(:task_status).and_return([failed_status])
+    end
+
+    it 'reports a task that exits non-zero with its output and the error the other transports report' do
+      allow(mock_rpc_client).to receive(:task_status).and_return([failed_task_status('task failed')])
 
       result = transport.batch_task([target], task, {}).first
-      expect(result.ok?).to be false
-      expect(result.value).to include('_error' => a_hash_including('kind' => 'choria.tasks/task-error'))
+
+      expect(result.value).to eq(
+        '_output' => 'task failed',
+        '_error' => { 'kind' => 'puppetlabs.tasks/task-error', 'issue_code' => 'TASK_ERROR',
+                      'msg' => 'The task failed with exit code 1', 'details' => { 'exit_code' => 1 } }
+      )
+    end
+
+    it 'reports a task that exits non-zero without output with its stderr, like the other transports do' do
+      allow(mock_rpc_client).to receive(:task_status).and_return([failed_task_status('')])
+
+      result = transport.batch_task([target], task, {}).first
+
+      expect(result.error_hash).to include(
+        'kind' => 'puppetlabs.tasks/task-error',
+        'msg' => "The task failed with exit code 1 and no stdout, but stderr contained:\nsomething went wrong"
+      )
     end
 
     it 'defaults nil exitcode to 1' do

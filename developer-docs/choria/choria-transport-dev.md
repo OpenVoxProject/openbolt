@@ -334,6 +334,8 @@ unwrapping:
    - If valid JSON hash: returns the hash object
    - If valid JSON but not hash: wraps in `{"_output": raw_string}`
    - If not valid JSON: wraps in `{"_output": raw_string}`
+   - If the exit code is not 0 and the hash has no `_error`: adds one of kind
+     `choria.tasks/task-error`
    - If wrapper error: returns `{"_error": {...}}.to_json` (a JSON **string**)
 3. **`reply_task_status`** calls `.to_json` on that result:
    - Normal case: hash.to_json = proper JSON string
@@ -342,18 +344,16 @@ unwrapping:
 
 The `unwrap_bolt_tasks_stdout` method handles this:
 - Parses the outer JSON layer
-- If the result has only `_output` and/or `_error` keys (the wrapper's
-  signature), extracts `_output` as the real stdout
-- If `_output` is itself a JSON string (double-encoding from error case),
-  unwraps one more layer
-- Passes the unwrapped stdout to `Bolt::Result.for_task`, which does its own
-  JSON parsing
-
-Edge cases handled:
-- Non-JSON stdout: returned as-is
-- Task that legitimately returns `_output` keys alongside other keys: detected
-  by checking for extra keys beyond the wrapper's signature
-- Zero exit code with `_error`: the task itself reported the error, don't unwrap
+- If that gives a string (double-encoding from the wrapper error case), returns
+  the inner JSON string
+- If that gives a hash with the agent's `choria.tasks/task-error`, takes the
+  error out and returns what the task printed: the `_output` text when nothing
+  else is left, the rest of the hash as JSON otherwise
+- Returns any other stdout as-is. That covers stdout that is not JSON and a
+  task that prints its own `_error`, since the agent adds its error only when
+  the task has none
+- `Bolt::Result.for_task` then does its own JSON parsing and builds the task
+  error for a non-zero exit code, the way it does for the other transports
 
 ### wait_for_shell_results / shell_list / shell_statuses
 

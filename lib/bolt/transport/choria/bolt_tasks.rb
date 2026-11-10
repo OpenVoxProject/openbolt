@@ -222,7 +222,8 @@ module Bolt
         }
       end
 
-      # Fix double-encoding in the bolt_tasks agent's wrapper error path.
+      # Turn the stdout of a bolt_tasks task_status reply into what the task
+      # printed, for Result.for_task.
       #
       # Normally, create_task_stdout returns a Hash and reply_task_status
       # calls .to_json on it, producing a single JSON string like:
@@ -239,8 +240,13 @@ module Bolt
       # case, it produces a String (the inner JSON), which we return so
       # Result.for_task can parse it.
       #
+      # For a task that exits non-zero without an _error of its own,
+      # create_task_stdout adds one of kind choria.tasks/task-error. We take
+      # it out and return what the task printed, so Result.for_task reports
+      # the failure the way it does for the other transports.
+      #
       # @param agent_stdout [String, nil] JSON-encoded stdout from the bolt_tasks agent
-      # @return [String, nil] JSON string suitable for Result.for_task
+      # @return [String, nil] The text or JSON the task printed, for Result.for_task
       def unwrap_bolt_tasks_stdout(agent_stdout)
         return agent_stdout unless agent_stdout.is_a?(String)
 
@@ -250,9 +256,16 @@ module Bolt
           return agent_stdout
         end
 
-        # Normal case: parsed is a Hash, return the original JSON string.
         # Double-encoded case: parsed is a String (the inner JSON), return it.
-        parsed.is_a?(String) ? parsed : agent_stdout
+        return parsed if parsed.is_a?(String)
+
+        # A Hash without the agent's error is the normal case and returns the original JSON string
+        agent_error = parsed.is_a?(Hash) && parsed['_error'].is_a?(Hash) && parsed['_error']['kind'] == 'choria.tasks/task-error'
+        return agent_stdout unless agent_error
+
+        # The agent puts output that isn't a JSON object under _output
+        printed = parsed.except('_error')
+        printed.keys == ['_output'] && printed['_output'].is_a?(String) ? printed['_output'] : printed.to_json
       end
     end
   end
