@@ -36,14 +36,27 @@ module Bolt
 
       # Download a path from each capable target into its own directory.
       def batch_download(targets, source, destination, _options = {}, position = [], &callback)
+        directories = targets.to_h { |target| [target, download_dir(destination, target)] }
+        download_into(directories, source, position, &callback)
+      end
+
+      # Download a path from each capable target into the directory given
+      # for it.
+      #
+      # @param directories [Hash{Bolt::Target => String}] Each target and the local directory its download goes into
+      # @param source [String] The path to download from each target
+      # @param position [Array] Positional info for result tracking
+      # @param callback [Proc] Called with :node_start and :node_result events
+      # @return [Array<Bolt::Result>]
+      def download_into(directories, source, position, &callback)
         result_opts = { action: 'download', name: source, position: position }
-        capable, results = prepare_targets(targets, 'file_transfer', result_opts, &callback)
+        capable, results = prepare_targets(directories.keys, 'file_transfer', result_opts, &callback)
         return results if capable.empty?
 
-        logger.debug { "Downloading #{source} from #{target_count(capable)} to #{destination}" }
+        logger.debug { "Downloading #{source} from #{target_count(capable)}" }
         # The library takes one directory per identity, so targets behind one
         # identity share the last one's directory.
-        destination_dirs = capable.to_h { |target| [choria_identity(target), download_dir(destination, target)] }
+        destination_dirs = capable.to_h { |target| [choria_identity(target), directories.fetch(target)] }
         results + transfer(capable, result_opts, callback) do |client|
           outcomes = client.download(source, destination_dirs)
           file_transfer_results(capable, outcomes, result_opts, callback) do |target, outcome|

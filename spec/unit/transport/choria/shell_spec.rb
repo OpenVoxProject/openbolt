@@ -368,10 +368,42 @@ describe Bolt::Transport::Choria do
     end
   end
 
-  describe '#batch_script' do
-    let(:script_path) { '/tmp/test_script.sh' }
-    let(:script_content) { "#!/bin/bash\necho hello" }
+  describe '#run_command' do
+    it 'runs the command on the target and returns its result' do
+      stub_agents(target, %w[rpcutil shell])
+      stub_shell_start
+      stub_shell_list
+      stub_shell_status(stdout: 'hello')
 
+      result = transport.run_command(target, 'hostname')
+
+      expect(result.target).to eq(target)
+      expect(result.value).to include('stdout' => 'hello', 'exit_code' => 0)
+      expect([result.action, result.object]).to eq(%w[command hostname])
+    end
+
+    it 'passes its options to the batch, so the command gets its env vars' do
+      stub_agents(target, %w[rpcutil shell])
+      stub_shell_list
+      stub_shell_status
+      expect(mock_rpc_client).to receive(:start) do |args|
+        expect(args[:command]).to eq('/usr/bin/env MY_VAR=hello mycommand')
+        [make_shell_start_result(target)]
+      end
+
+      transport.run_command(target, 'mycommand', { env_vars: { 'MY_VAR' => 'hello' } })
+    end
+
+    it 'returns the error of a target without the shell agent as its result' do
+      stub_agents(target, %w[rpcutil])
+
+      result = transport.run_command(target, 'hostname')
+
+      expect(result.error_hash).to include('kind' => 'bolt/choria-agent-not-available')
+    end
+  end
+
+  describe '#batch_script' do
     include_context 'choria multi-target'
     include_context 'choria script file stubs'
 
@@ -672,6 +704,29 @@ describe Bolt::Transport::Choria do
         expect(uploaded_files(run_commands)['C:\Windows\Temp\bolt-choria-test-uuid\bolt_run.ps1'].lines.first.chomp)
           .to eq("& 'C:\\Windows\\Temp\\bolt-choria-test-uuid\\test_script.sh' '5' 'true'")
       end
+    end
+  end
+
+  describe '#run_script' do
+    include_context 'choria script file stubs'
+
+    it 'runs the script on the target with its arguments and returns its result' do
+      stub_agents(target, %w[rpcutil shell])
+      run_commands = []
+      allow(mock_rpc_client).to receive(:run) do |args|
+        run_commands << args[:command]
+        [make_shell_run_result(target)]
+      end
+      stub_shell_start
+      stub_shell_list
+      stub_shell_status(stdout: 'hello')
+
+      result = transport.run_script(target, script_path, ['arg with spaces'])
+
+      expect(result.target).to eq(target)
+      expect(result.value).to include('stdout' => 'hello', 'exit_code' => 0)
+      expect([result.action, result.object]).to eq(['script', script_path])
+      expect(uploaded_files(run_commands)['/tmp/bolt-choria-test-uuid/bolt_run.sh']).to include('arg\ with\ spaces')
     end
   end
 

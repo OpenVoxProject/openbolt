@@ -335,9 +335,11 @@ RSpec.shared_context 'choria task file stubs' do
   end
 end
 
-# File system stubs for script execution tests. Expects script_path and
-# script_content to be defined via let in the including context.
+# The script and the file system stubs for script execution tests.
 RSpec.shared_context 'choria script file stubs' do
+  let(:script_path) { '/tmp/test_script.sh' }
+  let(:script_content) { "#!/bin/bash\necho hello" }
+
   before(:each) do
     allow(File).to receive(:binread).and_call_original
     allow(File).to receive(:binread).with(script_path).and_return(script_content)

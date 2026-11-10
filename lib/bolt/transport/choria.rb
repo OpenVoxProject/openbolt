@@ -208,6 +208,44 @@ module Bolt
         response[:responded].length == targets.length
       end
 
+      # The single-target methods of the transport API. The remote transport
+      # calls run_task for its run-on target.
+
+      def run_command(target, command, options = {}, position = [])
+        batch_command([target], command, options, position).first
+      end
+
+      def run_script(target, script, arguments, options = {}, position = [])
+        batch_script([target], script, arguments, options, position).first
+      end
+
+      # Raises when no implementation of the task suits the target, like the
+      # other transports do. A batch reports that as the target's result.
+      def run_task(target, task, arguments, options = {}, position = [])
+        result = batch_task([target], task, arguments, options, position).first
+        # A result with an object is the task's own, whatever error the task
+        # printed. A failure the transport reports has none.
+        return result if result.object
+
+        raise Bolt::NoImplementationError.new(target, task) if result.error_hash&.dig('kind') == 'bolt/no-implementation'
+
+        result
+      end
+
+      def upload(target, source, destination, options = {})
+        batch_upload([target], source, destination, options).first
+      end
+
+      # Downloads into the destination itself. A batch gives each target a
+      # directory of its own under the destination.
+      def download(target, source, destination, _options = {})
+        download_into({ target => destination }, source, []).first
+      end
+
+      def connected?(target)
+        batch_connected?([target])
+      end
+
       # Returns the Choria node identity for a target. Uses the transport
       # 'host' config if set, falling back to target.host (which Bolt
       # derives from the URI or target name).
