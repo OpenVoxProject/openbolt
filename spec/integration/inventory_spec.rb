@@ -304,7 +304,8 @@ describe 'running with an inventory file', reset_puppet_settings: true do
                             'override_parent' => 'discard',
                             'added_group' => 'keep' }
 
-      expected_hash_post = expected_hash_pre.merge('override_parent' => 'keep')
+      expected_hash_post = expected_hash_pre.merge('override_parent' => 'keep',
+                                                   'plan_context' => 'keep')
       result = run_cli_json(plan)
 
       expect(result).to include('addme_group' => [conn[:host], '0.0.0.0:20024'])
