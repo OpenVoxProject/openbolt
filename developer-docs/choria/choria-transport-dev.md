@@ -143,6 +143,11 @@ The tmpdir is created with `mkdir -m 700`, without `-p`, so a node without
 that directory fails with `Could not make tmpdir`, like it does with the SSH
 transport.
 
+A preparation command that exits non-zero on a node is reported as the file
+error the other transports report for that step. It has kind
+`puppetlabs.tasks/task_file_error` and a message that starts with `Could not`,
+for example `Could not make file '/tmp/bolt-choria-abc/script.sh' executable`.
+
 ## Threading Model
 
 OpenBolt runs batches in parallel threads sharing the same transport instance. The
@@ -597,9 +602,9 @@ run-on target. The single-target methods differ from a batch in 3 ways:
 - `run_task` raises `Bolt::NoImplementationError` when no implementation of
   the task suits the target, like it does with the other transports. A batch
   reports that as the target's result.
-- `run_script` and `run_task` raise `Bolt::Node::FileError` when the node
-  cannot make the tmpdir, like they do with the other transports. A batch
-  reports that as the target's result.
+- `run_script` and `run_task` raise `Bolt::Node::FileError` when a
+  preparation step fails on the node, like they do with the other transports.
+  A batch reports that as the target's result.
 - `download` puts the file into the destination itself. A batch gives each
   target a directory of its own under the destination.
 

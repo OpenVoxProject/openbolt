@@ -217,7 +217,7 @@ module Bolt
       end
 
       def run_script(target, script, arguments, options = {}, position = [])
-        raise_tmpdir_error(batch_script([target], script, arguments, options, position).first)
+        raise_file_error(batch_script([target], script, arguments, options, position).first)
       end
 
       # Raises when no implementation of the task suits the target, like the
@@ -230,7 +230,7 @@ module Bolt
 
         raise Bolt::NoImplementationError.new(target, task) if result.error_hash&.dig('kind') == 'bolt/no-implementation'
 
-        raise_tmpdir_error(result)
+        raise_file_error(result)
       end
 
       def upload(target, source, destination, options = {})
@@ -247,10 +247,10 @@ module Bolt
         batch_connected?([target])
       end
 
-      # Raises when the node could not make the tmpdir, like the other
+      # Raises when a preparation step failed on the node, like the other
       # transports do, and returns the result otherwise. A batch reports
       # that failure as the target's result.
-      def raise_tmpdir_error(result)
+      def raise_file_error(result)
         error = result.error_hash
         raise Bolt::Node::FileError, error['msg'] if error && error['kind'] == 'puppetlabs.tasks/task_file_error'
 

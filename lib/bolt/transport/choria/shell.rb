@@ -106,7 +106,7 @@ module Bolt
           active_targets = shell_targets
 
           # Create a temp directory with restricted permissions
-          failures = make_tmpdir(active_targets, tmpdir)
+          failures = shell_run(active_targets, make_tmpdir_command(first_target, tmpdir), description: "make tmpdir #{tmpdir}")
           results += emit_results(failures, **result_opts, &callback)
           active_targets -= failures.keys
 
@@ -162,8 +162,7 @@ module Bolt
         end
 
         begin
-          failures = shell_run(targets, cleanup_dir_command(targets.first, tmpdir),
-                               description: 'cleanup tmpdir')
+          failures = shell_run(targets, cleanup_dir_command(targets.first, tmpdir), description: "remove #{tmpdir}")
           failures.each do |target, failure|
             logger.warn { "Cleanup failed on #{target.safe_name}. Task data may remain in #{tmpdir}. #{failure[:error]}" }
           end
@@ -242,7 +241,7 @@ module Bolt
         task_dir = tmpdir
 
         # Create the tmpdir
-        failures = make_tmpdir(active_targets, tmpdir)
+        failures = shell_run(active_targets, make_tmpdir_command(first_target, tmpdir), description: "make tmpdir #{tmpdir}")
         failed_results += emit_results(failures, **result_opts, &callback)
         active_targets -= failures.keys
 
@@ -256,9 +255,8 @@ module Bolt
           # Create subdirectories for the task and its dependencies
           extra_dirs = extra_files.map { |file| join_path(first_target, tmpdir, File.dirname(file['name'])) }.uniq
           all_dirs = [task_dir] + extra_dirs
-          failures = shell_run(active_targets,
-                               make_dir_command(first_target, *all_dirs),
-                               description: 'mkdir task dirs')
+          failures = shell_run(active_targets, make_dir_command(first_target, *all_dirs),
+                               description: "create subdirectories in '#{tmpdir}'")
           failed_results += emit_results(failures, **result_opts, &callback)
           active_targets -= failures.keys
 
@@ -322,7 +320,7 @@ module Bolt
 
         chmod_cmd = make_executable_command(first_target, remote_path)
         if targets.any? && chmod_cmd
-          failures = shell_run(targets, chmod_cmd, description: "chmod #{result_opts[:action]}")
+          failures = shell_run(targets, chmod_cmd, description: "make file '#{remote_path}' executable")
           results += emit_results(failures, **result_opts, &callback)
           targets -= failures.keys
         end
@@ -351,29 +349,18 @@ module Bolt
         [targets - failures.keys, emit_results(failures, **result_opts, &callback)]
       end
 
-      # Create the tmpdir on the targets. A target whose mkdir fails gets the
-      # error the other transports raise for a tmpdir they can't make. A
-      # target that didn't answer the call keeps the error of the call.
-      #
-      # @param targets [Array<Bolt::Target>] Targets to create the tmpdir on, at least 1
-      # @param tmpdir [String] Absolute path to the tmpdir on the remote node
-      # @return [Hash{Bolt::Target => Hash}] Failures only. An empty hash means all succeeded.
-      def make_tmpdir(targets, tmpdir)
-        failures = shell_run(targets, make_tmpdir_command(targets.first, tmpdir), description: 'mkdir tmpdir')
-        failures.transform_values do |failure|
-          next failure unless failure[:error_kind] == 'bolt/choria-operation-failed'
-
-          failure.merge(error: "Could not make tmpdir #{tmpdir}: #{failure[:stderr]}", error_kind: 'puppetlabs.tasks/task_file_error')
-        end
-      end
-
       # Execute a synchronous command on targets via the shell.run RPC action.
       # Used for internal prep/cleanup (mkdir, chmod, etc.) that completes quickly.
-      # Returns only failures since successes don't need to be reported.
+      # Returns only failures since successes don't need to be reported. A
+      # command that exits non-zero gets the file error the other transports
+      # report for a failed preparation step, "Could not" followed by the
+      # description and the command's stderr. A target that didn't answer the
+      # call keeps the error of the call.
       #
       # @param targets [Array<Bolt::Target>] Targets to run the command on
       # @param command [String] Shell command to execute
-      # @param description [String] Human-readable label for logs and error messages
+      # @param description [String] What the command does, as the words that follow "Could not" in
+      #   the error, like "make tmpdir /tmp/x". It also names the call in logs and RPC errors.
       # @return [Hash{Bolt::Target => Hash}] Failures only; empty hash means all succeeded
       def shell_run(targets, command, description:)
         command = powershell_cmd(command) if windows_target?(targets.first)
@@ -389,11 +376,8 @@ module Bolt
           exitcode = exitcode_from(data[:exitcode], target, description)
           next if exitcode.zero?
 
-          failures[target] = error_output(
-            "#{description} failed on #{target.safe_name} (exit code #{exitcode}): #{data[:stderr]}",
-            'bolt/choria-operation-failed',
-            stdout: data[:stdout], stderr: data[:stderr], exitcode: exitcode
-          )
+          failures[target] = error_output("Could not #{description}: #{data[:stderr]}", 'puppetlabs.tasks/task_file_error',
+                                          stdout: data[:stdout], stderr: data[:stderr], exitcode: exitcode)
         end
 
         failures
@@ -421,7 +405,7 @@ module Bolt
 
           command = upload_file_command(remaining.first, Base64.strict_encode64(chunk), destination,
                                         append: index.positive?)
-          chunk_failures = shell_run(remaining, command, description: "upload #{destination}")
+          chunk_failures = shell_run(remaining, command, description: "copy file to #{destination}")
           failures.merge!(chunk_failures)
           remaining -= chunk_failures.keys
         end
@@ -670,7 +654,7 @@ module Bolt
           platform_jobs.each_slice(SHELL_JOB_DIR_BATCH_SIZE) do |batch|
             targets = batch.map(&:first)
             command = remove_job_dirs_command(targets.first, batch.map { |_target, state| state[:handle] })
-            shell_run(targets, command, description: 'remove shell job directories').each do |target, failure|
+            shell_run(targets, command, description: 'remove the shell job directories').each do |target, failure|
               logger.warn { "Removing the shell job directory failed on #{target.safe_name}: #{failure[:error]}" }
             end
           end

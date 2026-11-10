@@ -562,9 +562,8 @@ describe Bolt::Transport::Choria do
         expect(results.length).to eq(2)
         expect(results.find { |result| result.target == target }.value['stdout']).to eq('hello')
         failed = results.find { |result| result.target == target2 }
-        expect(failed.error_hash['kind']).to eq('bolt/choria-operation-failed')
-        expect(failed.error_hash['msg'])
-          .to match(%r{\Aupload /tmp/bolt-choria-test-uuid/test_script\.sh failed on .+ \(exit code 1\): disk full})
+        expect(failed.error_hash['kind']).to eq('puppetlabs.tasks/task_file_error')
+        expect(failed.error_hash['msg']).to eq('Could not copy file to /tmp/bolt-choria-test-uuid/test_script.sh: disk full')
         expect(started).to eq(['node1.example.com'])
       end
 
@@ -589,8 +588,8 @@ describe Bolt::Transport::Choria do
         expect(results.length).to eq(2)
         expect(results.find { |result| result.target == target }.value['stdout']).to eq('hello')
         failed = results.find { |result| result.target == target2 }
-        expect(failed.error_hash['kind']).to eq('bolt/choria-operation-failed')
-        expect(failed.error_hash['msg']).to match(/\Achmod script failed on .+ \(exit code 1\): read-only file system/)
+        expect(failed.error_hash['kind']).to eq('puppetlabs.tasks/task_file_error')
+        expect(failed.error_hash['msg']).to eq("Could not make file '/tmp/bolt-choria-test-uuid/test_script.sh' executable: read-only file system")
         expect(started).to eq(['node1.example.com'])
       end
 
@@ -614,9 +613,8 @@ describe Bolt::Transport::Choria do
 
         expect(results.find { |result| result.target == target }.value['stdout']).to eq('hello')
         failed = results.find { |result| result.target == target2 }
-        expect(failed.error_hash['kind']).to eq('bolt/choria-operation-failed')
-        expect(failed.error_hash['msg'])
-          .to match(%r{\Aupload /tmp/bolt-choria-test-uuid/bolt_run\.sh failed on .+ \(exit code 1\): disk full})
+        expect(failed.error_hash['kind']).to eq('puppetlabs.tasks/task_file_error')
+        expect(failed.error_hash['msg']).to eq('Could not copy file to /tmp/bolt-choria-test-uuid/bolt_run.sh: disk full')
         expect(started).to eq(['node1.example.com'])
       end
 
@@ -749,6 +747,18 @@ describe Bolt::Transport::Choria do
       expect { transport.run_script(target, script_path, []) }
         .to raise_error(Bolt::Node::FileError, %r{\ACould not make tmpdir /missing/bolt-choria-test-uuid: mkdir: cannot create directory})
     end
+
+    it 'raises when the node cannot make the script executable, like the other transports do' do
+      stub_agents(target, %w[rpcutil shell])
+      allow(mock_rpc_client).to receive(:run) do |args|
+        exitcode = args[:command].start_with?('chmod u+x') ? 1 : 0
+        [make_shell_run_result(target, stderr: exitcode.zero? ? '' : 'read-only file system', exitcode: exitcode)]
+      end
+      expect(mock_rpc_client).not_to receive(:start)
+
+      expect { transport.run_script(target, script_path, []) }
+        .to raise_error(Bolt::Node::FileError, "Could not make file '/tmp/bolt-choria-test-uuid/test_script.sh' executable: read-only file system")
+    end
   end
 
   describe '#run_task_via_shell' do
@@ -871,9 +881,8 @@ describe Bolt::Transport::Choria do
 
       expect(results.find { |result| result.target == target }.value).to eq('result' => 'ok')
       failed = results.find { |result| result.target == target2 }
-      expect(failed.error_hash['kind']).to eq('bolt/choria-operation-failed')
-      expect(failed.error_hash['msg'])
-        .to match(%r{\Aupload /tmp/bolt-choria-test-uuid/bolt_run\.sh failed on .+ \(exit code 1\): disk full})
+      expect(failed.error_hash['kind']).to eq('puppetlabs.tasks/task_file_error')
+      expect(failed.error_hash['msg']).to eq('Could not copy file to /tmp/bolt-choria-test-uuid/bolt_run.sh: disk full')
       expect(started).to eq(['node1.example.com'])
     end
 
@@ -913,9 +922,8 @@ describe Bolt::Transport::Choria do
       expect(results.length).to eq(2)
       expect(results.find { |result| result.target == target }.value).to eq('result' => 'ok')
       failed = results.find { |result| result.target == target2 }
-      expect(failed.error_hash['kind']).to eq('bolt/choria-operation-failed')
-      expect(failed.error_hash['msg'])
-        .to match(%r{\Aupload /tmp/bolt-choria-test-uuid/mytask\.sh failed on .+ \(exit code 1\): disk full})
+      expect(failed.error_hash['kind']).to eq('puppetlabs.tasks/task_file_error')
+      expect(failed.error_hash['msg']).to eq('Could not copy file to /tmp/bolt-choria-test-uuid/mytask.sh: disk full')
       expect(started).to eq(['node1.example.com'])
     end
 
@@ -940,9 +948,35 @@ describe Bolt::Transport::Choria do
       expect(results.length).to eq(2)
       expect(results.find { |result| result.target == target }.value).to eq('result' => 'ok')
       failed = results.find { |result| result.target == target2 }
-      expect(failed.error_hash['kind']).to eq('bolt/choria-operation-failed')
-      expect(failed.error_hash['msg']).to match(/\Achmod task failed on .+ \(exit code 1\): read-only file system/)
+      expect(failed.error_hash['kind']).to eq('puppetlabs.tasks/task_file_error')
+      expect(failed.error_hash['msg']).to eq("Could not make file '/tmp/bolt-choria-test-uuid/mytask.sh' executable: read-only file system")
       expect(started).to eq(['node1.example.com'])
+    end
+
+    it 'reports a failed mkdir of the task subdirectories as a file error' do
+      extra_task = Bolt::Task.new(
+        task_name,
+        { 'input_method' => 'both', 'files' => ['mymod/lib/helper.rb'] },
+        [
+          { 'name' => 'mytask.sh', 'path' => task_executable },
+          { 'name' => 'mymod/lib/helper.rb', 'path' => '/path/to/mymod/lib/helper.rb' }
+        ]
+      )
+      allow(File).to receive(:binread).with('/path/to/mymod/lib/helper.rb').and_return('# helper')
+      run_calls = 0
+      allow(mock_rpc_client).to receive(:run) do
+        run_calls += 1
+        exitcode = run_calls == 2 ? 1 : 0
+        [make_shell_run_result(target, stderr: exitcode.zero? ? '' : 'no space', exitcode: exitcode)]
+      end
+      expect(mock_rpc_client).not_to receive(:start)
+
+      result = transport.batch_task([target], extra_task, {}).first
+
+      expect(result.error_hash).to include(
+        'kind' => 'puppetlabs.tasks/task_file_error',
+        'msg' => "Could not create subdirectories in '/tmp/bolt-choria-test-uuid': no space"
+      )
     end
 
     # Command-building details (stdin/environment/both input methods,
@@ -1012,9 +1046,10 @@ describe Bolt::Transport::Choria do
                        target2 => { exitcode: 1, stderr: 'Permission denied' } })
 
       failures = transport.shell_run([target, target2], 'mkdir /foo',
-                                     description: 'mkdir')
+                                     description: 'make directory /foo')
       expect(failures.keys).to eq([target2])
-      expect(failures[target2][:error]).to match(/exit code 1/)
+      expect(failures[target2]).to include(error: 'Could not make directory /foo: Permission denied',
+                                           error_kind: 'puppetlabs.tasks/task_file_error')
     end
 
     it 'returns all targets as failed when RPC call raises' do
