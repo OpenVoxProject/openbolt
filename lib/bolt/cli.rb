@@ -12,6 +12,7 @@ require 'optparse'
 require_relative '../bolt/analytics'
 require_relative '../bolt/application'
 require_relative '../bolt/bolt_option_parser'
+require_relative '../bolt/completion'
 require_relative '../bolt/config'
 require_relative '../bolt/error'
 require_relative '../bolt/executor'
@@ -36,6 +37,7 @@ module Bolt
     COMMANDS = {
       'apply'     => %w[],
       'command'   => %w[run],
+      'completion' => Bolt::Completion::SHELLS,
       'file'      => %w[download upload],
       'group'     => %w[show],
       'guide'     => %w[],
@@ -114,6 +116,21 @@ module Bolt
 
         if options[:version]
           puts Bolt::VERSION
+          raise Bolt::CLIExit
+        end
+
+        # Print the shell completion script and exit: no project or config
+        # is loaded.
+        if options[:subcommand] == 'completion'
+          require_relative 'completion/generator'
+          if options[:action].nil?
+            # Display the completion help text
+            parser.update
+            puts parser.help
+            raise Bolt::CLIExit
+          end
+
+          puts Bolt::Completion::Generator.render(options[:action])
           raise Bolt::CLIExit
         end
 
@@ -321,6 +338,7 @@ module Bolt
       end
 
       return if %w[guide module plan project secret].include?(options[:subcommand]) ||
+                options[:subcommand] == 'completion' ||
                 %w[convert new show].include?(options[:action]) ||
                 options[:plan_hierarchy]
 
