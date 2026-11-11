@@ -2,7 +2,73 @@
 
 All notable changes to this project will be documented in this file.
 
-## [5.6.0](https://github.com/openvoxproject/openbolt/tree/5.6.0) (2026-06-10)
+## [9.0.0](https://github.com/openvoxproject/openbolt/tree/9.0.0) (2026-11-11)
+
+[Full Changelog](https://github.com/openvoxproject/openbolt/compare/5.6.0...9.0.0)
+
+**Breaking changes:**
+
+- Set required Ruby to \>= 3.4 in gemspec [\#340](https://github.com/OpenVoxProject/openbolt/pull/340) ([nmburgan](https://github.com/nmburgan))
+
+**Implemented enhancements:**
+
+- Add Choria transport acceptance testing [\#384](https://github.com/OpenVoxProject/openbolt/pull/384) ([nmburgan](https://github.com/nmburgan))
+- Add Fedora 45 to packaging platforms [\#373](https://github.com/OpenVoxProject/openbolt/pull/373) ([Sharpie](https://github.com/Sharpie))
+- Add upload and download to the Choria transport through the file\_transfer agent [\#358](https://github.com/OpenVoxProject/openbolt/pull/358) ([nmburgan](https://github.com/nmburgan))
+- Choria transport fixes and cleanup [\#349](https://github.com/OpenVoxProject/openbolt/pull/349) ([nmburgan](https://github.com/nmburgan))
+- Allow to pass a JSON array/object as a target list to CLI [\#281](https://github.com/OpenVoxProject/openbolt/pull/281) ([jay7x](https://github.com/jay7x))
+
+**Security fixes:**
+
+- Promote puppet-runtime 2026.09.02.1 [\#292](https://github.com/OpenVoxProject/openbolt/pull/292) ([OpenVoxProjectBot](https://github.com/OpenVoxProjectBot))
+
+**Closed issues:**
+
+- Generated reference pages still call the product Bolt [\#352](https://github.com/OpenVoxProject/openbolt/issues/352)
+- Replace dead pup.pt short links with docs.openvoxproject.org URLs [\#277](https://github.com/OpenVoxProject/openbolt/issues/277)
+- bolt crashes with SystemStackError [\#181](https://github.com/OpenVoxProject/openbolt/issues/181)
+- Transport plugin for choria [\#180](https://github.com/OpenVoxProject/openbolt/issues/180)
+- switch the integration tests to use openvox [\#29](https://github.com/OpenVoxProject/openbolt/issues/29)
+
+**Merged pull requests:**
+
+- Report a failed Choria preparation step like the other transports [\#383](https://github.com/OpenVoxProject/openbolt/pull/383) ([nmburgan](https://github.com/nmburgan))
+- Add single-target methods to the Choria transport and match 3 results of the other transports [\#382](https://github.com/OpenVoxProject/openbolt/pull/382) ([nmburgan](https://github.com/nmburgan))
+- Ask the server for a task's lib and scripts files where it serves them [\#381](https://github.com/OpenVoxProject/openbolt/pull/381) ([nmburgan](https://github.com/nmburgan))
+- Remove Choria shell job records and keep arguments out of them [\#380](https://github.com/OpenVoxProject/openbolt/pull/380) ([nmburgan](https://github.com/nmburgan))
+- Double every PowerShell single quote character and pass values as base64 [\#379](https://github.com/OpenVoxProject/openbolt/pull/379) ([nmburgan](https://github.com/nmburgan))
+- Report why Choria agent discovery failed for each target [\#378](https://github.com/OpenVoxProject/openbolt/pull/378) ([nmburgan](https://github.com/nmburgan))
+- Fail only the Choria targets without a matching task implementation [\#377](https://github.com/OpenVoxProject/openbolt/pull/377) ([nmburgan](https://github.com/nmburgan))
+- Fix env vars and Windows commands in the Choria shell agent path [\#376](https://github.com/OpenVoxProject/openbolt/pull/376) ([nmburgan](https://github.com/nmburgan))
+- Promote puppet-runtime 2026.11.06.1 into main [\#375](https://github.com/OpenVoxProject/openbolt/pull/375) ([OpenVoxProjectBot](https://github.com/OpenVoxProjectBot))
+- Remove packaging configuration for Fedora 42 [\#374](https://github.com/OpenVoxProject/openbolt/pull/374) ([Sharpie](https://github.com/Sharpie))
+- Run each nested plan on its own Fiber [\#372](https://github.com/OpenVoxProject/openbolt/pull/372) ([nmburgan](https://github.com/nmburgan))
+- Fix incorrect platform string in debian-13-armhf.rb [\#370](https://github.com/OpenVoxProject/openbolt/pull/370) ([nmburgan](https://github.com/nmburgan))
+- Complete the Puppetfile in the Choria testing guide [\#368](https://github.com/OpenVoxProject/openbolt/pull/368) ([nmburgan](https://github.com/nmburgan))
+- Run the sudo-tagged local tests in a Linux container [\#367](https://github.com/OpenVoxProject/openbolt/pull/367) ([nmburgan](https://github.com/nmburgan))
+- Run the test stack on OpenVox Server and OpenVoxDB images [\#365](https://github.com/OpenVoxProject/openbolt/pull/365) ([nmburgan](https://github.com/nmburgan))
+- Install the file\_transfer agent from the Forge in the testing guide [\#364](https://github.com/OpenVoxProject/openbolt/pull/364) ([nmburgan](https://github.com/nmburgan))
+- Remove packaging configuration for Ubuntu 25.04 [\#361](https://github.com/OpenVoxProject/openbolt/pull/361) ([Sharpie](https://github.com/Sharpie))
+- Promote puppet-runtime 2026.11.04.2 [\#360](https://github.com/OpenVoxProject/openbolt/pull/360) ([OpenVoxProjectBot](https://github.com/OpenVoxProjectBot))
+- Promote puppet-runtime 2026.11.04.1 [\#359](https://github.com/OpenVoxProject/openbolt/pull/359) ([OpenVoxProjectBot](https://github.com/OpenVoxProjectBot))
+- Depend on choria-mcorpc-support 2.28 [\#357](https://github.com/OpenVoxProject/openbolt/pull/357) ([nmburgan](https://github.com/nmburgan))
+- Fix broken tables and missing descriptions in generated reference pages [\#354](https://github.com/OpenVoxProject/openbolt/pull/354) ([miharp](https://github.com/miharp))
+- Call the product OpenBolt in the generated reference docs [\#353](https://github.com/OpenVoxProject/openbolt/pull/353) ([miharp](https://github.com/miharp))
+- Update CI test coverage [\#341](https://github.com/OpenVoxProject/openbolt/pull/341) ([nmburgan](https://github.com/nmburgan))
+- Temporarily use git repo for choria-mcorpc-support [\#339](https://github.com/OpenVoxProject/openbolt/pull/339) ([nmburgan](https://github.com/nmburgan))
+- Remove openssl gem in Gemfile [\#338](https://github.com/OpenVoxProject/openbolt/pull/338) ([nmburgan](https://github.com/nmburgan))
+- Revert "Release 9.0.0-rc1" [\#337](https://github.com/OpenVoxProject/openbolt/pull/337) ([nmburgan](https://github.com/nmburgan))
+- Update build.yml to set default branch to main [\#336](https://github.com/OpenVoxProject/openbolt/pull/336) ([nmburgan](https://github.com/nmburgan))
+- Put the prerelease label in the PowerShell manifest's PSData [\#335](https://github.com/OpenVoxProject/openbolt/pull/335) ([nmburgan](https://github.com/nmburgan))
+- Promote puppet-runtime 2026.10.15.1 [\#333](https://github.com/OpenVoxProject/openbolt/pull/333) ([OpenVoxProjectBot](https://github.com/OpenVoxProjectBot))
+- Changes for OpenBolt 9 [\#332](https://github.com/OpenVoxProject/openbolt/pull/332) ([nmburgan](https://github.com/nmburgan))
+- Fix spinner related first character 'truncation' [\#315](https://github.com/OpenVoxProject/openbolt/pull/315) ([davids-uta-edu](https://github.com/davids-uta-edu))
+- Remove setup.ps1 Cygwin setup script [\#284](https://github.com/OpenVoxProject/openbolt/pull/284) ([Sharpie](https://github.com/Sharpie))
+- Use relative links where the text lands in the docs collection [\#280](https://github.com/OpenVoxProject/openbolt/pull/280) ([miharp](https://github.com/miharp))
+- Replace dead pup.pt short links with docs.openvoxproject.org URLs [\#279](https://github.com/OpenVoxProject/openbolt/pull/279) ([miharp](https://github.com/miharp))
+- Clarify description of workflow "branch" input [\#268](https://github.com/OpenVoxProject/openbolt/pull/268) ([Sharpie](https://github.com/Sharpie))
+
+## [5.6.0](https://github.com/openvoxproject/openbolt/tree/5.6.0) (2026-06-11)
 
 [Full Changelog](https://github.com/openvoxproject/openbolt/compare/5.5.0...5.6.0)
 
