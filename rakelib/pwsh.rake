@@ -98,9 +98,9 @@ namespace :pwsh do
     @mapped_options = {}
 
     Bolt::CLI::COMMANDS.each do |subcommand, actions|
-      # The 'bolt guide' command is handled by PowerShell's help system, so
-      # don't create a cmdlet for it.
-      next if %w[guide].include?(subcommand)
+      # The 'bolt guide' command is handled by PowerShell's help system, and
+      # 'bolt completion' prints bash and zsh scripts, so neither gets a cmdlet.
+      next if %w[guide completion].include?(subcommand)
 
       actions << nil if actions.empty?
       actions.each do |action|

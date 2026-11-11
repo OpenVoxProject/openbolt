@@ -36,7 +36,7 @@ Gem::Specification.new do |spec|
                        Dir['modules/*/templates/**/*'] +
                        Dir['modules/*/types/**/*'] +
                        Dir['Puppetfile'] +
-                       Dir['resources/bolt_bash_completion.sh'] +
+                       Dir['lib/bolt/shell_completion/*'] +
                        Dir['guides/*.yaml']
   spec.bindir        = "exe"
   spec.executables   = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }

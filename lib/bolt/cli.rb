@@ -24,6 +24,7 @@ require_relative '../bolt/plugin'
 require_relative '../bolt/project_manager'
 require_relative '../bolt/puppetdb'
 require_relative '../bolt/rerun'
+require_relative '../bolt/shell_completion'
 require_relative '../bolt/target'
 require_relative '../bolt/version'
 
@@ -36,6 +37,7 @@ module Bolt
     COMMANDS = {
       'apply'     => %w[],
       'command'   => %w[run],
+      'completion' => %w[bash zsh],
       'file'      => %w[download upload],
       'group'     => %w[show],
       'guide'     => %w[],
@@ -114,6 +116,16 @@ module Bolt
 
         if options[:version]
           puts Bolt::VERSION
+          raise Bolt::CLIExit
+        end
+
+        if options[:subcommand] == 'completion'
+          shells = COMMANDS['completion']
+          unless shells.include?(options[:action])
+            raise Bolt::CLIError, "Expected a shell of the form 'bolt completion <shell>', one of #{shells.join(', ')}"
+          end
+
+          puts Bolt::ShellCompletion.script(options[:action])
           raise Bolt::CLIExit
         end
 

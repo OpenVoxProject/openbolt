@@ -37,6 +37,9 @@ module Bolt
           { flags: OPTIONS[:global],
             banner: COMMAND_HELP }
         end
+      when 'completion'
+        { flags: OPTIONS[:global],
+          banner: COMPLETION_HELP }
       when 'file'
         case action
         when 'upload'
@@ -214,6 +217,7 @@ module Bolt
       #{colorize(:cyan, 'Subcommands')}
           apply             Apply Puppet manifest code
           command           Run a command remotely
+          completion        Print a shell completion script
           file              Copy files between the controller and targets
           group             Show the list of groups in the inventory
           guide             View guides for OpenBolt concepts and features
@@ -285,6 +289,28 @@ module Bolt
 
       #{colorize(:cyan, 'Examples')}
           bolt command run 'uptime' -t target1,target2
+    HELP
+
+    COMPLETION_HELP = <<~HELP
+      #{colorize(:cyan, 'Name')}
+          completion
+
+      #{colorize(:cyan, 'Usage')}
+          bolt completion <shell>
+
+      #{colorize(:cyan, 'Description')}
+          Print a script that adds tab completion for OpenBolt subcommands, actions,
+          options, guide topics, and cached plan and task names to bash or zsh.
+
+      #{colorize(:cyan, 'Shells')}
+          bash          Print the bash completion script
+          zsh           Print the zsh completion script
+
+      #{colorize(:cyan, 'Examples')}
+          Load completion in the current bash session
+            source <(bolt completion bash)
+          Install completion for zsh in a directory listed in $fpath
+            bolt completion zsh > ~/.zfunc/_bolt
     HELP
 
     FILE_HELP = <<~HELP
