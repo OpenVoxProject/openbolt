@@ -25,6 +25,8 @@ gem "paint", "~> 2.2"
 
 group(:test) do
   gem "beaker-hostgenerator"
+  # The pcp transport needs this gem, which is not a dependency of OpenBolt
+  gem "orchestrator_client", "~> 0.7"
   gem "rack-test", '>= 1', '< 3'
   gem 'rspec-github', require: false
   gem 'voxpupuli-test', '~> 14.0', require: false

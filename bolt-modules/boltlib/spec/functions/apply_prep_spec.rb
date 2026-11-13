@@ -219,6 +219,29 @@ describe 'apply_prep' do
     end
   end
 
+  context 'with only pcp targets' do
+    let(:hostnames)         { %w[pcp://foo pcp://bar] }
+    let(:targets)           { hostnames.map { |hostname| inventory.get_target(hostname) } }
+    let(:fact)              { { 'osfamily' => 'none' } }
+    let(:custom_facts_task) { Bolt::Task.new('custom_facts_task') }
+
+    before(:each) do
+      allow(applicator).to receive_messages(build_plugin_tarball: :tarball, custom_facts_task: custom_facts_task)
+    end
+
+    it 'gathers facts without installing the agent' do
+      facts = Bolt::ResultSet.new(targets.map { |target| Bolt::Result.new(target, value: fact) })
+      expect(executor).to receive(:run_task)
+        .with(targets, custom_facts_task, hash_including('plugins'), {})
+        .and_return(facts)
+
+      is_expected.to run.with_params(hostnames.join(','))
+      targets.each do |target|
+        expect(inventory.facts(target)).to eq(fact)
+      end
+    end
+  end
+
   context 'with targets assigned the puppet-agent feature' do
     let(:hostnames)         { %w[foo bar] }
     let(:targets)           { hostnames.map { |h| inventory.get_target(h) } }

@@ -18,6 +18,7 @@ require_relative '../bolt/transport/docker'
 require_relative '../bolt/transport/jail'
 require_relative '../bolt/transport/local'
 require_relative '../bolt/transport/lxd'
+require_relative '../bolt/transport/orch'
 require_relative '../bolt/transport/podman'
 require_relative '../bolt/transport/remote'
 require_relative '../bolt/transport/ssh'
@@ -30,6 +31,7 @@ module Bolt
     jail: Bolt::Transport::Jail,
     local: Bolt::Transport::Local,
     lxd: Bolt::Transport::LXD,
+    pcp: Bolt::Transport::Orch,
     podman: Bolt::Transport::Podman,
     remote: Bolt::Transport::Remote,
     ssh: Bolt::Transport::SSH,
@@ -54,6 +56,10 @@ module Bolt
         coll[key.to_s] = if key == :remote
                            Concurrent::Delay.new do
                              val.new(self)
+                           end
+                         elsif key == :pcp
+                           Concurrent::Delay.new do
+                             val.new.tap { |pcp| pcp.plan_context = @plan_context }
                            end
                          else
                            Concurrent::Delay.new do
@@ -518,6 +524,21 @@ module Bolt
 
       value = options[:default] if value.empty?
       value
+    end
+
+    # Only the pcp transport uses the plan context, to report the plan to the
+    # orchestrator. The transport gets the context when it's created for a pcp
+    # target, so a plan without pcp targets never loads the orchestrator_client
+    # gem.
+    def start_plan(plan_context)
+      @plan_context = plan_context
+      pcp = @transports['pcp']
+      pcp.value.plan_context = plan_context if pcp.fulfilled?
+    end
+
+    def finish_plan(plan_result)
+      pcp = @transports['pcp']
+      pcp.value.finish_plan(plan_result) if pcp.fulfilled?
     end
 
     def without_default_logging

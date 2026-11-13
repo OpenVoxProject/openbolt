@@ -373,7 +373,15 @@ module Bolt
         end
       end
 
-      pal.run_plan(plan, params, executor, inventory, plugins.puppetdb_client)
+      sensitive_params = params.keys.select { |param| plan_params.dig(param, 'sensitive') }
+
+      plan_context = { plan_name: plan, params: params, sensitive: sensitive_params }
+
+      executor.start_plan(plan_context)
+      result = pal.run_plan(plan, params, executor, inventory, plugins.puppetdb_client)
+      executor.finish_plan(result)
+
+      result
     rescue Bolt::Error => e
       Bolt::PlanResult.new(e, 'failure')
     end

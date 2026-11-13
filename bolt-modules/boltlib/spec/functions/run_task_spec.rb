@@ -398,6 +398,21 @@ describe 'run_task' do
           .and_return(result_set)
       end
     end
+
+    context 'using the pcp transport' do
+      let(:task_name)   { 'Test::Noop' }
+      let(:hostname)    { 'pcp://a.b.com' }
+      let(:task_params) { { '_noop' => true } }
+
+      it 'sets the noop metaparameter when running in noop mode' do
+        expect(executor).to receive(:run_task)
+          .with([target], anything, { '_noop' => true }, { noop: true }, [])
+          .and_return(result_set)
+
+        is_expected.to run
+          .with_params(task_name, hostname, task_params)
+      end
+    end
   end
 
   context 'running in parallel' do
