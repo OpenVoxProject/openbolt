@@ -13,6 +13,8 @@ Puppet::Functions.create_function(:run_command) do
   # @param targets A pattern identifying zero or more targets. See {get_targets} for accepted patterns.
   # @param options A hash of additional options.
   # @option options [Boolean] _catch_errors Whether to catch raised errors.
+  # @option options [Boolean] _stream Whether to stream output from the command to the console.
+  #   Defaults to the `stream` configuration option.
   # @option options [String] _run_as User to run as using privilege escalation.
   # @option options [Hash[String, Any]] _env_vars Map of environment variables to set
   # @return A list of results, one entry per target.
@@ -31,6 +33,8 @@ Puppet::Functions.create_function(:run_command) do
   # @param description A description to be output when calling this function.
   # @param options A hash of additional options.
   # @option options [Boolean] _catch_errors Whether to catch raised errors.
+  # @option options [Boolean] _stream Whether to stream output from the command to the console.
+  #   Defaults to the `stream` configuration option.
   # @option options [String] _run_as User to run as using privilege escalation.
   # @option options [Hash[String, Any]] _env_vars Map of environment variables to set
   # @return A list of results, one entry per target.

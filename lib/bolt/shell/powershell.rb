@@ -194,7 +194,7 @@ module Bolt
         command = [*env_declarations(options[:env_vars]), command].join("\r\n") if options[:env_vars]
 
         wrap_command = conn.is_a?(Bolt::Transport::Local::Connection)
-        output = execute(command, wrap_command)
+        output = execute(command, wrap_command, stream: stream_enabled?(options))
         Bolt::Result.for_command(target,
                                  output.to_h,
                                  'command',
@@ -233,7 +233,8 @@ module Bolt
           env_assignments = options[:env_vars] ? env_declarations(options[:env_vars]) : []
           shell_init = options[:pwsh_params] ? Snippets.shell_init : ''
 
-          output = execute([shell_init, *env_assignments, command].join("\r\n"))
+          output = execute([shell_init, *env_assignments, command].join("\r\n"),
+                           stream: stream_enabled?(options))
 
           Bolt::Result.for_command(target,
                                    output.to_h,
@@ -243,7 +244,7 @@ module Bolt
         end
       end
 
-      def run_task(task, arguments, _options = {}, position = [])
+      def run_task(task, arguments, options = {}, position = [])
         implementation = select_implementation(target, task)
         executable = implementation['path']
         input_method = implementation['input_method']
@@ -300,7 +301,7 @@ module Bolt
             Snippets.append_ps_module_path(dir),
             *env_assignments,
             command
-          ].join("\n"))
+          ].join("\n"), stream: stream_enabled?(options))
 
           Bolt::Result.for_task(target, output.stdout.string,
                                 output.stderr.string,
@@ -310,7 +311,8 @@ module Bolt
         end
       end
 
-      def execute(command, wrap_command = false)
+      def execute(command, wrap_command = false, stream: false)
+        stream_logger if stream
         if (conn.max_command_length && command.length > conn.max_command_length) ||
            wrap_command
           return with_tmpdir do |dir|
@@ -319,7 +321,7 @@ module Bolt
             conn.upload_file(StringIO.new(command), script_file)
             args = escape_arguments([script_file])
             script_invocation = ['powershell.exe', *PS_ARGS, '-File', *args].join(' ')
-            execute(script_invocation)
+            execute(script_invocation, false, stream: stream)
           end
         end
         inp, out, err, t = conn.execute(command)
@@ -332,12 +334,7 @@ module Bolt
           encoding = out.external_encoding
           out.binmode
           to_print = out.read.force_encoding(encoding)
-          if !to_print.chomp.empty? && @stream_logger
-            formatted = to_print.lines.map do |msg|
-              "[#{@target.safe_name}] out: #{msg.chomp}"
-            end.join("\n")
-            @stream_logger.warn(formatted)
-          end
+          log_stream(to_print, 'out', stream)
           result.stdout        << to_print
           result.merged_output << to_print
         end
@@ -345,12 +342,7 @@ module Bolt
           encoding = err.external_encoding
           err.binmode
           to_print = err.read.force_encoding(encoding)
-          if !to_print.chomp.empty? && @stream_logger
-            formatted = to_print.lines.map do |msg|
-              "[#{@target.safe_name}] err: #{msg.chomp}"
-            end.join("\n")
-            @stream_logger.warn(formatted)
-          end
+          log_stream(to_print, 'err', stream)
           result.stderr        << to_print
           result.merged_output << to_print
         end

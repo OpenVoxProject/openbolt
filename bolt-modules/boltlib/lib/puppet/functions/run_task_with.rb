@@ -21,6 +21,8 @@ Puppet::Functions.create_function(:run_task_with) do
   # @param targets A pattern identifying zero or more targets. See {get_targets} for accepted patterns.
   # @param options A hash of additional options.
   # @option options [Boolean] _catch_errors Whether to catch raised errors.
+  # @option options [Boolean] _stream Whether to stream output from the task to the console.
+  #   Defaults to the `stream` configuration option.
   # @option options [Boolean] _noop Run the task in noop mode if available.
   # @option options [String] _run_as User to run as using privilege escalation.
   # @param block A block that returns a `Hash` of target-specific parameters for the task.
@@ -44,6 +46,8 @@ Puppet::Functions.create_function(:run_task_with) do
   # @param description A description to be output when calling this function.
   # @param options A hash of additional options.
   # @option options [Boolean] _catch_errors Whether to catch raised errors.
+  # @option options [Boolean] _stream Whether to stream output from the task to the console.
+  #   Defaults to the `stream` configuration option.
   # @option options [Boolean] _noop Run the task in noop mode if available.
   # @option options [String] _run_as User to run as using privilege escalation.
   # @param block A block that returns a `Hash` of target-specific parameters for the task.

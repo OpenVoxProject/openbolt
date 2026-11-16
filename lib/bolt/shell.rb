@@ -9,21 +9,41 @@ module Bolt
       @conn = conn
       @logger = Bolt::Logger.logger(@target.safe_name)
 
-      if Bolt::Logger.stream
+      stream_logger if Bolt::Logger.stream
+    end
+
+    # Resolves whether output should be streamed for a given call, falling back
+    # to the global stream setting when the call does not specify a value.
+    def stream_enabled?(options)
+      options.key?(:stream) ? options[:stream] : Bolt::Logger.stream
+    end
+
+    private def stream_logger
+      @stream_logger ||= begin
         Bolt::Logger.warn_once("stream_experimental",
                                "The 'stream' option is experimental, and might " \
                                "include breaking changes between minor versions.")
-        @stream_logger = Bolt::Logger.logger(:stream)
+        logger = Bolt::Logger.logger(:stream)
         # Don't send stream messages to the parent logger
-        @stream_logger.additive = false
+        logger.additive = false
 
         # Log stream messages without any other data or color
         pattern = Logging.layouts.pattern(pattern: '%m\n')
-        @stream_logger.appenders = Logging.appenders.stdout(
+        logger.appenders = Logging.appenders.stdout(
           'console',
           layout: pattern
         )
+        logger
       end
+    end
+
+    protected def log_stream(to_print, stream_name, stream)
+      return if !stream || to_print.chomp.empty?
+
+      formatted = to_print.lines.map do |msg|
+        "[#{@target.safe_name}] #{stream_name}: #{msg.chomp}"
+      end.join("\n")
+      stream_logger.warn(formatted)
     end
 
     def run_command(*_args)

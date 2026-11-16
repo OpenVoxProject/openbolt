@@ -174,10 +174,12 @@ shared_examples 'streaming output' do
     }
 
     before :each do
-      allow(Bolt::Logger).to receive(:logger).with(any_args).and_call_original
-      expect(Bolt::Logger).to receive(:logger).with(:stream).and_return(logger)
+      stream_logger = logger
+      allow(Bolt::Logger).to receive(:logger).and_wrap_original do |original, name|
+        name == :stream ? stream_logger : original.call(name)
+      end
       # Don't actually print logs
-      allow(logger).to receive(:warn)
+      allow(stream_logger).to receive(:warn)
     end
 
     it 'streams stdout to the console' do
@@ -208,15 +210,31 @@ shared_examples 'streaming output' do
       run_cli(%W[command run #{whoami} -t #{uri}] + config_flags, project: @project)
       expect(File.read(File.join(@project.path, 'bolt-debug.log'))).not_to include("[#{uri}] out: bolt")
     end
+
+    it 'does not stream a call that sets _stream to false' do
+      expect(logger).not_to receive(:warn)
+      run_cli(%W[plan run sample::subdir::command stream=false -t #{uri}] + config_flags, project: @project)
+    end
   end
 
   context 'with streaming disabled' do
-    let(:config) { {} }
+    let(:config) { { 'modulepath' => fixtures_path('modules') } }
 
     it 'does not print streaming logs' do
       allow(Bolt::Logger).to receive(:logger).with(any_args).and_call_original
       expect(Bolt::Logger).not_to receive(:logger).with(:stream)
       run_cli(%W[command run #{whoami} -t #{uri}] + config_flags, project: @project)
+    end
+
+    it 'streams a call that sets _stream to true' do
+      stream_logger = logger
+      allow(Bolt::Logger).to receive(:logger).and_wrap_original do |original, name|
+        name == :stream ? stream_logger : original.call(name)
+      end
+      allow(stream_logger).to receive(:warn)
+      expect(stream_logger).to receive(:warn).with(/\[#{uri}\] out: /)
+
+      run_cli(%W[plan run sample::subdir::command stream=true -t #{uri}] + config_flags, project: @project)
     end
   end
 end

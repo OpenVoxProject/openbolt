@@ -99,6 +99,21 @@ describe 'run_task_with' do
         .and_return(result_set))
     end
 
+    it '_stream is passed to the executor' do
+      executable = File.join(tasks_root, 'meta.sh')
+
+      expect(executor).to receive(:run_task_with)
+        .with(target_mapping, mock_task(executable, 'environment'), { stream: true }, [])
+        .and_return(result_set)
+
+      expect(inventory).to receive(:get_targets).with(hosts).and_return(targets)
+
+      is_expected.to(run
+        .with_params('Test::Meta', hosts, { '_stream' => true })
+        .with_lambda { |_| task_params }
+        .and_return(result_set))
+    end
+
     it 'uses the default if a parameter is not specified' do
       executable = File.join(tasks_root, 'params.sh')
 

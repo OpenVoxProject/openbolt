@@ -1,5 +1,12 @@
 plan sample::subdir::command (
-  TargetSpec $targets
+  TargetSpec        $targets,
+  Optional[Boolean] $stream = undef
 ) {
-  return run_command('echo From subdir', $targets)
+  $options = if $stream == undef {
+    {}
+  } else {
+    { '_stream' => $stream }
+  }
+
+  return run_command('echo From subdir', $targets, $options)
 }

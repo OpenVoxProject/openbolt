@@ -93,6 +93,20 @@ describe 'run_task' do
         .and_return(result_set)
     end
 
+    it 'when called with _stream - _stream is passed to the executor' do
+      executable = File.join(tasks_root, 'meta.sh')
+
+      expect(executor).to receive(:run_task)
+        .with([target], mock_task(executable, 'environment'), default_args, { stream: true }, [])
+        .and_return(result_set)
+      expect(inventory).to receive(:get_targets).with(hostname).and_return([target])
+
+      args = default_args.merge('_stream' => true)
+      is_expected.to run
+        .with_params('Test::Meta', hostname, args)
+        .and_return(result_set)
+    end
+
     it 'when called without without args hash (for a task where this is allowed)' do
       executable = File.join(tasks_root, 'yes.sh')
 
