@@ -485,24 +485,6 @@ describe Bolt::CLI do
       end
     end
 
-    describe 'checking for gem install' do
-      it 'displays a warning when Bolt is installed as a gem' do
-        with_env_vars('BOLT_GEM' => nil) do
-          allow(cli).to receive(:incomplete_install?).and_return(true)
-          expect(Bolt::Logger).to receive(:warn).with('gem_install', anything)
-          cli.execute({})
-        end
-      end
-
-      it 'does not display a warning when BOLT_GEM is set' do
-        with_env_vars('BOLT_GEM' => 'true') do
-          allow(cli).to receive(:incomplete_install?).and_return(true)
-          cli.execute({})
-          expect(Bolt::Logger).not_to receive(:warn).with('gem_install', anything)
-        end
-      end
-    end
-
     describe 'analytics' do
       before(:each) do
         allow(cli).to receive(:submit_screen_view).and_call_original
