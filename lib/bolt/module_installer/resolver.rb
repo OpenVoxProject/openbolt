@@ -63,6 +63,15 @@ module Bolt
           obj.forge.proxy     = config.dig('forge', 'proxy') || config.dig('proxy')
           obj.git.proxy       = config.dig('proxy')
           obj.forge.forge_api = config.dig('forge', 'baseurl')
+          auth_token = config.dig('forge', 'authorization_token')
+          next if auth_token.nil?
+
+          if obj.forge.respond_to?(:token)
+            obj.forge.token = auth_token
+          else
+            logger = Bolt::Logger.logger(self)
+            logger.warn("Unable to authenticate for metadata retrieval when using puppetfile-resolver <= 0.6.3")
+          end
         end
       end
 
