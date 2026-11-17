@@ -1,0 +1,58 @@
+---
+name: Security Audit
+
+on:
+  pull_request:
+    paths:
+      - 'Gemfile'
+      - 'Gemfile.lock'
+      - '*.gemspec'
+  push:
+    branches:
+      - main
+    paths:
+      - 'Gemfile'
+      - 'Gemfile.lock'
+      - '*.gemspec'
+  schedule:
+    - cron: '0 8 * * MON'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    name: Dependency & Ruby Audit
+    runs-on: ubuntu-24.04
+    continue-on-error: true
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.4"
+          bundler-cache: true
+      - name: Run bundler-audit
+        id: bundler_audit
+        continue-on-error: true
+        run: bundle exec bundler-audit check --update
+      - name: Run ruby-audit
+        id: ruby_audit
+        continue-on-error: true
+        run: bundle exec ruby-audit check
+      - name: Audit summary
+        run: |
+          echo "## Security Audit Results" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          if [ "${{ steps.bundler_audit.outcome }}" = "success" ]; then
+            echo "- **bundler-audit**: No vulnerabilities found" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "- **bundler-audit**: Vulnerabilities detected — review output above" >> "$GITHUB_STEP_SUMMARY"
+          fi
+          if [ "${{ steps.ruby_audit.outcome }}" = "success" ]; then
+            echo "- **ruby-audit**: No vulnerabilities found" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "- **ruby-audit**: Vulnerabilities detected — review output above" >> "$GITHUB_STEP_SUMMARY"
+          fi
