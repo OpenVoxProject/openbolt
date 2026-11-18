@@ -150,6 +150,18 @@ describe Bolt::Transport::Choria do
     end
   end
 
+  context 'with run_as' do
+    it 'fails a command for a user other than root' do
+      result = runner.batch_command([target], 'whoami', run_as: 'nobody').first
+      expect(result.error_hash).to include(run_as_error(target, 'nobody'))
+    end
+
+    it 'runs a command for root' do
+      result = runner.batch_command([target], 'whoami', run_as: 'root').first
+      expect(result['stdout']).to eq("root\n")
+    end
+  end
+
   context 'with a batch of targets' do
     it 'gives each target the output of its own node' do
       results = runner.batch_command([target, second_target], 'cat /etc/hostname')

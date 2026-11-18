@@ -292,6 +292,85 @@ describe Bolt::Transport::Choria do
       end
     end
 
+    describe 'run_as' do
+      let(:command_output) { { 'stdout' => 'ok', 'stderr' => '', 'exit_code' => 0 } }
+
+      before(:each) do
+        stub_agents([target, target2], %w[rpcutil shell])
+        stub_shell_start
+        stub_shell_list
+        stub_shell_status(stdout: 'ok')
+      end
+
+      it 'refuses a user other than root with the escalate error and sends the shell agent nothing' do
+        expect(mock_rpc_client).not_to receive(:run)
+        expect(mock_rpc_client).not_to receive(:start)
+
+        result = transport.batch_command([target], 'hostname', { run_as: 'deploy' }).first
+
+        expect(result.error_hash).to include(run_as_error(target, 'deploy'))
+      end
+
+      it "refuses the user of the target's run-as option" do
+        inventory.set_config(target, %w[choria run-as], 'deploy')
+        expect(mock_rpc_client).not_to receive(:start)
+
+        result = transport.batch_command([target], 'hostname', {}).first
+
+        expect(result.error_hash).to include(run_as_error(target, 'deploy'))
+      end
+
+      it "refuses a user other than root on the call over root in the target's run-as option" do
+        inventory.set_config(target, %w[choria run-as], 'root')
+        expect(mock_rpc_client).not_to receive(:start)
+
+        result = transport.batch_command([target], 'hostname', { run_as: 'deploy' }).first
+
+        expect(result.error_hash).to include(run_as_error(target, 'deploy'))
+      end
+
+      it "runs the command for root on the call over another user in the target's run-as option" do
+        inventory.set_config(target, %w[choria run-as], 'deploy')
+
+        result = transport.batch_command([target], 'hostname', { run_as: 'root' }).first
+
+        expect(result.value).to eq(command_output)
+      end
+
+      it 'runs the command unchanged for root' do
+        expect(mock_rpc_client).to receive(:start).with(command: 'hostname').and_return([make_shell_start_result(target)])
+
+        result = transport.batch_command([target], 'hostname', { run_as: 'root' }).first
+
+        expect(result.value).to eq(command_output)
+      end
+
+      it 'runs the command on a Windows target whatever the user' do
+        stub_agents(target, %w[rpcutil shell], os_family: 'windows')
+
+        result = transport.batch_command([target], 'hostname', { run_as: 'deploy' }).first
+
+        expect(result.value).to eq(command_output)
+      end
+
+      it 'runs the command on the other targets of a batch with a refused target' do
+        inventory.set_config(target2, %w[choria run-as], 'deploy')
+        started_on = nil
+        allow(mock_rpc_client).to receive(:start) do
+          started_on = mock_rpc_client.options[:filter]['identity'].dup
+          [make_shell_start_result(target)]
+        end
+        events = []
+
+        results = transport.batch_command([target, target2], 'hostname', {}, []) { |event| events << event }
+
+        expect(started_on).to eq(%w[node1.example.com])
+        expect(results.find { |result| result.target == target }.value).to eq(command_output)
+        expect(results.find { |result| result.target == target2 }.error_hash).to include(run_as_error(target2, 'deploy'))
+        expect(events.select { |event| event[:type] == :node_result }.map { |event| event[:result].target }).to contain_exactly(target, target2)
+      end
+    end
+
     describe 'error messages' do
       it 'reports agent discovery as failed for every target when it raises before finishing' do
         allow(mock_rpc_client).to receive(:agent_inventory)
@@ -426,6 +505,16 @@ describe Bolt::Transport::Choria do
       finishes = events.select { |event| event[:type] == :node_result }
       expect(starts.length).to eq(2)
       expect(finishes.length).to eq(2)
+    end
+
+    it 'refuses a run_as user other than root with the escalate error and sends the shell agent nothing' do
+      stub_agents(target, %w[rpcutil shell])
+      expect(mock_rpc_client).not_to receive(:run)
+      expect(mock_rpc_client).not_to receive(:start)
+
+      result = transport.batch_script([target], script_path, [], { run_as: 'deploy' }, []).first
+
+      expect(result.error_hash).to include(run_as_error(target, 'deploy'))
     end
 
     describe 'command building' do

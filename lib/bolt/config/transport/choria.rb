@@ -21,6 +21,7 @@ module Bolt
           brokers
           puppet-environment
           rpc-timeout
+          run-as
           ssl-ca
           ssl-cert
           ssl-key

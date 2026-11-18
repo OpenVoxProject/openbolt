@@ -228,6 +228,16 @@ describe Bolt::Transport::Choria do
           expect(result.ok?).to be false
           expect(result.error_hash['msg']).to match(/bolt_tasks.*not available/)
         end
+
+        it 'refuses a run_as user other than root with the escalate error and sends bolt_tasks nothing' do
+          stub_agents(target, %w[rpcutil bolt_tasks])
+          expect(mock_rpc_client).not_to receive(:download)
+          expect(mock_rpc_client).not_to receive(:run_no_wait)
+
+          result = transport.batch_task([target], task, {}, { run_as: 'deploy' }).first
+
+          expect(result.error_hash).to include(run_as_error(target, 'deploy'))
+        end
       end
 
       context 'with forced task-agent' do
@@ -287,6 +297,17 @@ describe Bolt::Transport::Choria do
           result = transport.batch_task([target], task, {}).first
           expect(result.ok?).to be false
           expect(result.error_hash['msg']).to match(/shell.*not available/)
+        end
+
+        it 'refuses a run_as user other than root with the escalate error and sends the shell agent nothing' do
+          stub_agents(target, %w[rpcutil shell])
+          inventory.set_config(target, %w[choria task-agent], 'shell')
+          expect(mock_rpc_client).not_to receive(:run)
+          expect(mock_rpc_client).not_to receive(:start)
+
+          result = transport.batch_task([target], task, {}, { run_as: 'deploy' }).first
+
+          expect(result.error_hash).to include(run_as_error(target, 'deploy'))
         end
 
         it 'raises for invalid forced agent value' do

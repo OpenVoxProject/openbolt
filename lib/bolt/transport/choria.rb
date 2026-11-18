@@ -120,17 +120,17 @@ module Bolt
       # @param targets [Array<Bolt::Target>] Targets in a single collective batch
       # @param task [Bolt::Task] Task to execute
       # @param arguments [Hash] Task parameter names to values
-      # @param options [Hash] Execution options (unused currently, passed through from Base)
+      # @param options [Hash] Execution options, supports :run_as
       # @param position [Array] Positional info for result tracking
       # @param callback [Proc] Called with :node_start and :node_result events
       # @return [Array<Bolt::Result>] Results for all targets (successes and failures)
-      def batch_task(targets, task, arguments, _options = {}, position = [], &callback)
+      def batch_task(targets, task, arguments, options = {}, position = [], &callback)
         chosen_agent = targets.first.options['task-agent'] || 'bolt_tasks'
         result_opts = { action: 'task', name: task.name, position: position }
 
         # The results var here is the error results for incapable targets, to which we'll add in
         # the successful results from the capable targets as we go.
-        capable, results = prepare_targets(targets, chosen_agent, result_opts, &callback)
+        capable, results = prepare_targets(targets, chosen_agent, result_opts, run_as: options[:run_as], &callback)
 
         logger.debug { "Task #{task.name} routing: agent: #{chosen_agent}, #{capable.size} capable / #{targets.size - capable.size} incapable" }
 
@@ -239,8 +239,8 @@ module Bolt
 
       # Downloads into the destination itself. A batch gives each target a
       # directory of its own under the destination.
-      def download(target, source, destination, _options = {})
-        download_into({ target => destination }, source, []).first
+      def download(target, source, destination, options = {})
+        download_into({ target => destination }, source, [], run_as: options[:run_as]).first
       end
 
       def connected?(target)

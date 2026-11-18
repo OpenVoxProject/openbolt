@@ -22,7 +22,7 @@ describe Bolt::Config::Transport::Choria do
   context 'validating' do
     include_examples 'interpreters'
 
-    %w[task-agent config-file collective host mcollective-certname puppet-environment ssl-ca ssl-cert ssl-key tmpdir].each do |opt|
+    %w[task-agent config-file collective host mcollective-certname puppet-environment run-as ssl-ca ssl-cert ssl-key tmpdir].each do |opt|
       it "#{opt} rejects non-string value" do
         data[opt] = 100
         expect { transport.new(data) }.to raise_error(Bolt::ValidationError)
@@ -81,6 +81,12 @@ describe Bolt::Config::Transport::Choria do
     it 'brokers errors with wrong type' do
       data['brokers'] = 12345
       expect { transport.new(data) }.to raise_error(Bolt::ValidationError)
+    end
+
+    it 'run-as keeps its value and is an option the command line passes to the transport' do
+      data['run-as'] = 'deploy'
+      expect(transport.new(data)['run-as']).to eq('deploy')
+      expect(transport.options).to include('run-as')
     end
 
     it 'cleanup errors with wrong type' do
