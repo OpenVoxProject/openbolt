@@ -40,10 +40,15 @@ begin
   # directories we configured earlier.
   Puppet.settings.use(:main)
 
-  Tempfile.open('plugins.tar.gz') do |plugins|
-    File.binwrite(plugins, Base64.decode64(args['plugins']))
-    user = Etc.getpwuid.nil? ? Etc.getlogin : Etc.getpwuid.name
-    Puppet::ModuleTool::Tar.instance.unpack(plugins, moduledir, user)
+  user = Etc.getpwuid.nil? ? Etc.getlogin : Etc.getpwuid.name
+  if args['plugins_file']
+    base = ARGV[0] ? File.dirname(ARGV[0]) : Dir.pwd
+    Puppet::ModuleTool::Tar.instance.unpack(File.expand_path(args['plugins_file'], base), moduledir, user)
+  else
+    Tempfile.open('plugins.tar.gz') do |plugins|
+      File.binwrite(plugins, Base64.decode64(args['plugins']))
+      Puppet::ModuleTool::Tar.instance.unpack(plugins, moduledir, user)
+    end
   end
 
   env = Puppet.lookup(:environments).get('production')
