@@ -234,6 +234,17 @@
                         }
                       ]
                     },
+                    "run-as": {
+                      "description": "The user to run commands as after login. The run-as user must be different than the login user.",
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "$ref": "#/definitions/_plugin"
+                        }
+                      ]
+                    },
                     "ssl-ca": {
                       "description": "The path to the CA certificate for Choria TLS connections. Overrides the CA from the Choria client configuration file.",
                       "oneOf": [

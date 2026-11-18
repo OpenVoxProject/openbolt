@@ -71,6 +71,13 @@ module BoltSpec
       allow(mock_rpc_client).to receive_messages(agent_inventory: @stub_inventory_results, get_fact: @stub_fact_results)
     end
 
+    # The error hash of a POSIX target refused for a run-as user other than root.
+    def run_as_error(target, user)
+      { 'kind' => 'puppetlabs.tasks/escalate-error',
+        'msg' => "Cannot run as user '#{user}' on #{target.safe_name}. The Choria transport runs everything " \
+                 "as the Choria server's user and accepts only 'root' for run-as." }
+    end
+
     # --- bolt_tasks result builders ---
 
     def make_download_result(sender, downloads: 1)

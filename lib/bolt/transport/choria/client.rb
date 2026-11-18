@@ -222,16 +222,19 @@ module Bolt
 
       # Fire node_start for every target, configure the client, discover
       # agents, partition targets by agent availability, and emit errors for
-      # incapable targets.
+      # incapable targets. A POSIX target with a run-as user other than root
+      # is refused as well, since the agents run everything as the Choria
+      # server's user.
       #
       # @param targets [Array<Bolt::Target>] Targets to prepare
       # @param agent_name [String] Required agent name (e.g. 'shell', 'bolt_tasks')
       # @param result_opts [Hash] Options passed through to emit_results (:action, :name, :position)
+      # @param run_as [String, nil] The user the call names, which takes precedence over each target's run-as option
       # @param callback [Proc] Called with :node_start and :node_result events
       # @return [Array] Two-element array:
-      #   - [Array<Bolt::Target>] Targets that have the required agent
-      #   - [Array<Bolt::Result>] Error results for targets that lack the agent
-      def prepare_targets(targets, agent_name, result_opts, &callback)
+      #   - [Array<Bolt::Target>] Targets that have the required agent and can run as the user
+      #   - [Array<Bolt::Result>] Error results for the other targets
+      def prepare_targets(targets, agent_name, result_opts, run_as: nil, &callback)
         targets.each { |target| callback&.call(type: :node_start, target: target) }
         configure_client(targets.first)
         discovery_failures = discover_agents(targets)
@@ -245,7 +248,17 @@ module Bolt
                              discovery_failures[target] || undiscovered_error(target)
                            end
         end
-        incapable_results = emit_results(agent_errors, **result_opts, &callback)
+
+        run_as_errors = capable.each_with_object({}) do |target, errors|
+          user = run_as || target.options['run-as']
+          next if user.nil? || user == 'root' || windows_target?(target)
+
+          errors[target] = error_output("Cannot run as user '#{user}' on #{target.safe_name}. The Choria transport runs everything " \
+                                        "as the Choria server's user and accepts only 'root' for run-as.",
+                                        'puppetlabs.tasks/escalate-error')
+        end
+        capable -= run_as_errors.keys
+        incapable_results = emit_results(agent_errors.merge(run_as_errors), **result_opts, &callback)
 
         [capable, incapable_results]
       end

@@ -20,9 +20,9 @@ module Bolt
       }.freeze
 
       # Upload one file to the capable targets through the library.
-      def batch_upload(targets, source, destination, _options = {}, position = [], &callback)
+      def batch_upload(targets, source, destination, options = {}, position = [], &callback)
         result_opts = { action: 'upload', name: source, position: position }
-        capable, results = prepare_targets(targets, 'file_transfer', result_opts, &callback)
+        capable, results = prepare_targets(targets, 'file_transfer', result_opts, run_as: options[:run_as], &callback)
         return results if capable.empty?
 
         logger.debug { "Uploading #{source} to #{destination} on #{target_count(capable)}" }
@@ -35,9 +35,9 @@ module Bolt
       end
 
       # Download a path from each capable target into its own directory.
-      def batch_download(targets, source, destination, _options = {}, position = [], &callback)
+      def batch_download(targets, source, destination, options = {}, position = [], &callback)
         directories = targets.to_h { |target| [target, download_dir(destination, target)] }
-        download_into(directories, source, position, &callback)
+        download_into(directories, source, position, run_as: options[:run_as], &callback)
       end
 
       # Download a path from each capable target into the directory given
@@ -46,11 +46,12 @@ module Bolt
       # @param directories [Hash{Bolt::Target => String}] Each target and the local directory its download goes into
       # @param source [String] The path to download from each target
       # @param position [Array] Positional info for result tracking
+      # @param run_as [String, nil] The user the call names
       # @param callback [Proc] Called with :node_start and :node_result events
       # @return [Array<Bolt::Result>]
-      def download_into(directories, source, position, &callback)
+      def download_into(directories, source, position, run_as:, &callback)
         result_opts = { action: 'download', name: source, position: position }
-        capable, results = prepare_targets(directories.keys, 'file_transfer', result_opts, &callback)
+        capable, results = prepare_targets(directories.keys, 'file_transfer', result_opts, run_as: run_as, &callback)
         return results if capable.empty?
 
         logger.debug { "Downloading #{source} from #{target_count(capable)}" }

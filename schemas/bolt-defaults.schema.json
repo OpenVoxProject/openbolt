@@ -652,6 +652,16 @@
                 }
               ]
             },
+            "run-as": {
+              "oneOf": [
+                {
+                  "$ref": "#/transport_definitions/run-as"
+                },
+                {
+                  "$ref": "#/definitions/_plugin"
+                }
+              ]
+            },
             "ssl-ca": {
               "oneOf": [
                 {

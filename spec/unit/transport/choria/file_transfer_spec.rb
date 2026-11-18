@@ -46,6 +46,13 @@ describe Bolt::Transport::Choria do
       expect(library.clients).to be_empty
     end
 
+    it 'refuses a run_as user other than root with the escalate error and builds no client' do
+      results = transport.batch_upload([target], source, destination, { run_as: 'deploy' })
+
+      expect(results.first.error_hash).to include(run_as_error(target, 'deploy'))
+      expect(library.clients).to be_empty
+    end
+
     it 'builds the client with the batch options and the transport logger' do
       inventory.set_config(target, %w[choria message-data-size], 65_536)
       inventory.set_config(target, %w[choria upload-batch-size], 100)
@@ -258,6 +265,13 @@ describe Bolt::Transport::Choria do
       expect(results.first.action).to eq('download')
     end
 
+    it 'refuses a run_as user other than root with the escalate error and builds no client' do
+      results = transport.batch_download([target], '/var/log/app.log', workdir, { run_as: 'deploy' })
+
+      expect(results.first.error_hash).to include(run_as_error(target, 'deploy'))
+      expect(library.clients).to be_empty
+    end
+
     it 'fires node_start and node_result for every target' do
       events = []
 
@@ -306,6 +320,13 @@ describe Bolt::Transport::Choria do
 
       expect(result.error_hash).to include('kind' => 'bolt/choria-file-transfer-failed')
       expect(result.action).to eq('download')
+    end
+
+    it 'refuses a run_as user other than root in its options and builds no client' do
+      result = transport.download(target, '/var/log/app.log', '/srv/logs', { run_as: 'deploy' })
+
+      expect(result.error_hash).to include(run_as_error(target, 'deploy'))
+      expect(library.clients).to be_empty
     end
   end
 

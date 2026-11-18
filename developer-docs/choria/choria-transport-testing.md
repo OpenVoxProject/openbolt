@@ -709,6 +709,21 @@ bolt command run 'hostname -f' --targets nodeA.example.com,nodeB.example.com
 Expected: Returns hostname from both nodes. Verifies multi-target fanout
 works correctly.
 
+**run-as**
+
+```bash
+bolt command run 'whoami' --targets nodeA.example.com --run-as deploy
+bolt command run 'whoami' --targets nodeA.example.com --run-as root
+```
+
+Expected: The first fails with `puppetlabs.tasks/escalate-error` before
+anything beyond agent discovery reaches the node, with:
+```
+Cannot run as user 'deploy' on nodeA.example.com. The Choria transport runs everything as the Choria server's user and accepts only 'root' for run-as.
+```
+
+The second prints `root`.
+
 **Timeouts**
 
 Test that long-running commands are killed on timeout:

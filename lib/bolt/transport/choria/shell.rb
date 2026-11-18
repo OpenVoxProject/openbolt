@@ -35,13 +35,13 @@ module Bolt
       #
       # @param targets [Array<Bolt::Target>] Targets in a single collective batch
       # @param command [String] Shell command to execute
-      # @param options [Hash] Execution options - supports :env_vars for environment variables
+      # @param options [Hash] Execution options - supports :env_vars for environment variables and :run_as
       # @param position [Array] Positional info for result tracking
       # @param callback [Proc] Called with :node_start and :node_result events
       # @return [Array<Bolt::Result>] Results for all targets
       def batch_command(targets, command, options = {}, position = [], &callback)
         result_opts = { action: 'command', name: command, position: position }
-        shell_targets, results = prepare_targets(targets, 'shell', result_opts, &callback)
+        shell_targets, results = prepare_targets(targets, 'shell', result_opts, run_as: options[:run_as], &callback)
         return results if shell_targets.empty?
 
         logger.debug { "Running command via shell agent on #{target_count(shell_targets)}" }
@@ -75,13 +75,13 @@ module Bolt
       # @param targets [Array<Bolt::Target>] Targets in a single collective batch
       # @param script [String] Local path to the script file
       # @param arguments [Array<String>] Command-line arguments to pass to the script
-      # @param options [Hash] Execution options; supports :script_interpreter and :env_vars
+      # @param options [Hash] Execution options, supports :script_interpreter, :env_vars and :run_as
       # @param position [Array] Positional info for result tracking
       # @param callback [Proc] Called with :node_start and :node_result events
       # @return [Array<Bolt::Result>] Results for all targets
       def batch_script(targets, script, arguments, options = {}, position = [], &callback)
         result_opts = { action: 'script', name: script, position: position }
-        shell_targets, results = prepare_targets(targets, 'shell', result_opts, &callback)
+        shell_targets, results = prepare_targets(targets, 'shell', result_opts, run_as: options[:run_as], &callback)
         return results if shell_targets.empty?
 
         logger.debug { "Running script via shell agent on #{target_count(shell_targets)}" }
