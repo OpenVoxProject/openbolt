@@ -130,8 +130,9 @@ batch method:
 1. `configure_client(target)` for one-time MCollective setup
 2. `discover_agents(targets)` for agent detection
 3. Partition targets into capable and incapable based on agent availability
-4. Emit error results for incapable targets immediately
-5. Return `[capable_targets, error_results]`
+4. Refuse the capable POSIX targets whose run-as user is not `root`
+5. Emit error results for incapable and refused targets immediately
+6. Return `[capable_targets, error_results]`
 
 **Same-path trick for tmpdir:** All targets in a batch get the same tmpdir
 path (e.g., `/tmp/bolt-choria-abc`). Since they're different machines, this
@@ -420,17 +421,32 @@ a single NATS hiccup from crashing the entire batch.
 
 ### prepare_targets
 
-The common setup pattern used by every batch method. Combines four steps into
+The common setup pattern used by every batch method. Combines five steps into
 one call:
 
 1. `configure_client(target)` for one-time MCollective setup
 2. `discover_agents(targets)` for agent detection (cached after first call)
 3. Partition targets by agent availability using `has_agent?`
-4. Emit error results (via callback) for targets missing the required agent,
-   and the discovery error for each target discovery failed for
+4. Refuse each target that has the agent, is not a Windows target, and whose
+   user is set and is not exactly `root`
+5. Emit error results (via callback) for targets missing the required agent,
+   the discovery error for each target discovery failed for, and the
+   refusal of each refused target
 
 Returns `[capable_targets, error_results]`. The caller proceeds with only
 capable targets while error results are already emitted to the user.
+
+The user is the call's `run_as` option, which a plan's `_run_as` sets, and
+otherwise the target's `run-as` option, which the `--run-as` flag and the
+transport config set. This is the order the Bash shell of the other
+transports uses. Every batch method passes its `options[:run_as]` to
+`prepare_targets`. The agents run everything as the Choria server's user,
+which is `root` in Choria's packages, so the transport accepts only `root`
+for run-as. A refused target gets a result of kind
+`puppetlabs.tasks/escalate-error`, the kind of `Bolt::Node::EscalateError`,
+and nothing beyond discovery is sent to it. A Windows target is never
+refused, since the PowerShell shell the other transports use for Windows
+ignores the run-as user.
 
 ### run_task_via_shell input_method handling
 
@@ -644,6 +660,7 @@ handles its own concurrency: `batches()` groups targets by collective
   batch reads them from its first target, so targets whose values differ get
   the first target's values. Batching by option values as well would serialize one batch per
   distinct set of values, which is far slower when the values vary per target.
+  `run-as` is not one of them, since `prepare_targets` checks it per target.
 - **Shell uploads in chunks:** `upload_file_content` embeds base64 file
   content in `shell.run` commands, and the shell agent DDL caps `command` at
   10,240 characters. So each call contains 6,000 bytes of raw content on POSIX
@@ -750,7 +767,7 @@ fixture CA into `spec/fixtures/choria/ssl`. Git ignores both directories.
 
 The suite runs the shared transport examples, then its own examples: a script's
 environment variables, a script of several upload commands, the `interpreters`
-and `host` options, a node without the agents, batches, `connected?`,
+and `host` options, a node without the agents, run-as, batches, `connected?`,
 `cleanup`, the shell job directories, the command and task timeouts, file
 transfers and tasks through the bolt_tasks agent. It covers Linux nodes. The shared examples write their tasks to temporary
 files, which the server does not have, so they run with `task-agent` set to
