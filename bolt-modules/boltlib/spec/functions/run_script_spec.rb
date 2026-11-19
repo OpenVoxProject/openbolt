@@ -188,6 +188,17 @@ describe 'run_script' do
         .and_return(result_set)
     end
 
+    it 'with _stream' do
+      expect(executor).to receive(:run_script)
+        .with([target], full_path, [], { stream: true }, [])
+        .and_return(result_set)
+      expect(inventory).to receive(:get_targets).with(target).and_return([target])
+
+      is_expected.to run
+        .with_params('test/uploads/hostname.sh', target, '_stream' => true)
+        .and_return(result_set)
+    end
+
     it 'reports the call to analytics' do
       expect(executor).to receive(:report_function_call).with('run_script')
       expect(executor).to receive(:run_script)

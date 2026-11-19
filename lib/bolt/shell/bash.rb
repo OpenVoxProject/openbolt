@@ -22,7 +22,10 @@ module Bolt
 
       def run_command(command, options = {}, position = [])
         running_as(options[:run_as]) do
-          output = execute(command, environment: options[:env_vars], sudoable: true)
+          output = execute(command,
+                           environment: options[:env_vars],
+                           sudoable: true,
+                           stream: stream_enabled?(options))
           Bolt::Result.for_command(target,
                                    output.to_h,
                                    'command',
@@ -104,7 +107,10 @@ module Bolt
               logger.trace("Running '#{script}' using '#{interpreter}' interpreter")
             end
 
-            output = execute(exec_args, environment: options[:env_vars], sudoable: true)
+            output = execute(exec_args,
+                             environment: options[:env_vars],
+                             sudoable: true,
+                             stream: stream_enabled?(options))
             Bolt::Result.for_command(target,
                                      output.to_h,
                                      'script',
@@ -171,6 +177,7 @@ module Bolt
             dir.chown(run_as)
 
             execute_options[:sudoable] = true if run_as
+            execute_options[:stream] = stream_enabled?(options)
             output = execute(remote_task_path, **execute_options)
           end
           Bolt::Result.for_task(target, output.stdout.string,
@@ -344,7 +351,8 @@ module Bolt
         command.is_a?(String) ? command : Shellwords.shelljoin(command)
       end
 
-      def execute(command, sudoable: false, **options)
+      def execute(command, sudoable: false, stream: false, **options)
+        stream_logger if stream
         run_as = options[:run_as] || self.run_as
         escalate = sudoable && run_as && conn.user != run_as
         use_sudo = escalate && @target.options['run-as-command'].nil?
@@ -407,7 +415,7 @@ module Bolt
           ready_read = select([err], nil, nil, timeout * 5)
           to_print = check_sudo(err, inp, options[:stdin]) if ready_read
           unless to_print.nil?
-            log_stream(to_print, 'err')
+            log_stream(to_print, 'err', stream)
             read_streams[err]           << to_print
             result_output.merged_output << to_print
           end
@@ -418,16 +426,16 @@ module Bolt
           # See if we can read from out or err, or write to in
           ready_read, ready_write, = select(read_streams.keys, write_stream, nil, timeout)
 
-          ready_read&.each do |stream|
-            stream_name = stream == out ? 'out' : 'err'
+          ready_read&.each do |io|
+            stream_name = io == out ? 'out' : 'err'
             # Check for sudo prompt
             to_print = if use_sudo
-                         check_sudo(stream, inp, options[:stdin])
+                         check_sudo(io, inp, options[:stdin])
                        else
-                         stream.readpartial(CHUNK_SIZE)
+                         io.readpartial(CHUNK_SIZE)
                        end
-            log_stream(to_print, stream_name)
-            read_streams[stream]        << to_print
+            log_stream(to_print, stream_name, stream)
+            read_streams[io]            << to_print
             result_output.merged_output << to_print
           rescue EOFError
           end
@@ -464,17 +472,17 @@ module Bolt
         end
         # Read any remaining data in the pipe. Do not wait for
         # EOF in case the pipe is inherited by a child process.
-        read_streams.each do |stream, _|
-          stream_name = stream == out ? 'out' : 'err'
+        read_streams.each do |io, _|
+          stream_name = io == out ? 'out' : 'err'
           loop {
-            to_print = stream.read_nonblock(CHUNK_SIZE)
-            log_stream(to_print, stream_name)
-            read_streams[stream]        << to_print
+            to_print = io.read_nonblock(CHUNK_SIZE)
+            log_stream(to_print, stream_name, stream)
+            read_streams[io]            << to_print
             result_output.merged_output << to_print
           }
         rescue Errno::EAGAIN, EOFError
         ensure
-          stream.close
+          io.close
         end
         inp.close
         result_output.stdout << read_streams[out]
@@ -505,15 +513,6 @@ module Bolt
 
       def sudo_prompt
         '[sudo] Bolt needs to run as another user, password: '
-      end
-
-      private def log_stream(to_print, stream_name)
-        if !to_print.chomp.empty? && @stream_logger
-          formatted = to_print.lines.map do |msg|
-            "[#{@target.safe_name}] #{stream_name}: #{msg.chomp}"
-          end.join("\n")
-          @stream_logger.warn(formatted)
-        end
       end
     end
   end

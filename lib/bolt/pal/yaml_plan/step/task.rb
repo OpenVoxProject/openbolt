@@ -10,7 +10,7 @@ module Bolt
           end
 
           def self.option_keys
-            Set['catch_errors', 'noop', 'run_as']
+            Set['catch_errors', 'noop', 'run_as', 'stream']
           end
 
           def self.required_keys

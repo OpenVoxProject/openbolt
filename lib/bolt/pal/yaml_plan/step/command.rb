@@ -6,7 +6,7 @@ module Bolt
       class Step
         class Command < Step
           def self.option_keys
-            Set['catch_errors', 'env_vars', 'run_as']
+            Set['catch_errors', 'env_vars', 'run_as', 'stream']
           end
 
           def self.required_keys

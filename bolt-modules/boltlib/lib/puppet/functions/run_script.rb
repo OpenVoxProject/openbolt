@@ -15,6 +15,8 @@ Puppet::Functions.create_function(:run_script, Puppet::Functions::InternalFuncti
   # @option options [Hash] pwsh_params Map of named parameters to pass to a PowerShell script.
   #   Cannot be used with `arguments`.
   # @option options [Boolean] _catch_errors Whether to catch raised errors.
+  # @option options [Boolean] _stream Whether to stream output from the script to the console.
+  #   Defaults to the `stream` configuration option.
   # @option options [String] _run_as User to run as using privilege escalation.
   # @option options [Hash[String, Any]] _env_vars Map of environment variables to set.
   # @return A list of results, one entry per target.
@@ -43,6 +45,8 @@ Puppet::Functions.create_function(:run_script, Puppet::Functions::InternalFuncti
   # @option options [Hash] pwsh_params Map of named parameters to pass to a PowerShell script.
   #   Cannot be used with `arguments`.
   # @option options [Boolean] _catch_errors Whether to catch raised errors.
+  # @option options [Boolean] _stream Whether to stream output from the script to the console.
+  #   Defaults to the `stream` configuration option.
   # @option options [String] _run_as User to run as using privilege escalation.
   # @option options [Hash[String, Any]] _env_vars Map of environment variables to set.
   # @return A list of results, one entry per target.

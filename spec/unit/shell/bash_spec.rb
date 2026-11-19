@@ -204,6 +204,43 @@ describe Bolt::Shell::Bash do
     end
   end
 
+  describe "streaming" do
+    let(:stream_logger) { double('stream_logger', warn: nil) }
+
+    before(:each) do
+      allow(shell).to receive(:stream_logger).and_return(stream_logger)
+    end
+
+    it "streams output when stream is true" do
+      messages = []
+      allow(stream_logger).to receive(:warn) { |msg| messages << msg }
+      allow(connection).to receive(:execute)
+        .and_return(mock_result(stdout: "hello\nworld\n", stderr: "oops\n"))
+
+      shell.run_command('echo hello', stream: true)
+
+      expect(messages.join("\n")).to include("[#{target.safe_name}] out: hello")
+      expect(messages.join("\n")).to include("[#{target.safe_name}] out: world")
+      expect(messages.join("\n")).to include("[#{target.safe_name}] err: oops")
+    end
+
+    it "does not stream when stream is false even if streaming is enabled globally" do
+      Bolt::Logger.stream = true
+      expect(stream_logger).not_to receive(:warn)
+      allow(connection).to receive(:execute).and_return(mock_result(stdout: "hello\n"))
+
+      shell.run_command('echo hello', stream: false)
+    end
+
+    it "uses the global stream setting when stream is not specified" do
+      Bolt::Logger.stream = true
+      expect(stream_logger).to receive(:warn).at_least(:once)
+      allow(connection).to receive(:execute).and_return(mock_result(stdout: "hello\n"))
+
+      shell.run_command('echo hello')
+    end
+  end
+
   describe "#make_tmpdir" do
     it "names the directory it could not create" do
       inventory.set_config(target, 'ssh', 'tmpdir' => '/tmp/mytmpdir')

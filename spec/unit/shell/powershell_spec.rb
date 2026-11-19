@@ -102,6 +102,56 @@ describe Bolt::Shell::Powershell do
     end
   end
 
+  describe "#streaming" do
+    let(:stream_logger) { double('stream_logger', warn: nil) }
+
+    before(:each) do
+      allow(shell).to receive(:stream_logger).and_return(stream_logger)
+    end
+
+    it "streams output when stream is true" do
+      allow(connection).to receive(:execute)
+        .and_return(mock_result(stdout: "hello\nworld\n", stderr: "oops\n"))
+
+      expect(stream_logger).to receive(:warn)
+        .with("[#{target.safe_name}] out: hello\n[#{target.safe_name}] out: world")
+      expect(stream_logger).to receive(:warn)
+        .with("[#{target.safe_name}] err: oops")
+
+      shell.run_command('Write-Output hello', stream: true)
+    end
+
+    it "does not stream when stream is false even if streaming is enabled globally" do
+      Bolt::Logger.stream = true
+      expect(stream_logger).not_to receive(:warn)
+      allow(connection).to receive(:execute).and_return(mock_result(stdout: "hello\n"))
+
+      shell.run_command('Write-Output hello', stream: false)
+    end
+
+    it "uses the global stream setting when stream is not specified" do
+      Bolt::Logger.stream = true
+      expect(stream_logger).to receive(:warn).at_least(:once)
+      allow(connection).to receive(:execute).and_return(mock_result(stdout: "hello\n"))
+
+      shell.run_command('Write-Output hello')
+    end
+
+    it "does not stream output from internal commands even if streaming is enabled globally" do
+      Bolt::Logger.stream = true
+      allow(connection).to receive(:execute).and_return(mock_result(stdout: "5\n"))
+
+      internal_logger = double('stream_logger').as_null_object
+      allow(Bolt::Logger).to receive(:logger).and_wrap_original do |original, name|
+        name == :stream ? internal_logger : original.call(name)
+      end
+      expect(internal_logger).not_to receive(:warn)
+
+      # Instantiating the shell runs a PowerShell version check internally.
+      described_class.new(target, connection)
+    end
+  end
+
   describe "#validate_extensions" do
     it "fails if the extension isn't in the list" do
       ext = File.extname('foo.bar')

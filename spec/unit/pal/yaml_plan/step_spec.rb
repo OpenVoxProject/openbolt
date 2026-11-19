@@ -69,6 +69,13 @@ describe Bolt::PAL::YamlPlan::Step do
       it 'stringifies a command step' do
         expect(step.transpile).to eq(output)
       end
+
+      it 'transpiles the stream option' do
+        step_body['stream'] = true
+        expect(step.transpile).to eq(
+          "  run_command('echo peanut butter', $bread, {'_stream' => true})\n"
+        )
+      end
     end
 
     context 'with script step' do
@@ -81,6 +88,14 @@ describe Bolt::PAL::YamlPlan::Step do
 
       it 'stringifies a script step' do
         expect(step.transpile).to eq(output)
+      end
+
+      it 'transpiles the stream option' do
+        step_body['stream'] = true
+        expect(step.transpile).to eq(
+          "  run_script('bananas.pb', $bread, {'_stream' => true, " \
+          "'arguments' => ['--with cinnamon', '--and honey']})\n"
+        )
       end
     end
 
@@ -100,6 +115,14 @@ describe Bolt::PAL::YamlPlan::Step do
 
       it 'stringifies a task step' do
         expect(step.transpile).to eq(output)
+      end
+
+      it 'transpiles the stream option' do
+        step_body['stream'] = true
+        expect(step.transpile).to eq(
+          "  run_task('jam::raspberry', $bread, 'delicious', " \
+          "{'butter' => 'crunchy peanut', '_stream' => true})\n"
+        )
       end
     end
 
