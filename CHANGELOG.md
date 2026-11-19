@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file.
 
+## [9.1.0](https://github.com/openvoxproject/openbolt/tree/9.1.0) (2026-11-19)
+
+[Full Changelog](https://github.com/openvoxproject/openbolt/compare/9.0.0...9.1.0)
+
+**Implemented enhancements:**
+
+- Allow `-t/--targets` to accept JSON array on stdin [\#121](https://github.com/OpenVoxProject/openbolt/issues/121)
+- Promote puppet-runtime 2026.11.19.1 into main [\#393](https://github.com/OpenVoxProject/openbolt/pull/393) ([OpenVoxProjectBot](https://github.com/OpenVoxProjectBot))
+- Restore the PCP transport  [\#385](https://github.com/OpenVoxProject/openbolt/pull/385) ([nmburgan](https://github.com/nmburgan))
+
+**Fixed bugs:**
+
+- Refuse a run-as user other than root on Choria targets [\#392](https://github.com/OpenVoxProject/openbolt/pull/392) ([nmburgan](https://github.com/nmburgan))
+
+**Closed issues:**
+
+- Remove puppet connect feature [\#10](https://github.com/OpenVoxProject/openbolt/issues/10)
+
 ## [9.0.0](https://github.com/openvoxproject/openbolt/tree/9.0.0) (2026-11-11)
 
 [Full Changelog](https://github.com/openvoxproject/openbolt/compare/5.6.0...9.0.0)
