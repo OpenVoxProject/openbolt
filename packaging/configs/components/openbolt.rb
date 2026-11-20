@@ -42,8 +42,25 @@ component "openbolt" do |pkg, settings, platform|
     bolt_exe = File.join(settings[:link_bindir], 'bolt')
     pkg.install_file "../bolt_env_wrapper", bolt_exe, mode: "0755"
 
-    if File.directory?("/etc/bash_completion.d")
-      pkg.install_file "resources/bolt_bash_completion.sh", "/etc/bash_completion.d/bolt.sh", mode: "0644"
+    # Generate the shell completion scripts with the bolt we just installed, so
+    # the packaged completions always match the packaged CLI.
+    if platform.is_linux?
+      bash_completion = '/tmp/bolt-completion.bash'
+      zsh_completion  = '/tmp/bolt-completion.zsh'
+      pkg.install do
+        [
+          "#{bolt_exe} completion bash > #{bash_completion}",
+          "#{bolt_exe} completion zsh > #{zsh_completion}"
+        ]
+      end
+
+      pkg.install_file bash_completion, '/usr/share/bash-completion/completions/bolt', mode: '0644'
+
+      # Debian and Ubuntu zsh search /usr/share/zsh/vendor-completions, while
+      # RPM-based distros search /usr/share/zsh/site-functions, so install the
+      # same script in both locations.
+      pkg.install_file zsh_completion, '/usr/share/zsh/site-functions/_bolt', mode: '0644'
+      pkg.install_file zsh_completion, '/usr/share/zsh/vendor-completions/_bolt', mode: '0644'
     end
 
     if platform.is_macos?
