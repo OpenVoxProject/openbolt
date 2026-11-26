@@ -11,7 +11,7 @@ mod 'puppetlabs-facts', '1.8.1'
 
 # Other core Puppet modules
 mod 'puppetlabs-inifile', '6.6.1'
-mod 'puppetlabs-apt', '11.4.1'
+mod 'puppetlabs-apt', '11.5.0'
 mod 'puppetlabs-stdlib', '10.2.0'
 mod 'puppetlabs-powershell', '6.2.0'
 mod 'puppetlabs-pwshlib', '2.1.1'
